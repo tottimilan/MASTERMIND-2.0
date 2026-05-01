@@ -89,7 +89,7 @@ if (-not (Test-Path $prdDir)) {
 
 if (-not (Test-Path $prdPath)) {
     @'
-# PRD — [PROJECT NAME]
+# PRD - [PROJECT NAME]
 
 > This is the source of truth for `task-master-ai`. When you run `task-master parse-prd`, this file is decomposed into dependency-aware tasks under `.taskmaster/tasks.json`.
 

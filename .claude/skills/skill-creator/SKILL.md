@@ -201,7 +201,7 @@ After updating peer skills, run the sync script again so the mirror reflects all
 
 ## Known skills in this repo (System 1 + System 2)
 
-These 16 skills form the canonical set. A new skill must not overlap > 60% with any of them (see anti-patterns):
+These 19 skills form the canonical set. A new skill must not overlap > 60% with any of them (see anti-patterns):
 
 **System 1 — Analysis & Documentation (14):**
 - Foundation: `doubt-surfacer`, `memory-updater`, `skill-creator` (this one)

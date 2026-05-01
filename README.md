@@ -10,6 +10,9 @@
 
 MASTERMIND 2.0 is a template repository that you **clone once per project**. It gives any AI agent working on the project:
 
+> **Start here:** [`OPERATING-GUIDE.md`](OPERATING-GUIDE.md) — the full operational manual (~2000 lines). Read linearly the first time; consult by section afterwards. Covers every phase, every skill, every workflow, with a worked end-to-end example ("Notas-AI") and an FAQ.
+
+
 - A **kernel** (`CLAUDE.md`) that defines the operating rules.
 - A **memory bank** (`memory/`) that survives across sessions and models.
 - A **rules layer** (`.cursor/rules/`) always loaded by Cursor.
@@ -324,12 +327,12 @@ Escape hatches: `git commit --no-verify`, `git push --no-verify`, or env vars `M
 | **Skills (System 2)** | Execution foundation + orchestration + learning | 5 skills |
 | **Workflows** | End-to-end recipes | 5 workflows |
 | **Slash commands** | `/mm-*` shortcuts | 11 commands |
-| **Memory bank** | Per-project intelligence (Git-versioned) | 13 files |
+| **Memory bank** | Per-project intelligence (Git-versioned) | 14 files |
 | **Docs folder** | Product, architecture, features, flows, api, testing, security, adr | 8 subfolders |
 | **Cross-project memory** | `~/.mastermind/global/` (outside the repo) | 5 files + README |
 | **Hooks — agent** | Behavioral instruction files | 3 active + HOOKS.md |
 | **Hooks — git** | Client-side shell scripts (installable) | pre-commit + pre-push |
-| **Scripts** | Automation helpers | 9 scripts (PowerShell + bash variants) |
+| **Scripts** | Automation helpers | 6 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
 
 **Canonical source vs mirror:**
 - Skills: canonical `.cursor/skills/`, mirror `.claude/skills/` (sync via `scripts/sync-skills`).
@@ -384,7 +387,7 @@ These are defaults, not constraints. Every new project must justify its stack in
 
 ## Skill Interaction Graph
 
-The 14 skills in `.cursor/skills/` are designed to compose. Each skill declares `Invoked by` / `Invokes` / `Pairs with` in its own `SKILL.md`. The diagram below is the top-level view.
+The 19 skills in `.cursor/skills/` are designed to compose. Each skill declares `Invoked by` / `Invokes` / `Pairs with` in its own `SKILL.md`. The diagram below is the System-1 spine; the System-2 additions (phase-gate-reviewer, approval-gatekeeper, subagent-dispatcher, parallel-executor, continuous-learner) extend it and are diagrammed in the sections above.
 
 ```
                           ┌─────────────────┐
@@ -451,12 +454,20 @@ The 14 skills in `.cursor/skills/` are designed to compose. Each skill declares 
                            ▼
                   ┌────────────────────┐
                   │   memory-updater   │◄── Finishing step of ALL skills
-                  │  (append-mode SS,  │
-                  │  decisions, risks) │
+                  │  (append-mode SS,  │      (flags lesson candidates;
+                  │  decisions, risks) │       never writes to global)
                   └─────────┬──────────┘
                             │
-                            │ Promotes cross-project lessons to
+                            │ flagged candidates picked up by
                             ▼
+                ┌────────────────────────────┐
+                │   continuous-learner       │
+                │ (3-part test + per-entry   │
+                │  user approval, then       │
+                │  writes to global memory)  │
+                └──────────────┬─────────────┘
+                               │ promotes to
+                               ▼
                 ┌────────────────────────────┐
                 │ ~/.mastermind/global/      │
                 │ lessons · patterns         │

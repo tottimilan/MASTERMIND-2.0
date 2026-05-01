@@ -149,8 +149,8 @@ Finish the chat response with:
 ## Interactions with other skills
 
 - **Runs after:** `doubt-surfacer` (mandatory).
-- **Runs before:** `product-requirements`, `architecture-mapper`, `flow-analyzer`, `implementation-planner`.
-- **Invokes at close:** `memory-updater`.
+- **Runs before:** `product-requirements`, `architecture-mapper`, `flow-analyzer`, `implementation-planner`, and (optionally, at end of Discovery phase) `phase-gate-reviewer`.
+- **Invokes at close:** `memory-updater`. If a lesson surfaced that qualifies for cross-project memory, hand off the candidate to `continuous-learner` (not `memory-updater` — that skill only flags).
 - **Pairs with:** `research-first` — use it during the audit for any claim about a library, API, market, or competitor the agent is unsure about.
 
 ## Completion checklist
