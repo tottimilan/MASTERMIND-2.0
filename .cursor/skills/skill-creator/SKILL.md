@@ -199,6 +199,23 @@ After updating peer skills, run the sync script again so the mirror reflects all
 - **Invokes:** `memory-updater` — to log structural changes in `memory/07-decisions-log.md`.
 - **Pairs with:** `code-reviewer` — skills are code-like artifacts; review before merging.
 
+## Known skills in this repo (System 1 + System 2)
+
+These 16 skills form the canonical set. A new skill must not overlap > 60% with any of them (see anti-patterns):
+
+**System 1 — Analysis & Documentation (14):**
+- Foundation: `doubt-surfacer`, `memory-updater`, `skill-creator` (this one)
+- Discovery: `project-deep-audit`, `product-requirements`, `flow-analyzer`, `research-first`
+- Design: `architecture-mapper`, `feature-breakdown`
+- Execution: `implementation-planner`, `test-strategist`
+- Quality: `bug-investigator`, `code-reviewer`, `security-review`
+
+**System 2 — Execution Foundation (2, growing):**
+- `phase-gate-reviewer` — validates Idea → Discovery → Definition → MVP → Iteration → Launch transitions.
+- `approval-gatekeeper` — enforces Human-in-the-Loop for sensitive actions.
+
+Planned additions (later sub-phases of System 2): `subagent-dispatcher`, `parallel-executor`, `continuous-learner`. Propose a new skill only if its purpose is not covered by the above list.
+
 ## Completion checklist
 
 - [ ] Frontmatter valid per the Agent Skills spec.

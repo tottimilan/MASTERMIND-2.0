@@ -1,0 +1,180 @@
+---
+name: phase-gate-reviewer
+description: Validates whether a project is ready to transition from its current phase (Idea / Discovery / Definition / MVP / Iteration / Launch) to the next. Use at the end of every phase, before starting work that belongs to the next phase, when the user asks "are we ready to advance", "phase gate", "can we move to MVP / Launch / Iteration", or when memory/02-current-state.md shows all expected artifacts of a phase are produced. Reads the entry/exit criteria canonical table from memory/13-phase-history.md, verifies artifacts exist and are not stale, checks risks/open doubts/decisions, emits a BLOCK / PROCEED verdict with a gap list and recommended remediations, updates memory/13 and memory/02 only after user confirmation, and never advances the phase silently.
+---
+
+# Phase Gate Reviewer
+
+## Goal
+
+Make phase transitions **explicit and evidence-based**. A phase advances only when:
+
+1. The artifacts expected of the current phase exist, are current, and reference each other consistently.
+2. The entry criteria of the next phase are satisfied.
+3. There are no open critical risks or unresolved doubts that the next phase cannot safely carry.
+4. The user approves the transition in writing.
+
+Without this discipline, projects drift into "MVP" while the PRD is half-written, or into "Launch" while security has open High findings. This skill exists to prevent that.
+
+## When to use
+
+**Always:**
+- At the end of any phase where the user believes the work is done.
+- Before starting skills that belong to the next phase (e.g. do not start `implementation-planner` if the project is still in Discovery — first gate to Definition).
+- When `memory/02-current-state.md` shows the phase is in "What is next: <next phase>" but no formal transition has been logged.
+- Periodically (e.g. weekly) during long phases, to confirm the project is still on track.
+
+**Trigger keywords:** "phase gate", "are we ready to advance", "ready for MVP", "ready for launch", "move to next phase", "can we ship", "gate review".
+
+**Do NOT use for:**
+- Moving between phases inside a single session without any new artifacts produced. Nothing to gate.
+- Intra-phase work (e.g. moving from "slice 1 done" to "slice 2" — that is `feature-breakdown` territory).
+- Hot bug fixes in production — bugs follow the `bug-investigator` path regardless of phase.
+
+## Prerequisites
+
+Read, in this order:
+
+1. `CLAUDE.md`
+2. `memory/00-project-brief.md`
+3. `memory/02-current-state.md` (current phase + state)
+4. `memory/13-phase-history.md` (previous transitions + canonical phase definitions)
+5. `memory/06-feature-map.md`
+6. `memory/07-decisions-log.md`
+7. `memory/08-known-risks.md`
+8. `memory/09-testing-status.md`
+9. `memory/12-open-doubts-and-questions.md`
+10. `docs/product/prd.md` (when gating Definition → MVP or later)
+11. `docs/security/security-risk-map.md` (when gating MVP → Iteration or Launch)
+
+Abort the skill and raise a **doubt-surfacer** pass if `memory/02-current-state.md` does not clearly declare the current phase. You cannot gate what you cannot name.
+
+## Process
+
+### Step 1 — State the gate being reviewed
+
+At the top of the output:
+
+```markdown
+## Phase Gate Review
+**From:** <current phase>
+**To:** <proposed next phase>
+**Date:** YYYY-MM-DD
+**Reviewer:** <Model>
+```
+
+If the proposed next phase is **not** the natural next step (e.g. skipping from Discovery directly to MVP), flag this explicitly and require a written justification.
+
+### Step 2 — Load the canonical criteria
+
+From `memory/13-phase-history.md §Phase definitions`, read the expected artifacts of the current phase and the entry criteria of the next. The table there is canonical — do not invent new criteria.
+
+If a criterion needs nuance for this project (e.g. the project is a mobile app and some web-specific criteria do not apply), state the adaptation and justify in writing.
+
+### Step 3 — Check exit criteria of the current phase
+
+For the current phase, walk every expected artifact and verify:
+
+- **Existence.** The file or entry is there.
+- **Non-stale.** Last modified date is not older than the phase was entered.
+- **Consistency.** The artifact references the correct decisions and data. For example: `docs/product/prd.md` must cite personas from `docs/product/personas.md`, not invent new ones.
+- **Approved.** Artifacts that need user sign-off (PRD, architecture diagrams, ADRs) have a dated approval note.
+
+Emit per artifact:
+
+```markdown
+### Artifact: <path>
+- Status: [Missing] | [Stale] | [Inconsistent] | [Draft] | [Approved]
+- Evidence: <specific observation>
+- Gap: <what's missing, if any>
+```
+
+### Step 4 — Check entry criteria of the next phase
+
+For the next phase, verify the preconditions stated in `memory/13-phase-history.md §Phase definitions`. Examples:
+
+- **Definition → MVP:** PRD approved, MVP boundary set with one persona + one JTBD + one metric, architecture ADRs accepted, feature-map updated, testing strategy drafted.
+- **MVP → Iteration:** All P0 features shipped, first user sessions logged, zero Critical/High security findings open, observability in place.
+- **Iteration → Launch:** SLA/SLO defined, incident runbook exists, rollback tested, legal/compliance review passed for scope.
+
+### Step 5 — Check risk and doubt posture
+
+- **Critical risks** in `memory/08-known-risks.md` with status Open and no mitigation plan → **BLOCK**.
+- **Pending questions** in `memory/12-open-doubts-and-questions.md` that block the next phase → **BLOCK** or **PROCEED WITH CAVEATS** (document).
+- **Failing tests** reported in `memory/09-testing-status.md` touching mandatory coverage areas → **BLOCK**.
+
+### Step 6 — Emit a verdict
+
+Three verdicts only. No "maybe".
+
+```markdown
+## Verdict
+
+**Status:** PROCEED | PROCEED WITH CAVEATS | BLOCK
+
+**Reasoning:** <1–3 sentences>
+
+**Blocking gaps (if BLOCK):**
+- <gap> — **Remediation:** <concrete action, which skill to invoke>
+
+**Caveats (if PROCEED WITH CAVEATS):**
+- <caveat> — will be re-reviewed when <trigger>
+
+**Approved next phase:** <name> (only on PROCEED or PROCEED WITH CAVEATS)
+```
+
+### Step 7 — Propose the transition entry (do NOT write yet)
+
+Draft the entry that will go into `memory/13-phase-history.md §Transitions` using the canonical template. Present it to the user. Wait for explicit confirmation (*"confirm"*, *"approve"*, *"go"*). Do not write to memory without confirmation.
+
+### Step 8 — Apply the transition (only after confirmation)
+
+On user confirmation:
+1. Append the transition entry to the top of `memory/13-phase-history.md §Transitions`.
+2. Update `memory/13-phase-history.md §Current phase` block.
+3. Update `memory/02-current-state.md` phase and "What is next".
+4. Append to `memory/07-decisions-log.md` with a reference to the transition.
+5. Invoke `memory-updater` to persist.
+
+### Step 9 — Closing handoff
+
+Based on the new phase, recommend the next mode and skills. Examples:
+
+- Entered Discovery → *"Recommend `doubt-surfacer` then `project-deep-audit`. Enter Coach mode."*
+- Entered Definition → *"Recommend `product-requirements` then `architecture-mapper`."*
+- Entered MVP → *"Recommend `feature-breakdown` per epic, then `implementation-planner` per slice. Consider installing `task-master-ai` MCP (see `.cursor/rules/05-claude-mcp-integration.mdc §Reserved for System 2`)."*
+
+## Outputs
+
+- In-chat verdict + verdict block.
+- On PROCEED: updates to `memory/13-phase-history.md`, `memory/02-current-state.md`, `memory/07-decisions-log.md` (via `memory-updater`).
+- On BLOCK: no writes; only the gap list.
+- Optional: ADR under `docs/adr/XXXX-phase-gate-<slug>.md` for gates where the transition itself is a notable decision.
+
+## Interactions with other skills
+
+- **Invoked by:** user, `project-deep-audit` (at the end of Discovery), workflow `04-phase-gate-transition.md` (when available).
+- **Invokes:** `memory-updater` at close (on PROCEED); `doubt-surfacer` if the current phase has loose ends before gating.
+- **Pairs with:** `approval-gatekeeper` — phase gates are themselves changes that require explicit human approval.
+
+## Completion checklist
+
+- [ ] Current phase and proposed next phase named at the top.
+- [ ] Every expected artifact of the current phase reviewed with explicit status.
+- [ ] Every entry criterion of the next phase verified.
+- [ ] Open Critical risks evaluated and either mitigated or blocking the gate.
+- [ ] Pending open doubts evaluated.
+- [ ] Verdict emitted (PROCEED / PROCEED WITH CAVEATS / BLOCK).
+- [ ] Transition entry drafted and presented to the user before writing.
+- [ ] On PROCEED: `memory/13`, `memory/02`, `memory/07` updated via `memory-updater`.
+- [ ] Closing handoff recommends the next mode and skills.
+
+## Anti-patterns
+
+- **NEVER:** Advance the phase silently. Every transition is logged explicitly.
+- **NEVER:** Mark artifacts "approved" on the basis of them existing. Existence ≠ approval.
+- **NEVER:** Rubber-stamp the gate because the user is in a hurry. If there is a blocker, name it.
+- **NEVER:** Skip Step 7 (presenting the draft entry) and write directly to `memory/13`. The user must confirm.
+- **NEVER:** Gate a phase whose current-state is ambiguous. Run `doubt-surfacer` first.
+- **NEVER:** Invent new criteria to gate a project. The canonical table in `memory/13-phase-history.md §Phase definitions` is the source of truth; if it needs updating, update it explicitly with a decision log entry.
+- **NEVER:** Force PROCEED on BLOCK by hand-waving the blockers. If blockers exist, the remediation path is to close them, not to reclassify them as "acceptable".

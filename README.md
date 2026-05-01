@@ -110,6 +110,108 @@ MASTERMIND-2.0/
 
 ---
 
+## Execution in System 2
+
+System 1 produces clarity, plans, and quality gates (docs, memory, 14 skills). System 2 is the **execution layer**: how the project is driven from idea to launch, which behavior the agent uses in each moment, and how parallel work is orchestrated.
+
+### Three execution modes (Coach / Executor / Auditor)
+
+The same agent behaves differently depending on the active mode. Modes are states, not separate agents; transitions between modes happen with explicit handoffs. Full definition in [`.cursor/rules/06-execution-modes.mdc`](.cursor/rules/06-execution-modes.mdc).
+
+| Mode | Purpose | Writes code? |
+|---|---|---|
+| **Coach** | Think with the user. Explore, decide, refine. Socratic questions + options with trade-offs. Runs the Question & Doubt Protocol. | No |
+| **Executor** | Execute an approved plan. Surgical changes, TDD, commit at every green. | Yes |
+| **Auditor** | Review what was done. Findings by severity. Issue verdict (Ready / With fixes / Not ready). | No |
+
+**Mode selection** follows this priority order:
+
+1. **Workflow dictates** (if a predefined workflow is active, its sequence is enforced).
+2. **User override** (`"Coach mode: ..."` at the start of a message).
+3. **Orchestrator deduces** from keywords and context.
+
+**Typical sequences by task type:**
+
+| Task | Sequence |
+|---|---|
+| New feature from raw idea | Coach → Executor → Auditor |
+| Bug with clear repro | Executor → Auditor |
+| Code review only | Auditor |
+| Strategic brainstorm | Coach |
+| Pivot / major decision | Coach → Coach |
+| Technical refactor | Executor → Auditor |
+| Plan without implementing yet | Coach → Executor (planner only) |
+| Phase gate transition | Auditor → Coach → proceed or block |
+
+### Phase gates (Idea → Launch)
+
+Projects advance through six phases: **Idea → Discovery → Definition → MVP → Iteration → Launch**. Each transition is gated:
+
+- Canonical phase definitions, entry/exit criteria, and transition log live in [`memory/13-phase-history.md`](memory/13-phase-history.md).
+- The [`phase-gate-reviewer`](.cursor/skills/phase-gate-reviewer/SKILL.md) skill verifies artifacts, risks, open doubts, and emits a verdict (PROCEED / PROCEED WITH CAVEATS / BLOCK).
+- Dry-run: `pwsh -File scripts/phase-gate-check.ps1 -NextPhase MVP` (exits 1 if gaps exist).
+- Gate decisions are logged in `memory/07-decisions-log.md` and `memory/13-phase-history.md`.
+
+### Human-in-the-Loop (approval-gatekeeper)
+
+Sensitive actions — auth, payments, schema, production deploys, new dependencies, destructive commands, tasks > 4h — pass through [`approval-gatekeeper`](.cursor/skills/approval-gatekeeper/SKILL.md). The skill classifies the action (Trivial / Routine / Moderate / Sensitive / High-impact / Forbidden), applies the policy from [`.cursor/rules/04-safety-and-git.mdc`](.cursor/rules/04-safety-and-git.mdc), and returns `AUTO_APPROVE`, `REQUIRE_HUMAN_APPROVAL`, or `BLOCK`. Every decision is logged.
+
+### Subagents and parallel execution
+
+Rules in [`.cursor/rules/07-subagent-orchestration.mdc`](.cursor/rules/07-subagent-orchestration.mdc). Core ideas:
+
+- **Orchestrator + narrow specialists** (2–4 agents max). Orchestrator strategic; specialists narrow.
+- **Message-passing, not shared state.** The orchestrator curates exactly the context each subagent needs.
+- **Two-stage review per task** — spec compliance **first**, then code quality.
+- **Model selection by role** — cheap for mechanical tasks, standard for integration, most capable for architecture/review.
+
+**Parallel execution via Git worktrees:**
+
+```powershell
+# Spawn a new worktree with naming convention + port offset
+pwsh -File scripts/worktree-spawn.ps1 -Slug auth-refactor -Type feat -InstallDeps
+
+# Clean merged worktrees (safe default)
+pwsh -File scripts/worktree-cleanup.ps1
+
+# Remove a specific one, even with uncommitted work
+pwsh -File scripts/worktree-cleanup.ps1 -Slug auth-refactor -Force
+```
+
+```bash
+bash scripts/worktree-spawn.sh auth-refactor --type feat --install-deps
+bash scripts/worktree-cleanup.sh                # sweep merged
+bash scripts/worktree-cleanup.sh --slug auth-refactor --force
+```
+
+Conventions (enforced by the scripts):
+- Worktrees live at `../<repo>-worktrees/<slug>/`.
+- Branches are named after the feature (`feat/<slug>`), never the agent.
+- Max 3–4 concurrent local worktrees.
+- Every worktree gets a deterministic port offset (hash of slug → 10000–19999) in `.worktree-env`.
+- Lifecycle ≤ 1 working day; longer means the task is too big — split.
+
+**Docker is NOT required by default.** Worktrees isolate code, not runtime. Introduce Docker Compose project-per-worktree only when a concrete runtime conflict appears (same port, shared DB, shared cache, per-worktree `.env` needed). See rule 07 for the full policy.
+
+### Skill Interaction Graph updated for System 2
+
+All System 1 skills keep their interactions (see original graph above). System 2 adds:
+
+```
+phase-gate-reviewer
+   ├── reads   memory/13-phase-history.md + memory/02-current-state.md + docs/
+   ├── invokes memory-updater on PROCEED
+   └── pairs with approval-gatekeeper (gates are approvals)
+
+approval-gatekeeper
+   ├── invoked by implementation-planner, bug-investigator, architecture-mapper,
+   │             phase-gate-reviewer
+   ├── invokes  memory-updater (log the decision)
+   └── pairs with security-review (on high-impact actions)
+```
+
+---
+
 ## Core principles
 
 1. **Structure over prompts.** A well-organized repo beats the cleverest prompt.

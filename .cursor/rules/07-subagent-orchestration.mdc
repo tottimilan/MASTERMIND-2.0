@@ -1,0 +1,205 @@
+---
+description: Subagent Orchestration — when to spawn subagents, model selection, parallel execution with Git worktrees, 2-stage review per task, verification at handoffs, runtime isolation (Docker caveats). Lives alongside 06-execution-modes but focuses on multi-agent and parallel work.
+alwaysApply: true
+---
+
+# Subagent Orchestration
+
+Rule 06 defines **how one agent behaves** in different modes. This rule defines **how multiple agents cooperate** — subagents, parallel worktrees, model selection, and verification. The Anthropic-canonical pattern is **orchestrator + narrow specialists**. The rest of this file makes that practical for MASTERMIND 2.0.
+
+---
+
+## When to spawn subagents
+
+**Default:** single agent. Do not introduce subagents for tasks that fit in one context window and do not benefit from specialization.
+
+**Spawn subagents only when all of the following are true:**
+
+1. The work decomposes cleanly into independent or mostly-independent tasks.
+2. The tasks share no ambiguous context the main agent would need to resolve mid-flight.
+3. Parallel execution saves wall-clock time worth the orchestration cost.
+4. The current task is NOT in Coach mode (Coach is single-agent by definition).
+
+**Typical cases:**
+- Executing an `implementation-planner` plan with ≥ 3 tasks touching different files.
+- Running a code migration across many files (the `/batch` pattern).
+- `/best-of-n` runs for a critical task (multiple models, same task, pick winner).
+- A research fan-out for `research-first` when multiple independent questions exist.
+
+**Typical non-cases:**
+- Ambiguous goal (stays in Coach, single agent).
+- One small change (stays in Executor, single agent).
+- Review-only work (Auditor is single agent; subagents would fragment the review).
+
+---
+
+## Orchestrator + specialists pattern
+
+The canonical 2026 architecture (Anthropic + industry consensus):
+
+- **Orchestrator agent** — broad, strategic, keeps the global context. Never codes directly; decides who codes what.
+- **Specialist subagents** — narrow, reliable, isolated context. Implementer, spec-reviewer, code-quality-reviewer, research fetcher, etc.
+- **Message-passing, not shared state.** The orchestrator constructs exactly the context each subagent needs and passes it in the prompt. Subagents do **not** see the orchestrator's session history.
+- **2–4 agents total is the sweet spot.** > 5 usually means the task is poorly decomposed.
+
+### Model selection per role
+
+Use the cheapest model that can handle the role. Concrete heuristic:
+
+| Role | Model tier |
+|---|---|
+| Orchestrator (strategic, multi-turn coordination) | **Most capable** (Claude Opus / GPT-5-class) |
+| Implementer on mechanical, well-specified tasks (1–2 files) | **Fast cheap** (Composer, Sonnet, etc.) |
+| Implementer on integration / multi-file / judgment calls | **Standard** (Sonnet) |
+| Reviewer (spec compliance and code quality) | **Standard or most capable** — reviewers must catch errors implementer missed |
+| Research fetcher | **Cheap** with Context7 MCP |
+| Architecture / design proposal | **Most capable** |
+
+Wrong model selection is the #1 cost inefficiency. Do not default to Opus for everything.
+
+---
+
+## Two-stage review per task (Superpowers pattern)
+
+For every task executed by an implementer subagent, run **two sequential reviews** before marking the task complete:
+
+1. **Spec compliance review** — does the code do exactly what the plan said, nothing more, nothing less? Catches scope creep and missing requirements.
+2. **Code quality review** — is the code well-built? Naming, error handling, tests, architecture fit, over-engineering.
+
+**Run them in order.** Code quality on non-spec-compliant code is wasted work.
+
+Loop: if a review finds issues, the original implementer subagent fixes them (not a new agent — keeps the context), then the reviewer re-reviews. Only advance to the next task when both reviews are green.
+
+---
+
+## Implementer status codes
+
+A spawned implementer subagent reports one of four statuses when it returns:
+
+| Status | Meaning | Orchestrator action |
+|---|---|---|
+| `DONE` | Task complete, self-reviewed, committed | Proceed to spec compliance review |
+| `DONE_WITH_CONCERNS` | Complete but flagged doubts | Read concerns, fix if they affect correctness, then review |
+| `NEEDS_CONTEXT` | Missing info to proceed | Provide missing context, re-dispatch same subagent |
+| `BLOCKED` | Cannot complete the task | Triage: context? bigger model? split task? escalate to human? — never silently re-dispatch same model with same prompt |
+
+---
+
+## Parallel execution with Git worktrees
+
+Parallelize **branches**, not the same branch. Git enforces this; do not fight it.
+
+### Mandatory conventions
+
+1. **Location.** All worktrees in a sibling folder of the repo, not inside it:
+   ```
+   ../<repo>-worktrees/<slug>
+   ```
+   Add the folder to the global `.gitignore` if it would ever end up inside the repo.
+
+2. **Branch naming.** Feature-based, never agent-based:
+   - `feat/<slug>` · `fix/<slug>` · `chore/<slug>` · `refactor/<slug>` · `exp/<slug>`
+   - `agent-3-session-tuesday` is forbidden.
+
+3. **Base commit.** All parallel worktrees created from the same `main` commit. Reduces merge conflicts.
+
+4. **Lifecycle ≤ 1 working day.** If a worktree survives longer, the task was too big — split.
+
+5. **Max 3–4 concurrent local worktrees.** Disk and laptop CPU cannot usually sustain more.
+
+6. **Task assignment by domain, not by file type.** Do not dispatch "Agent-backend + Agent-frontend + Agent-tests" in parallel for the same feature — they all need to touch related code. Better: dispatch by feature slice (Agent-auth, Agent-billing, Agent-notifications), each delivering end-to-end.
+
+7. **Cleanup discipline.**
+   - Prefer `git worktree remove <path>` over `rm -rf`.
+   - Always run `git worktree prune` after a `rm -rf`.
+   - Delete merged branches: `git branch -D feat/<slug>`.
+   - Use `scripts/worktree-cleanup.ps1` (or `.sh`) to automate.
+
+### Helper scripts (in this repo)
+
+- `scripts/worktree-spawn.ps1` / `.sh` — create a worktree with naming convention + install deps + assign port offset by hash of slug.
+- `scripts/worktree-cleanup.ps1` / `.sh` — remove merged worktrees and prune metadata.
+
+### Editor integrations to know
+
+- **Cursor 3.x:** `/worktree <slug>` command. `/best-of-n` runs multiple models in parallel worktrees.
+- **Claude Code:** `claude --worktree <name>` flag. Subagents can declare `isolation: worktree` in their frontmatter to auto-provision a worktree.
+
+---
+
+## Runtime isolation — Docker policy
+
+Git worktrees isolate **code**. They do not isolate **runtime** (ports, databases, caches, `.env`, Docker daemons, browser profiles).
+
+### When runtime isolation is NOT needed (default)
+
+- Pure code work: refactors, docs, unit tests without side effects, library-only features.
+- Single-agent sessions.
+- Worktrees that do not spin up local services.
+
+No Docker. Worktrees alone are sufficient.
+
+### When runtime isolation IS needed
+
+- Two agents would both bind to the same port (e.g. Next.js on `localhost:3000`).
+- Agents run migrations against the same local DB.
+- Agents spin up Redis, queues, S3 emulators.
+- Agents need different `.env` values (different feature flags, different API keys).
+
+### Recommended pattern (only when needed)
+
+- **Per-worktree port offsets** via `scripts/worktree-spawn.ps1` (hash-derived).
+- **Docker Compose project per worktree**: `docker compose -p <worktree-slug> up`. Networks, volumes, and service names namespaced automatically.
+- **Per-worktree `.env.<slug>`** (kept local, never committed; `.gitignore` covers `.env.*`).
+
+Do NOT introduce Docker by default. Introduce it only when the concrete runtime problem appears.
+
+### Beyond laptop scale
+
+When > 4 concurrent agents are needed, move to:
+- **Cursor Cloud Agents** (self-hosted or Cursor-hosted).
+- **Claude Code SDK** running in CI (ephemeral VMs, fresh state).
+
+Document the shift in `memory/07-decisions-log.md`.
+
+---
+
+## Verification at every handoff
+
+Do not wait for the final output to verify. Verify at every hand-off between agents or modes. Three techniques in order of cost:
+
+1. **Structural check** — output matches a JSON Schema, ref exists, file compiles, test passes.
+2. **Spec compliance check** — does the output satisfy the acceptance criteria it was given?
+3. **Evidence grounding** — any factual claim linked to a source (Context7, research-first note, decision log entry).
+
+A single unverified handoff can poison a whole pipeline. The cost of verification is always less than the cost of propagated error.
+
+---
+
+## Observability
+
+Every subagent dispatch must be loggable. Minimum fields:
+
+- `dispatcher` — who called it
+- `role` — implementer / spec-reviewer / code-quality-reviewer / research / other
+- `model` — exact model name used
+- `input_hash` — hash of the input prompt
+- `output_status` — DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED
+- `wall_time_ms`
+- `token_cost_estimate`
+
+When Claude Agent SDK hooks (`PreToolUse`, `PostToolUse`) are available, wire them into `.cursor/hooks/` or `.claude/hooks/` to emit these logs automatically.
+
+---
+
+## Anti-patterns
+
+- **NEVER:** Dispatch > 4 concurrent local worktrees without a plan for merge order.
+- **NEVER:** Let two parallel agents work on the same files (git worktrees prevent this at branch level, but agents can still collide on shared resources like DB/port — solve with runtime isolation, not by ignoring).
+- **NEVER:** Pass the orchestrator's full history to a subagent. Curate context.
+- **NEVER:** Use the most capable model for every role. It's 10× the cost and sometimes slower.
+- **NEVER:** Skip spec compliance review because code quality looks fine. Wrong order, wrong conclusions.
+- **NEVER:** Use Docker "just in case". Introduce it only when a concrete runtime conflict appears.
+- **NEVER:** Name branches after agents. `agent-3-tuesday` is worthless next week.
+- **NEVER:** Leave worktrees alive > 1 day without a rationale in `memory/07-decisions-log.md`.
+- **NEVER:** Silently re-dispatch a BLOCKED subagent with the same prompt and same model. Change something.

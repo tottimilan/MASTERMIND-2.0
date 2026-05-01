@@ -53,6 +53,7 @@ Map the work just completed to the files that should change. Use this table:
 | An AI-to-user question was asked, answered, or deferred | Update `12-open-doubts-and-questions.md` |
 | The project's stack or non-negotiables changed | Update `00-project-brief.md` |
 | The long-term vision was adjusted | Update `01-product-vision.md` |
+| **A phase transition was decided** (Idea → Discovery → Definition → MVP → Iteration → Launch) | Append to `13-phase-history.md` + update `02-current-state.md` phase field + append decision to `07-decisions-log.md` |
 
 **Rule:** if a file does not need to change, do not touch it. Silent drift is worse than no update. Over-updating kills signal.
 
@@ -167,7 +168,7 @@ The user can then promote it manually, or automatically via the Memory Graph MCP
 
 ## Interactions with other skills
 
-- **Invoked as the finishing step by:** `project-deep-audit`, `product-requirements`, `architecture-mapper`, `feature-breakdown`, `flow-analyzer`, `implementation-planner`, `test-strategist`, `security-review`, `bug-investigator`, `code-reviewer`, `research-first`.
+- **Invoked as the finishing step by:** `project-deep-audit`, `product-requirements`, `architecture-mapper`, `feature-breakdown`, `flow-analyzer`, `implementation-planner`, `test-strategist`, `security-review`, `bug-investigator`, `code-reviewer`, `research-first`, `phase-gate-reviewer`, `approval-gatekeeper`.
 - **Invoked in limited scope by:** `doubt-surfacer` — but only to persist `memory/12-*`, never the full sweep.
 - **Invokes:** none.
 - **Pairs with:** `code-reviewer` — memory updates should be reviewed alongside code in the same PR.
