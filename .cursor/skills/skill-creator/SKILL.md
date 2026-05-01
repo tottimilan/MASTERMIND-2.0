@@ -216,9 +216,16 @@ These 16 skills form the canonical set. A new skill must not overlap > 60% with 
 - `subagent-dispatcher` — drives plan execution task-by-task within one workspace, fresh subagent per task, two-stage review (spec then code quality).
 - `parallel-executor` — coordinates parallel execution across Git worktrees, independence analysis, runtime isolation decisions, merge order planning.
 
-Planned additions (Sub-phases 2.3 and 2.4): `continuous-learner` (cross-project lesson promotion), plus workflows, custom commands, and concrete hooks.
+Planned additions (Sub-phase 2.4): `continuous-learner` (cross-project lesson promotion) and concrete hooks.
 
 Propose a new skill only if its purpose is not covered by the above list. Overlap > 60% with an existing skill = refactor the existing, do not duplicate.
+
+## Adjacent artifacts (not skills, but governed by similar rules)
+
+- **Workflows** live in `.claude/workflows/*.md`. They compose skills into end-to-end recipes. See `.claude/workflows/README.md` for the format. Authoring rules: propose a workflow only when an operation repeats ≥ 3 times; never duplicate skill content into a workflow.
+- **Slash commands** live in `.claude/commands/mm-*.md`. They wrap a single skill or a single workflow with pre-loaded context. See `.claude/commands/README.md`. Authoring rules: `mm-` prefix, max 3 arguments, short body, no policy hiding.
+
+When creating a workflow or a command, log the addition in `memory/07-decisions-log.md` the same way skill additions are logged.
 
 ## Completion checklist
 

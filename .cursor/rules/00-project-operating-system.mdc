@@ -52,6 +52,7 @@ Before proposing solutions, writing code, or producing final documents:
 - Every non-trivial task → produce a short written plan **before** touching code.
 - In Cursor, prefer **Plan Mode** for anything that edits more than ~2 files or affects risky areas (auth, payments, data schema).
 - Save approved plans under `.cursor/plans/YYYY-MM-DD-<slug>.md`.
+- For **recurring operations**, prefer a **workflow** from `.claude/workflows/` (feature-lifecycle, bug-triage, phase-gate-transition, weekly-retrospective, new-project-bootstrap) or a **slash command** from `.claude/commands/` (`/mm-ship`, `/mm-bug`, `/mm-gate`, `/mm-retro`, `/mm-bootstrap`, `/mm-audit`, `/mm-plan`, `/mm-doubt`, `/mm-next`, `/mm-review`). Workflows make the sequence explicit and auditable; manual chaining of skills is acceptable only when no workflow covers the case.
 - After any meaningful change:
   1. Run tests or explain why tests cannot run.
   2. Update the relevant `memory/` files via the `memory-updater` skill.

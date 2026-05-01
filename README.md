@@ -245,6 +245,37 @@ parallel-executor
    └── merges         via code-reviewer + security-review per PR
 ```
 
+### Workflows & slash commands (Sub-phase 2.3)
+
+Workflows are ordered recipes that chain skills into end-to-end operations. Slash commands (`/mm-*`) are one-line shortcuts that wrap a workflow or a skill with curated context loading.
+
+**Workflows** ([`.claude/workflows/`](.claude/workflows/)):
+
+| # | File | Purpose |
+|---|---|---|
+| 01 | `new-project-bootstrap` | Empty clone → Discovery-complete (brief + doubts + audit + transition) |
+| 02 | `feature-lifecycle` | Approved epic → merged, tested, reviewed feature |
+| 03 | `bug-triage` | Bug report → reproduced → surgical fix + regression test → merge + post-mortem |
+| 04 | `phase-gate-transition` | Advance project phase with validation + approval + memory promotion |
+| 05 | `weekly-retrospective` | Weekly review of work + risks + drift + lessons + Top 3 next |
+
+**Slash commands** ([`.claude/commands/`](.claude/commands/)):
+
+| Command | Wraps | Use when |
+|---|---|---|
+| `/mm-bootstrap <idea>` | Workflow 01 | Just cloned the template |
+| `/mm-audit [focus]` | `project-deep-audit` | Multi-angle audit with Hard Truth |
+| `/mm-plan <slice>` | `implementation-planner` | Need a bite-sized TDD plan |
+| `/mm-ship <epic>` | Workflow 02 | Ship an approved epic end-to-end |
+| `/mm-bug <description>` | Workflow 03 | A bug arrives |
+| `/mm-doubt [topic]` | `doubt-surfacer` | Force the Question Protocol right now |
+| `/mm-next [details]` | task-master / plan | Start of session, "what do I work on?" |
+| `/mm-review [branch]` | `code-reviewer` + `security-review` | Review current branch or PR |
+| `/mm-gate <phase>` | Workflow 04 | Transition to the next phase |
+| `/mm-retro [period]` | Workflow 05 | Weekly retrospective |
+
+In Cursor (which does not natively interpret `/`-prefixed commands the same way Claude Code does), invoke them by reference: *"Run `.claude/commands/mm-ship.md` with `auth-mvp`"*.
+
 ### Skill Interaction Graph updated for System 2
 
 All System 1 skills keep their interactions (see original graph above). System 2 adds:

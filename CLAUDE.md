@@ -67,6 +67,7 @@ Never produce a numeric quality score. Self-critique is qualitative — numeric 
 ### 5. General Rules
 
 - Every non-trivial task → use **Plan Mode** first (Cursor) or an explicit written plan (Claude).
+- For recurring operations, prefer invoking a **workflow** (`.claude/workflows/`) or a **slash command** (`.claude/commands/mm-*`) instead of chaining skills manually. `/mm-ship`, `/mm-bug`, `/mm-gate`, `/mm-retro` are the most used.
 - Every important session → update `memory/11-session-summary.md` (append mode — see `memory-updater`) and `memory/12-open-doubts-and-questions.md`.
 - For deep analysis, strategy, or high-stakes decisions → prefer **Claude Opus** (via Claude Desktop or an MCP bridge).
 - Use **Context7** automatically whenever code uses an external library or API.
@@ -85,7 +86,9 @@ Never produce a numeric quality score. Self-critique is qualitative — numeric 
 - `.cursor/skills/*/SKILL.md` → **reusable playbooks**, loaded on demand to save context. **This is the canonical source** for skills. 18 skills total: 14 System 1 (analysis & documentation) + 4 System 2 (execution: `phase-gate-reviewer`, `approval-gatekeeper`, `subagent-dispatcher`, `parallel-executor`).
 - `.claude/skills/` → **generated mirror** of `.cursor/skills/` for Claude Code / Claude Desktop. Do not edit directly; run `scripts/sync-skills.ps1` (or `.sh`) after editing the source.
 - `memory/` → 13 canonical files. Notably `memory/13-phase-history.md` tracks phase transitions; `memory/11-session-summary.md` is append-mode.
-- `.claude/` → mirror for Claude Desktop (kernel reference + memory + skills + agents + workflows + hooks).
+- `.claude/` → mirror for Claude Desktop (kernel reference + memory + skills + agents + workflows + commands + hooks).
+- `.claude/workflows/*.md` → **ordered recipes** that chain skills into end-to-end operations (new-project-bootstrap, feature-lifecycle, bug-triage, phase-gate-transition, weekly-retrospective). See `.claude/workflows/README.md`.
+- `.claude/commands/mm-*.md` → **slash commands** for Claude Code that wrap skills or workflows (`/mm-ship`, `/mm-bug`, `/mm-audit`, `/mm-plan`, `/mm-doubt`, `/mm-next`, `/mm-review`, `/mm-gate`, `/mm-retro`, `/mm-bootstrap`). See `.claude/commands/README.md`.
 - `claude-side/mcp-config.json` → MCP servers the project relies on.
 - `scripts/` → automation: `sync-skills` (canonical↔mirror), `phase-gate-check` (dry-run gate), `worktree-spawn` / `worktree-cleanup` (parallel execution), `install-taskmaster` (per-project MCP activation).
 - Optional local `CLAUDE.md` files can be placed in risky modules (e.g. `src/auth/CLAUDE.md`) to override the kernel for that subtree.
