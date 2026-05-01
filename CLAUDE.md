@@ -82,12 +82,12 @@ Never produce a numeric quality score. Self-critique is qualitative — numeric 
 - `memory/` → **long-term project intelligence**, versioned in Git.
 - `docs/` → **source of truth** for product, architecture, features, flows, API, testing, security, ADRs.
 - `.cursor/rules/*.mdc` → **permanent instructions** always loaded by Cursor. Key rules for execution discipline: `00-project-operating-system` · `01-karpathy-principles` · `04-safety-and-git` · `06-execution-modes` (Coach/Executor/Auditor) · `07-subagent-orchestration` (subagents + parallel worktrees).
-- `.cursor/skills/*/SKILL.md` → **reusable playbooks**, loaded on demand to save context. **This is the canonical source** for skills. 16 skills total: 14 System 1 (analysis & documentation) + 2 System 2 (execution foundation: `phase-gate-reviewer`, `approval-gatekeeper`).
+- `.cursor/skills/*/SKILL.md` → **reusable playbooks**, loaded on demand to save context. **This is the canonical source** for skills. 18 skills total: 14 System 1 (analysis & documentation) + 4 System 2 (execution: `phase-gate-reviewer`, `approval-gatekeeper`, `subagent-dispatcher`, `parallel-executor`).
 - `.claude/skills/` → **generated mirror** of `.cursor/skills/` for Claude Code / Claude Desktop. Do not edit directly; run `scripts/sync-skills.ps1` (or `.sh`) after editing the source.
 - `memory/` → 13 canonical files. Notably `memory/13-phase-history.md` tracks phase transitions; `memory/11-session-summary.md` is append-mode.
 - `.claude/` → mirror for Claude Desktop (kernel reference + memory + skills + agents + workflows + hooks).
 - `claude-side/mcp-config.json` → MCP servers the project relies on.
-- `scripts/` → automation: `sync-skills` (canonical↔mirror), `phase-gate-check` (dry-run gate), `worktree-spawn` / `worktree-cleanup` (parallel execution).
+- `scripts/` → automation: `sync-skills` (canonical↔mirror), `phase-gate-check` (dry-run gate), `worktree-spawn` / `worktree-cleanup` (parallel execution), `install-taskmaster` (per-project MCP activation).
 - Optional local `CLAUDE.md` files can be placed in risky modules (e.g. `src/auth/CLAUDE.md`) to override the kernel for that subtree.
 
 ---

@@ -210,11 +210,15 @@ These 16 skills form the canonical set. A new skill must not overlap > 60% with 
 - Execution: `implementation-planner`, `test-strategist`
 - Quality: `bug-investigator`, `code-reviewer`, `security-review`
 
-**System 2 — Execution Foundation (2, growing):**
+**System 2 — Execution (4, growing):**
 - `phase-gate-reviewer` — validates Idea → Discovery → Definition → MVP → Iteration → Launch transitions.
 - `approval-gatekeeper` — enforces Human-in-the-Loop for sensitive actions.
+- `subagent-dispatcher` — drives plan execution task-by-task within one workspace, fresh subagent per task, two-stage review (spec then code quality).
+- `parallel-executor` — coordinates parallel execution across Git worktrees, independence analysis, runtime isolation decisions, merge order planning.
 
-Planned additions (later sub-phases of System 2): `subagent-dispatcher`, `parallel-executor`, `continuous-learner`. Propose a new skill only if its purpose is not covered by the above list.
+Planned additions (Sub-phases 2.3 and 2.4): `continuous-learner` (cross-project lesson promotion), plus workflows, custom commands, and concrete hooks.
+
+Propose a new skill only if its purpose is not covered by the above list. Overlap > 60% with an existing skill = refactor the existing, do not duplicate.
 
 ## Completion checklist
 

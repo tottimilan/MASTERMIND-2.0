@@ -158,14 +158,22 @@ Sensitive actions — auth, payments, schema, production deploys, new dependenci
 
 ### Subagents and parallel execution
 
-Rules in [`.cursor/rules/07-subagent-orchestration.mdc`](.cursor/rules/07-subagent-orchestration.mdc). Core ideas:
+Rules in [`.cursor/rules/07-subagent-orchestration.mdc`](.cursor/rules/07-subagent-orchestration.mdc). Two operational skills turn the rule into action:
+
+| Skill | Scope | When |
+|---|---|---|
+| [`subagent-dispatcher`](.cursor/skills/subagent-dispatcher/SKILL.md) | Within **one workspace**. Drives an approved plan task-by-task with fresh subagent + two-stage review. | Plans with ≥3 tasks, tasks coupled enough that splitting workspaces would add more coordination than it saves. |
+| [`parallel-executor`](.cursor/skills/parallel-executor/SKILL.md) | Across **multiple workspaces** (worktrees). Independence analysis → spawn worktrees → dispatch per workspace → merge in planned order → cleanup. | Plans with ≥2 tasks that are genuinely independent (no shared files / state). |
+
+Core patterns (validated against Anthropic Agent SDK docs and Superpowers canon):
 
 - **Orchestrator + narrow specialists** (2–4 agents max). Orchestrator strategic; specialists narrow.
 - **Message-passing, not shared state.** The orchestrator curates exactly the context each subagent needs.
 - **Two-stage review per task** — spec compliance **first**, then code quality.
 - **Model selection by role** — cheap for mechanical tasks, standard for integration, most capable for architecture/review.
+- **Implementer status codes** — DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED. Never silently re-dispatch a BLOCKED subagent.
 
-**Parallel execution via Git worktrees:**
+**Parallel execution via Git worktrees** (helper scripts):
 
 ```powershell
 # Spawn a new worktree with naming convention + port offset
@@ -192,6 +200,50 @@ Conventions (enforced by the scripts):
 - Lifecycle ≤ 1 working day; longer means the task is too big — split.
 
 **Docker is NOT required by default.** Worktrees isolate code, not runtime. Introduce Docker Compose project-per-worktree only when a concrete runtime conflict appears (same port, shared DB, shared cache, per-worktree `.env` needed). See rule 07 for the full policy.
+
+### Task Master AI — activation-on-demand (per project)
+
+[`task-master-ai`](https://github.com/eyaltoledano/claude-task-master) is an MCP that parses a PRD into dependency-aware tasks and drives execution via `next_task` / `set_task_status` / `expand_task`. In MASTERMIND 2.0 it is **not always on** — activate per project when:
+
+1. The project is leaving Definition and entering MVP execution.
+2. The approved implementation plan has **≥ 10 tasks** (or explicit fan-out).
+3. `subagent-dispatcher` will drive the execution.
+
+Install (idempotent; adds MCP entry, scaffolds `.taskmaster/docs/prd.md`, updates `.gitignore`):
+
+```powershell
+pwsh -File scripts/install-taskmaster.ps1                   # mode=core (7 tools, ~5k tokens)
+pwsh -File scripts/install-taskmaster.ps1 -Mode standard    # 15 tools, ~10k tokens
+pwsh -File scripts/install-taskmaster.ps1 -ClaudeCodeAuth   # Claude Code OAuth, no API key
+```
+
+```bash
+bash scripts/install-taskmaster.sh
+bash scripts/install-taskmaster.sh --mode standard
+bash scripts/install-taskmaster.sh --claude-code-auth
+```
+
+Full integration contract in [`.cursor/rules/05-claude-mcp-integration.mdc`](.cursor/rules/05-claude-mcp-integration.mdc) §Activation-on-demand.
+
+### Skill Interaction Graph updated for System 2 Sub-phase 2.2
+
+```
+implementation-planner
+   ├── hands off to   subagent-dispatcher  (single workspace)
+   ├── hands off to   parallel-executor    (across worktrees)
+   └── with task-master-ai installed: emits PRD → parse_prd → tasks.json driver
+
+subagent-dispatcher
+   ├── dispatches     implementer subagent (fresh per task)
+   ├── dispatches     spec reviewer        (first)
+   ├── dispatches     code quality reviewer (second)
+   └── invokes        code-reviewer + security-review at final roll-up
+
+parallel-executor
+   ├── uses scripts   worktree-spawn, worktree-cleanup
+   ├── runs inside    subagent-dispatcher per worktree
+   └── merges         via code-reviewer + security-review per PR
+```
 
 ### Skill Interaction Graph updated for System 2
 

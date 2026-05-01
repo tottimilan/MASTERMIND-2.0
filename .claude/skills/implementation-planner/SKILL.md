@@ -154,26 +154,45 @@ After writing the plan, review it before execution. This is a checklist the auth
 
 ### Step 5 — Execution handoff
 
-At the bottom of the plan, offer the user a handoff:
+At the bottom of the plan, offer the user an execution path:
 
 ```markdown
 ## Execution
 
-**Option A — Inline execution (Cursor Plan Mode):**
+**Option A - Subagent-driven (recommended for plans with 3+ tasks):**
+Hand off to `subagent-dispatcher`. A fresh subagent is spawned per task with two-stage
+review (spec compliance then code quality) before advancing.
+
+**Option B - Parallel via worktrees (when tasks are fully independent):**
+Hand off to `parallel-executor`. Independence analysis first, then worktrees spawned
+via `scripts/worktree-spawn`, each running its own dispatcher.
+
+**Option C - Inline execution (Cursor Plan Mode):**
 Cursor executes the tasks in this session with checkpoints after each task.
+Best for plans with 1-2 tasks or very constrained scope.
 
-**Option B — Cloud agent / background run:**
-Branch is created, tasks dispatched to a cloud agent, PR opened when all tasks are green.
+**Option D - Cloud agent / background run:**
+Branch is created, tasks dispatched to a cloud agent, PR opened when all tasks
+are green. Use when you want to disconnect and review asynchronously.
 
-**Option C — Human execution:**
-The user runs each task, the agent assists on demand.
+**Option E - Human execution:**
+You run each task; the agent assists on demand.
 
 Pick the option before starting. Halt execution between tasks on request.
 ```
 
-When `task-master-ai` MCP is available (System 2), mention:
+### Step 5b - Hook into task-master-ai when installed
 
-> *"This plan is compatible with `task-master parse-prd` — each task maps 1:1 to a task with dependencies preserved."*
+If `task-master-ai` MCP is active (System 2 Sub-phase 2.2), prefer the following:
+
+1. Derive a PRD-compatible document from the plan and write it to `.taskmaster/docs/prd.md` (or append to the existing PRD with `--append`).
+2. Ask the user to run `parse-prd` (via chat: *"Parse the PRD at .taskmaster/docs/prd.md"*) so task-master generates `.taskmaster/tasks.json` with dependencies.
+3. Reference the generated task IDs in this plan for traceability (e.g. *"Plan task 3 = task-master task 12.3"*).
+4. Hand off to `subagent-dispatcher` which can then use `next_task` / `set_task_status` as the driver instead of walking the plan file manually.
+
+When task-master-ai is NOT installed, the plan is the source of truth and `subagent-dispatcher` walks it directly.
+
+Installer: `scripts/install-taskmaster.ps1` (or `.sh`) adds the MCP entry and scaffolds `.taskmaster/docs/prd.md`.
 
 ### Step 6 — Save the plan
 
@@ -215,8 +234,9 @@ Persist:
 
 - **Runs after:** `feature-breakdown` (per slice), `research-first` (per external dependency), `flow-analyzer` (if the plan touches a critical flow), `architecture-mapper` (if structure changed).
 - **Runs before:** `test-strategist` (for broader test coverage beyond the plan's TDD tests), `code-reviewer` (every plan execution is reviewed), `bug-investigator` (in case the plan's tests reveal bugs).
-- **Invokes:** `research-first` for any un-verified dependency, `memory-updater` at close.
-- **Pairs with:** `test-strategist` — the plan enforces TDD at step level; `test-strategist` covers the strategic layer (pyramid, coverage across slices).
+- **Hands execution to:** `subagent-dispatcher` (Option A, recommended ≥3 tasks) or `parallel-executor` (Option B, independent tasks) or Cursor Plan Mode (Option C, 1–2 tasks).
+- **Invokes:** `research-first` for any un-verified dependency, `approval-gatekeeper` for sensitive tasks before execution, `memory-updater` at close.
+- **Pairs with:** `test-strategist` — the plan enforces TDD at step level; `test-strategist` covers the strategic layer (pyramid, coverage across slices). With `task-master-ai` MCP installed, the plan is parsed into `.taskmaster/tasks.json` and the dispatcher uses `next_task` as the driver.
 
 ## Completion checklist
 
