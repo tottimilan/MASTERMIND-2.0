@@ -42,7 +42,7 @@ MASTERMIND-2.0/
 │   │   ├── 03-testing-policy.mdc             # Filled per project
 │   │   ├── 04-safety-and-git.mdc             # Filled per project
 │   │   └── 05-claude-mcp-integration.mdc     # Filled per project
-│   ├── skills/                        # Reusable playbooks (SKILL.md each)
+│   ├── skills/                        # Reusable playbooks (SKILL.md each) — CANONICAL SOURCE
 │   │   ├── project-deep-audit/
 │   │   ├── doubt-surfacer/
 │   │   ├── product-requirements/
@@ -52,14 +52,19 @@ MASTERMIND-2.0/
 │   │   ├── implementation-planner/
 │   │   ├── test-strategist/
 │   │   ├── security-review/
+│   │   ├── bug-investigator/
+│   │   ├── code-reviewer/
+│   │   ├── research-first/
+│   │   ├── skill-creator/
 │   │   └── memory-updater/
 │   └── plans/                         # Approved Plan Mode plans
 │
-├── .claude/                           # Mirror for Claude Desktop
-│   ├── CLAUDE.md
-│   ├── memory/
-│   ├── skills/
+├── .claude/                           # Mirror for Claude Code / Claude Desktop
+│   ├── CLAUDE.md                      # Reference to root CLAUDE.md (no duplication)
+│   ├── skills/                        # GENERATED — mirror of .cursor/skills/ (see scripts/)
+│   ├── hooks/                         # Claude-side hooks (extension point)
 │   ├── agents/
+│   ├── memory/
 │   └── workflows/
 │
 ├── memory/                            # Long-term project intelligence (Git-versioned)
@@ -87,10 +92,21 @@ MASTERMIND-2.0/
 │   ├── security/
 │   └── adr/
 │
-└── claude-side/                       # Claude Desktop + MCP
-    ├── mcp-config.json
-    └── prompts/
+├── claude-side/                       # Claude Desktop + MCP
+│   ├── mcp-config.json
+│   └── prompts/
+│
+└── scripts/                           # Automation scripts (sync, setup, etc.)
+    ├── sync-skills.ps1                # Windows / cross-platform PowerShell
+    └── sync-skills.sh                 # Unix / macOS
 ```
+
+### Skills — canonical source + mirror
+
+- Canonical source: `.cursor/skills/` (edit here).
+- Mirror for Claude: `.claude/skills/` (generated — never edit by hand).
+- After editing any SKILL.md, run `pwsh -File scripts/sync-skills.ps1` (or the `.sh` variant).
+- Verify before commit: `pwsh -File scripts/sync-skills.ps1 -Check` (exits 1 on drift).
 
 ---
 

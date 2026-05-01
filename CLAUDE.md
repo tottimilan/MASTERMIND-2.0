@@ -82,8 +82,9 @@ Never produce a numeric quality score. Self-critique is qualitative — numeric 
 - `memory/` → **long-term project intelligence**, versioned in Git.
 - `docs/` → **source of truth** for product, architecture, features, flows, API, testing, security, ADRs.
 - `.cursor/rules/*.mdc` → **permanent instructions** always loaded by Cursor.
-- `.cursor/skills/*/SKILL.md` → **reusable playbooks**, loaded on demand to save context.
-- `.claude/` → mirror for Claude Desktop (kernel + memory + skills + agents + workflows).
+- `.cursor/skills/*/SKILL.md` → **reusable playbooks**, loaded on demand to save context. **This is the canonical source** for skills.
+- `.claude/skills/` → **generated mirror** of `.cursor/skills/` for Claude Code / Claude Desktop. Do not edit directly; run `scripts/sync-skills.ps1` (or `.sh`) after editing the source.
+- `.claude/` → mirror for Claude Desktop (kernel reference + memory + skills + agents + workflows + hooks).
 - `claude-side/mcp-config.json` → MCP servers the project relies on.
 - Optional local `CLAUDE.md` files can be placed in risky modules (e.g. `src/auth/CLAUDE.md`) to override the kernel for that subtree.
 
