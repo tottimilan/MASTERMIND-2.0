@@ -157,7 +157,9 @@ If a lesson applies beyond this project, flag it explicitly in the chat:
 
 > **Lesson candidate for cross-project Memory Graph:** <lesson>
 
-The user can then promote it manually, or automatically via the Memory Graph MCP if configured. Keep the lesson short, context-free, and actionable (e.g. *"Supabase RLS policies must be tested with authenticated AND anonymous keys; CI should cover both"*).
+Keep the lesson short, context-free, and actionable (e.g. *"Supabase RLS policies must be tested with authenticated AND anonymous keys; CI should cover both"*).
+
+**Do not promote the lesson from here.** Promotion to `~/.mastermind/global/` is the job of the [`continuous-learner`](../continuous-learner/SKILL.md) skill (or the `/mm-learn` command), which applies the 3-part test and asks the user to approve each entry before writing. This keeps the global memory small and signal-dense. The `memory-updater` only flags candidates; the `continuous-learner` decides.
 
 ## Outputs
 

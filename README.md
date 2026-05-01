@@ -245,7 +245,7 @@ parallel-executor
    └── merges         via code-reviewer + security-review per PR
 ```
 
-### Workflows & slash commands (Sub-phase 2.3)
+### Workflows & slash commands (Sub-phase 2.3 — 2.4)
 
 Workflows are ordered recipes that chain skills into end-to-end operations. Slash commands (`/mm-*`) are one-line shortcuts that wrap a workflow or a skill with curated context loading.
 
@@ -273,8 +273,73 @@ Workflows are ordered recipes that chain skills into end-to-end operations. Slas
 | `/mm-review [branch]` | `code-reviewer` + `security-review` | Review current branch or PR |
 | `/mm-gate <phase>` | Workflow 04 | Transition to the next phase |
 | `/mm-retro [period]` | Workflow 05 | Weekly retrospective |
+| `/mm-learn [window]` | `continuous-learner` | Promote qualifying lessons to cross-project memory |
 
 In Cursor (which does not natively interpret `/`-prefixed commands the same way Claude Code does), invoke them by reference: *"Run `.claude/commands/mm-ship.md` with `auth-mvp`"*.
+
+### Hooks (Sub-phase 2.4)
+
+Two classes of hooks, both in place:
+
+**Agent-level behavioral hooks** (`.cursor/hooks/`): instruction files that MASTERMIND-aware agents read at the relevant event.
+
+| Hook | Event | Purpose |
+|---|---|---|
+| [`pre-task.doubt-surfacer`](.cursor/hooks/pre-task.doubt-surfacer.md) | Before non-trivial user turns | Force Question Protocol when keywords / phase / scope warrant it |
+| [`post-task.memory-updater`](.cursor/hooks/post-task.memory-updater.md) | After task completion | Ensure memory-updater ran before closing the turn |
+| [`post-merge.docs-refresh`](.cursor/hooks/post-merge.docs-refresh.md) | After a merge to main | Propose refreshing docs/memory that the merge made stale |
+
+Each hook has a kill-switch env var (`MM_HOOK_DOUBT_SURFACER=off`, etc.). Full documentation in [`.cursor/hooks/HOOKS.md`](.cursor/hooks/HOOKS.md).
+
+**Git client-side hooks** (`scripts/git-hooks/`, installable): shell scripts installed into `.git/hooks/` via installer.
+
+```powershell
+pwsh -File scripts/install-git-hooks.ps1    # install
+pwsh -File scripts/install-git-hooks.ps1 -Uninstall
+```
+
+```bash
+bash scripts/install-git-hooks.sh
+bash scripts/install-git-hooks.sh --uninstall
+```
+
+| Hook | Event | Behavior |
+|---|---|---|
+| `pre-commit` | Before each commit | Blocks on skill drift (`sync-skills --check`); scans staged diff for AWS / Stripe / GitHub / Google / Slack / Anthropic / OpenAI key patterns and `.env*` files. |
+| `pre-push` | Before each push | Blocks direct push to `main`/`master` (escape `MM_ALLOW_MAIN_PUSH=1`); soft-warns on phase-gate gaps. |
+
+Escape hatches: `git commit --no-verify`, `git push --no-verify`, or env vars `MM_SKIP_PRECOMMIT=1` / `MM_SKIP_PREPUSH=1`. These hooks are a first-line check — **not** a substitute for server-side secret scanning or Gitleaks-in-CI. Full doc in [`scripts/git-hooks/README.md`](scripts/git-hooks/README.md).
+
+---
+
+## System 1 + System 2 — complete map
+
+**Status:** MASTERMIND 2.0 v1.0 — System 1 + System 2 (Sub-phases 2.1–2.4) complete.
+
+| Layer | What it is | Count |
+|---|---|---|
+| **Kernel** | `CLAUDE.md` + `AGENTS.md` | 2 files |
+| **Rules** | `.cursor/rules/00..07.mdc` | 8 rules, always loaded |
+| **Skills (System 1)** | Analysis, documentation, quality | 14 skills |
+| **Skills (System 2)** | Execution foundation + orchestration + learning | 5 skills |
+| **Workflows** | End-to-end recipes | 5 workflows |
+| **Slash commands** | `/mm-*` shortcuts | 11 commands |
+| **Memory bank** | Per-project intelligence (Git-versioned) | 13 files |
+| **Docs folder** | Product, architecture, features, flows, api, testing, security, adr | 8 subfolders |
+| **Cross-project memory** | `~/.mastermind/global/` (outside the repo) | 5 files + README |
+| **Hooks — agent** | Behavioral instruction files | 3 active + HOOKS.md |
+| **Hooks — git** | Client-side shell scripts (installable) | pre-commit + pre-push |
+| **Scripts** | Automation helpers | 9 scripts (PowerShell + bash variants) |
+
+**Canonical source vs mirror:**
+- Skills: canonical `.cursor/skills/`, mirror `.claude/skills/` (sync via `scripts/sync-skills`).
+- Hooks (agent): canonical `.cursor/hooks/`, `.claude/hooks/HOOKS.md` references them.
+- Workflows & commands: canonical `.claude/workflows/` and `.claude/commands/` (Cursor reads them by path).
+
+**MCPs:**
+- `context7`, `memory-graph`, `github` — active in `.cursor/mcp.json`.
+- `task-master-ai` — reserved, installable per-project via `scripts/install-taskmaster.ps1`.
+- `playwright` — reserved, activate only for real browser verification of critical flows.
 
 ### Skill Interaction Graph updated for System 2
 

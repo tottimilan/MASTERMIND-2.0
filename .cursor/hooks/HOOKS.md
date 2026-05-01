@@ -1,7 +1,6 @@
 # Cursor Hooks
 
-> **Extension point.** This folder is intentionally empty in the base template.
-> Add hooks only when a recurring action has been validated by use. Premature hooks are as harmful as premature abstraction.
+> Mixed folder: **agent-level behavioral hooks** (markdown instruction files loaded by MASTERMIND-aware agents) + reference docs for **git client-side hooks** (shell scripts installed from `scripts/git-hooks/` into `.git/hooks/`). Only add new hooks when a recurring action has been validated by use. Premature hooks are as harmful as premature abstraction.
 
 ---
 
@@ -13,15 +12,20 @@ This folder is the Cursor-side home for hooks. The Claude Desktop mirror lives a
 
 ---
 
-## Common use cases (reference — do not implement all of them)
+## Currently active hooks in this repo
 
-- **Pre-commit** — secret scan (Gitleaks / Trufflehog), lint, type check.
-- **Pre-task (large change)** — auto-invoke `doubt-surfacer` when a prompt crosses a complexity threshold.
-- **Post-task** — auto-invoke `memory-updater` and append to `memory/11-session-summary.md`.
-- **Post-merge to `main`** — refresh `docs/architecture/` diagrams if architecture files changed.
-- **Post-test-failure (CI)** — auto-invoke `bug-investigator` with the failing test as input.
-- **Pre-push** — block if tests are failing locally.
-- **Pre-deploy** — block if `memory/09-testing-status.md` has unresolved Critical gaps.
+| Hook | Event | File |
+|---|---|---|
+| **Pre-task — doubt-surfacer** | Before non-trivial user turns | [`pre-task.doubt-surfacer.md`](pre-task.doubt-surfacer.md) |
+| **Post-task — memory-updater** | After task completion | [`post-task.memory-updater.md`](post-task.memory-updater.md) |
+| **Post-merge — docs-refresh** | After merge to `main` | [`post-merge.docs-refresh.md`](post-merge.docs-refresh.md) |
+
+Git client-side hooks (pre-commit, pre-push) live separately under `scripts/git-hooks/`. Install with `pwsh -File scripts/install-git-hooks.ps1` (or `.sh`).
+
+## Reference: other common use cases
+
+- **Post-test-failure (CI)** — auto-invoke `bug-investigator` with the failing test as input. Typically wired in a CI YAML, not here.
+- **Pre-deploy** — block if `memory/09-testing-status.md` has unresolved Critical gaps. Best wired in the deploy pipeline.
 
 ---
 

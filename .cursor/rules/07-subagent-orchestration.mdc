@@ -176,6 +176,14 @@ A single unverified handoff can poison a whole pipeline. The cost of verificatio
 
 ---
 
+## Continuous learning loop
+
+Subagent dispatches produce artifacts (commits, post-mortems, reviews) that often contain lessons that apply beyond the current project. At the end of a phase, a weekly retrospective, or a notable post-mortem, invoke the [`continuous-learner`](../../.cursor/skills/continuous-learner/SKILL.md) skill (or `/mm-learn`) so that qualifying lessons are promoted to `~/.mastermind/global/` (lessons / patterns / pitfalls / stacks / vendors).
+
+The skill applies a 3-part test (project-agnostic + evidence-backed + actionable) and asks for explicit user approval per entry. Nothing is promoted silently.
+
+This is how the system gets **better between projects**, not just within each one.
+
 ## Observability
 
 Every subagent dispatch must be loggable. Minimum fields:

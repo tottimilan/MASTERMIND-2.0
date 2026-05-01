@@ -62,6 +62,31 @@ alwaysApply: true
 - Breaking changes (`!` in commit type) force a MAJOR bump.
 - Tag releases on `main` after squash-merge.
 
+### Client-side git hooks
+
+The template ships two **recommended** git hooks under `scripts/git-hooks/`:
+
+- **`pre-commit`** — blocks commits if `.cursor/skills/` ↔ `.claude/skills/` are out of sync; runs a basic secret scan over the staged diff (AWS / Stripe / GitHub / Google / Slack / Anthropic / OpenAI key patterns, `.env*` files).
+- **`pre-push`** — blocks direct pushes to `main`/`master` (escape hatch `MM_ALLOW_MAIN_PUSH=1`); soft-warns on phase-gate gaps.
+
+Install once per clone (Git does not copy `.git/hooks/` on clone):
+
+```powershell
+pwsh -File scripts/install-git-hooks.ps1
+```
+
+```bash
+bash scripts/install-git-hooks.sh
+```
+
+Escape hatches for special situations:
+
+- `git commit --no-verify` / `git push --no-verify` (one-shot).
+- `MM_SKIP_PRECOMMIT=1`, `MM_SKIP_PREPUSH=1` (shell-scoped).
+- `MM_ALLOW_MAIN_PUSH=1` (release engineer path).
+
+These hooks are **client-side fail-fast**, not a substitute for server-side secret scanning. Pair with GitHub Advanced Security or Gitleaks-in-CI for the real line of defense.
+
 ---
 
 ## Dangerous operations always require

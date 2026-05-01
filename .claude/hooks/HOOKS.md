@@ -26,3 +26,15 @@ All rules from [`.cursor/hooks/HOOKS.md`](../../.cursor/hooks/HOOKS.md) apply:
 ## Naming
 
 Follow the same pattern as `.cursor/hooks/`: `<event>.<tool>.<ext>`.
+
+## Currently active hooks (canonical copies live in .cursor/hooks/)
+
+These are **agent-level behavioral hooks** — instruction files that MASTERMIND-aware agents read at the relevant lifecycle event. Same files in both places would cause drift; the canonical versions live in `.cursor/hooks/`. Claude Code / Claude Desktop should load them from there.
+
+| Hook | Event | Purpose | File |
+|---|---|---|---|
+| `pre-task.doubt-surfacer` | Before a non-trivial user turn | Force the Question Protocol when keywords / phase / scope warrant it | [`../../.cursor/hooks/pre-task.doubt-surfacer.md`](../../.cursor/hooks/pre-task.doubt-surfacer.md) |
+| `post-task.memory-updater` | After non-trivial task completion | Ensure memory-updater ran before closing the turn | [`../../.cursor/hooks/post-task.memory-updater.md`](../../.cursor/hooks/post-task.memory-updater.md) |
+| `post-merge.docs-refresh` | After a merge to main | Propose refreshing docs that the merge made stale | [`../../.cursor/hooks/post-merge.docs-refresh.md`](../../.cursor/hooks/post-merge.docs-refresh.md) |
+
+**Git client-side hooks** (pre-commit, pre-push) are a different class — they are shell scripts installed into `.git/hooks/`. Their canonical source is `scripts/git-hooks/`. Install with `scripts/install-git-hooks.ps1` (or `.sh`). See `scripts/git-hooks/README.md`.
