@@ -1,0 +1,25 @@
+{
+  "_comment": "Project-level MCP config for Cursor 1.0+. Cursor reads this file and merges it with the global config at ~/.cursor/mcp.json. Secrets MUST live in environment variables (loaded from .env). Never commit actual tokens.",
+  "_docs": "https://docs.cursor.com/context/mcp",
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {}
+    },
+    "memory-graph": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_FILE_PATH": "${userHome}/.mastermind/global/memory-graph.json"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "_comment": "Template for Claude Desktop MCP config. Copy this file into your Claude Desktop config location and replace placeholder tokens.",
+  "_paths": {
+    "windows": "%APPDATA%\\Claude\\claude_desktop_config.json",
+    "macos": "~/Library/Application Support/Claude/claude_desktop_config.json",
+    "linux": "~/.config/Claude/claude_desktop_config.json"
+  },
+  "_docs": "https://modelcontextprotocol.io/docs/tools/claude-desktop",
+  "_security": "Never commit real tokens. Export them from the shell (e.g. export GITHUB_PERSONAL_ACCESS_TOKEN=...) or paste them directly into the Claude Desktop config on your machine — never into this template.",
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {}
+    },
+    "memory-graph": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {
+        "MEMORY_FILE_PATH": "~/.mastermind/global/memory-graph.json"
+      }
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "YOUR_GITHUB_PAT_HERE"
+      }
+    }
+  },
+  "_reserved_for_system_2": {
+    "task-master-ai": {
+      "_note": "Install only when the project enters MVP execution. See .cursor/rules/05-claude-mcp-integration.mdc.",
+      "command": "npx",
+      "args": ["-y", "task-master-ai"],
+      "env": {
+        "TASK_MASTER_TOOLS": "core",
+        "ANTHROPIC_API_KEY": "YOUR_ANTHROPIC_KEY_HERE"
+      }
+    },
+    "playwright": {
+      "_note": "Install only when UI flow verification is needed.",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  }
+}

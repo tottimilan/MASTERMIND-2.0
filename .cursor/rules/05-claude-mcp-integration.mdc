@@ -1,0 +1,106 @@
+---
+description: Claude Opus + MCP integration rules — when and how to use external tools and the Claude bridge
+alwaysApply: true
+---
+
+# Claude + MCP Integration
+
+> Defines when to delegate to Claude Opus and which MCP servers to use.
+
+## When to delegate to Claude Opus
+
+Use Claude Opus (Claude Desktop, Claude Projects, or an MCP bridge) for:
+
+- Deep multi-angle analysis ("desgarre").
+- Strategic decisions and risk assessments.
+- Long-form documents (PRDs, architecture overviews, scenario planning).
+- "Brutal honesty" reviews and pivot exploration.
+- Anything that benefits from extended thinking.
+
+Use Cursor's local model for:
+
+- Daily coding, refactoring, bug fixing.
+- Surgical edits with clear success criteria.
+- Running and interpreting tests.
+
+## MCP servers used by this project
+
+_TBD — list the MCPs configured in `claude-side/mcp-config.json` and `.cursor/mcp.json`._
+
+Typical defaults:
+
+- **Context7** — automatic, for any external library or API. Never guess API signatures.
+- **Playwright** — only for real browser verification of critical flows. Always specify URL, viewport, and selectors.
+- **Memory Graph** — cross-project lessons. Never dump sensitive data there.
+- **GitHub** — issues, PRs, code context.
+- **Notion / Linear** — optional, depending on the project's operations stack.
+
+### Reserved for System 2 (not installed yet)
+
+- **`task-master-ai` (eyaltoledano/claude-task-master)** — AI-driven task management MCP. Parses a PRD (e.g. `memory/00-project-brief.md` + `docs/product/`) into dependency-aware tasks, then drives the execution loop (`next_task`, `get_task`, `set_task_status`, `expand_task`, `update_subtask`). Designed to be invoked by the `implementation-planner` skill once System 2 (guided execution) is in place.
+  - **Tool loading mode:** start with `core` (7 tools, ~5k tokens) or `standard` (15 tools, ~10k tokens). Avoid `all` unless needed — it costs ~21k tokens.
+  - **Integration point:** it reads/writes under `.taskmaster/` in the repo, which lives alongside `memory/` and `docs/`, not inside them.
+  - **Activation criterion:** install only when the project is leaving Discovery/Definition and entering MVP execution. Before that it adds noise.
+
+## Rules
+
+- Always use Context7 when touching library code.
+- Never use Playwright MCP for scraping or bulk browsing. Only for verification.
+- When Claude Opus produces a deliverable, save it to `memory/` or `docs/` and run the `memory-updater` skill.
+- Secrets for MCP servers live in environment variables, never in committed files.
+
+---
+
+## Cross-project Memory Protocol
+
+The project's `memory/` folder is **per-project intelligence**. It should not accumulate patterns that generalize across projects. Those belong in a **shared cross-project memory** that lives **outside the template** and is consulted by multiple projects.
+
+### Location
+
+Default convention: `~/.mastermind/global/` (user-home, outside any project repo).
+
+Recommended structure:
+
+```
+~/.mastermind/global/
+├── lessons.md         # What worked or failed, with evidence and context
+├── patterns.md        # Reusable architectural / product / workflow patterns
+├── pitfalls.md        # Anti-patterns observed repeatedly across projects
+├── stacks.md          # Stack choices taken across projects, with outcomes
+└── vendors.md         # Third-party providers used, with verdicts
+```
+
+Files are **plain Markdown** and are the source of truth. When the **Memory Graph MCP** (Zep / Cognee / Basic Memory) is installed, these files may be mirrored into it; the Markdown remains authoritative.
+
+### Promotion criteria
+
+An entry is promoted from a project's `memory/` to `~/.mastermind/global/` only when **all three** hold:
+
+1. **Project-agnostic.** Strip project-specific nouns; the lesson still reads as useful.
+2. **Evidence-backed.** At least one concrete occurrence, with a link to a post-mortem, decision, ADR, or retrospective.
+3. **Actionable.** It changes a future decision. If it only informs, it stays in the project.
+
+Most project findings do **not** qualify. They belong in `memory/07-decisions-log.md` and stay there.
+
+### Consumption (when to read the global memory)
+
+- **At the start of a new project** — `project-deep-audit` reads `lessons.md` and `pitfalls.md` and surfaces relevant items under a "Cross-project signals" section.
+- **Before external research** — `research-first` consults `vendors.md` and `stacks.md` before running a web search. If the vendor or stack was already decided against, flag it.
+- **Before topology proposals** — `architecture-mapper` consults `patterns.md` when proposing a topology or service split.
+- **Before writing a new skill** — `skill-creator` consults `patterns.md` to check whether the skill already exists in another project.
+
+### Privacy and safety
+
+`~/.mastermind/global/` must never contain:
+
+- Secrets, tokens, API keys, credentials.
+- Client names or confidential product details.
+- PII, PHI, or payment data.
+
+Use neutral references: *"a marketplace SaaS in the logistics domain"*, not *"Project Acme for Client X"*. When exporting a lesson, replace the specific nouns before the commit.
+
+### Change control
+
+- `~/.mastermind/global/` is versioned in its own git repo (private).
+- Promotions are single commits: `lesson: <topic>` or `pattern: <topic>`.
+- Supersede, do not delete: when a lesson becomes obsolete, mark it superseded in place and append the new entry. Historical context stays searchable.
