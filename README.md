@@ -103,7 +103,8 @@ MASTERMIND-2.0/
 │
 └── scripts/                           # Automation scripts (sync, setup, etc.)
     ├── sync-skills.ps1                # Windows / cross-platform PowerShell
-    └── sync-skills.sh                 # Unix / macOS
+    ├── sync-skills.sh                 # Unix / macOS
+    └── sync-from-template.ps1/.sh     # Pull template updates into an existing project safely
 ```
 
 ### Skills — canonical source + mirror
@@ -112,6 +113,44 @@ MASTERMIND-2.0/
 - Mirror for Claude: `.claude/skills/` (generated — never edit by hand).
 - After editing any SKILL.md, run `pwsh -File scripts/sync-skills.ps1` (or the `.sh` variant).
 - Verify before commit: `pwsh -File scripts/sync-skills.ps1 -Check` (exits 1 on drift).
+
+### Syncing an existing project from an updated template
+
+When the template evolves and you have a project cloned from an older version, use [`scripts/sync-from-template.ps1`](scripts/sync-from-template.ps1) (`.sh`) to pull the updates **without touching project-specific content**.
+
+Safe by construction:
+- **Dry-run by default.** Nothing is written unless you pass `-Apply`.
+- **Whitelist-driven.** Only template files get synced (rules, skills, workflows, commands, hooks, scripts, root docs).
+- **Blacklist protected.** `memory/`, `docs/`, `.cursor/plans/`, `.taskmaster/`, `.env*`, `.git/`, `claude-side/prompts/` are never touched.
+- **Per-file backups** (`.backup-YYYYMMDD-HHMMSS`) before overwriting, on every `-Apply`.
+- **Self-protection:** refuses to run if the current directory IS the template.
+- **Confirmation prompt** on `-Apply` unless `-Force` is set.
+
+Recommended flow (in the target project):
+
+```powershell
+# 0. Prep: close Cursor/Claude on this project, commit/push pending work.
+
+# 1. Dry-run to review what would change:
+pwsh -File scripts/sync-from-template.ps1 -Template "C:\path\to\MASTERMIND-TEMPLATE-2.0"
+
+# 2. If the list looks right, apply with backups + confirmation:
+pwsh -File scripts/sync-from-template.ps1 -Template "C:\path\to\MASTERMIND-TEMPLATE-2.0" -Apply
+
+# 3. Inspect the real diff:
+git diff
+
+# 4. Commit and reload Cursor + restart Claude:
+git add . && git commit -m "chore: sync from MASTERMIND template"
+```
+
+```bash
+bash scripts/sync-from-template.sh --template /path/to/template
+bash scripts/sync-from-template.sh --template /path/to/template --apply
+bash scripts/sync-from-template.sh --template /path/to/template --apply --force
+```
+
+Exit codes: `0` = in sync, `1` = drift detected (dry-run) or user aborted, `2` = BLOCK (bad args, template missing, or running inside the template).
 
 ---
 
@@ -362,7 +401,7 @@ Escape hatches: `git commit --no-verify`, `git push --no-verify`, or env vars `M
 | **Cross-project memory** | `~/.mastermind/global/` (outside the repo) | 5 files + README |
 | **Hooks — agent** | Behavioral instruction files | 4 active + HOOKS.md |
 | **Hooks — git** | Client-side shell scripts (installable) | pre-commit + pre-push |
-| **Scripts** | Automation helpers | 6 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
+| **Scripts** | Automation helpers | 7 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
 
 **Canonical source vs mirror:**
 - Skills: canonical `.cursor/skills/`, mirror `.claude/skills/` (sync via `scripts/sync-skills`).

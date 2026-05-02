@@ -16,6 +16,28 @@
 
 ## Entries
 
+### 2026-05-02 — Added `scripts/sync-from-template` (safe template sync for cloned projects)
+- **Decision:** Ship a new pair of scripts (`sync-from-template.ps1` + `.sh`) that pulls updates from an up-to-date MASTERMIND template into an existing project cloned from an older version of the template, without touching project-specific content.
+- **Reason:** Projects cloned from the template drift as the template evolves (new skills, new rules, new hooks). Without a safe-by-construction sync mechanism, users copy files by hand and either forget something or accidentally overwrite project data (memory/, docs/, .cursor/plans/). The script formalizes the whitelist (template files) and blacklist (project-specific files), with dry-run by default and per-file timestamped backups.
+- **Alternatives considered:**
+  - Cherry-pick commits from the template git history — rejected: projects cloned without preserving the template remote cannot cherry-pick cleanly.
+  - Git submodule for `.cursor/` and `.claude/` — rejected: adds operational complexity and blocks per-project customization of skills/rules.
+  - Manual `Copy-Item` instructions in a doc — rejected: not repeatable, error-prone, no protection against overwriting project data.
+  - Apply-by-default, dry-run as flag — rejected: too destructive for a cross-project operation; inconsistent with the implicit user expectation that "sync" means "safe".
+- **Consequences:**
+  - Two new scripts under `scripts/`: `sync-from-template.ps1` and `sync-from-template.sh`.
+  - Hardened whitelist: CLAUDE.md, AGENTS.md, README.md, OPERATING-GUIDE.md, COMMANDS.md, .gitignore, .env.example, all `.cursor/rules/*.mdc`, all `.cursor/skills/**`, `.cursor/hooks/*.md`, `.claude/CLAUDE.md`, all `.claude/skills/**`, `.claude/hooks/*.md`, all `.claude/workflows/**`, all `.claude/commands/**`, scripts/*.ps1 / *.sh, `scripts/git-hooks/pre-commit|pre-push|README.md`. `claude-side/mcp-config.json` is OFF by default, opt-in via `-IncludeMcpConfig` / `--include-mcp-config`.
+  - Hardened blacklist with defense in depth: `memory/**`, `docs/**`, `.cursor/plans/**`, `.taskmaster/**`, `.env`, `.env.local`, `.env.*` (except `.env.example` / `.env.sample`), `.git/**`, `node_modules/**`, `dist/**`, `.next/**`, `claude-side/prompts/**`. The blacklist check runs even for files that happen to match a whitelist glob.
+  - Dry-run is the default; `-Apply` (PS) / `--apply` (bash) required to write. `-Force` / `--force` skips the confirmation prompt.
+  - Per-file backups (`<file>.backup-YYYYMMDD-HHMMSS`) on every overwrite.
+  - Self-protection: refuses to run when `pwd == -Template`.
+  - Exit codes: 0 in-sync / user-confirmed, 1 drift in dry-run or user aborted, 2 bad args / missing template / run-inside-template.
+  - README.md gains a dedicated subsection "Syncing an existing project from an updated template" with the recommended flow.
+  - CLAUDE.md §Memory Architecture scripts list updated to include `sync-from-template`.
+  - Smoke test verified: detects drift on a simulated outdated project clone, protects `memory/00-project-brief.md` and `.cursor/plans/*.md`, refuses to run inside the template itself.
+- **Files affected:** `scripts/sync-from-template.ps1` (new), `scripts/sync-from-template.sh` (new), `README.md`, `CLAUDE.md`, `memory/07-decisions-log.md` (this entry).
+- **Supersedes:** no previous mechanism; this is the first formal template-to-project sync path.
+
 ### 2026-05-02 — Added Command Recommendation Protocol (HIGH / MEDIUM / LOW)
 - **Decision:** Introduce a template-wide contract for the agent to recommend the next `/mm-*` command at the end of every non-trivial turn, with a confidence level (HIGH / MEDIUM / LOW) dictating the format. Lives in `CLAUDE.md §5` as the canonical spec, enforced by the new `.cursor/hooks/post-output.suggest-command.md` hook, and referenced from rule `00-project-operating-system.mdc` Output Contract. Unified the "Closing" step of 14 skills to use the new format (HIGH when one command is obvious, MEDIUM when options are plausible, LOW when context is exploratory).
 - **Reason:** The system depends on skills and workflows chaining correctly. Before this protocol, skills closed with "hand off to skill X" — which is correct but not **operational**: the user (especially a new one) has to translate skill names into `/mm-*` commands. Adding an explicit, actionable next-command block with a confidence level closes that gap without creating spam: HIGH gives decisive direction, MEDIUM shows the real ambiguity when it exists, LOW admits when there is no next command to recommend.

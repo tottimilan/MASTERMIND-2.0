@@ -1,0 +1,258 @@
+#!/usr/bin/env bash
+# sync-from-template.sh — safely sync template files (skills, rules, workflows,
+# commands, hooks, scripts, root docs) from a MASTERMIND 2.0 template into the
+# CURRENT project, without touching project-specific content (memory/, docs/,
+# .cursor/plans/, .taskmaster/, .env*, .git/).
+#
+# Defaults to DRY-RUN. Pass --apply to actually write (with per-file backups).
+#
+# Usage:
+#   bash scripts/sync-from-template.sh --template /path/to/mastermind-template
+#   bash scripts/sync-from-template.sh --template /path/to/tpl --apply
+#   bash scripts/sync-from-template.sh --template /path/to/tpl --apply --force
+#   bash scripts/sync-from-template.sh --template /path/to/tpl --apply --include-mcp-config
+#
+# Exit codes:
+#   0  OK (dry-run: in sync; apply: success)
+#   1  drift detected in dry-run, or user aborted, or drift remains after apply
+#   2  bad arguments, template not found, running inside template, or missing deps
+
+set -euo pipefail
+
+TEMPLATE=""
+APPLY=0
+FORCE=0
+INCLUDE_MCP=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --template)              TEMPLATE="${2:-}"; shift 2 ;;
+    --apply)                 APPLY=1; shift ;;
+    --force)                 FORCE=1; shift ;;
+    --include-mcp-config)    INCLUDE_MCP=1; shift ;;
+    -h|--help)
+      sed -n '2,15p' "$0"
+      exit 0
+      ;;
+    *) echo "Unknown arg: $1" >&2; exit 2 ;;
+  esac
+done
+
+if [[ -z "$TEMPLATE" ]]; then
+  echo "ERROR: --template <path> is required." >&2
+  exit 2
+fi
+if [[ ! -d "$TEMPLATE" ]]; then
+  echo "ERROR: template path not found: $TEMPLATE" >&2
+  exit 2
+fi
+
+# Resolve absolute paths
+TEMPLATE_ROOT="$( cd "$TEMPLATE" && pwd )"
+PROJECT_ROOT="$( pwd )"
+
+if [[ "$TEMPLATE_ROOT" == "$PROJECT_ROOT" ]]; then
+  echo "ERROR: current directory IS the template. Run this from the target project." >&2
+  exit 2
+fi
+
+if [[ ! -f "$TEMPLATE_ROOT/CLAUDE.md" ]]; then
+  echo "ERROR: template does not contain CLAUDE.md. Is --template pointing at a MASTERMIND 2.0 repo?" >&2
+  exit 2
+fi
+
+if ! grep -q 'MASTERMIND' "$TEMPLATE_ROOT/CLAUDE.md"; then
+  echo "WARN: template's CLAUDE.md does not mention MASTERMIND. Continuing."
+fi
+
+# Pick a sha256 tool
+if command -v sha256sum >/dev/null 2>&1; then
+  _hash() { sha256sum "$1" | awk '{print $1}'; }
+elif command -v shasum >/dev/null 2>&1; then
+  _hash() { shasum -a 256 "$1" | awk '{print $1}'; }
+else
+  echo "ERROR: need sha256sum or shasum in PATH." >&2
+  exit 2
+fi
+
+echo ""
+echo "=== sync-from-template ==="
+echo "Template:  $TEMPLATE_ROOT"
+echo "Project:   $PROJECT_ROOT"
+if [[ $APPLY -eq 1 ]]; then
+  echo "Mode:      APPLY (will write + backup)"
+else
+  echo "Mode:      DRY-RUN (read-only)"
+fi
+[[ $APPLY -eq 1 && $FORCE -eq 1 ]] && echo "Force:     yes (no confirmation prompt)"
+[[ $INCLUDE_MCP -eq 1 ]] && echo "MCP cfg:   INCLUDED in sync"
+echo ""
+
+# Build whitelist of files relative to TEMPLATE_ROOT
+collect_whitelist() {
+  (
+    cd "$TEMPLATE_ROOT"
+    # Root docs
+    for f in CLAUDE.md AGENTS.md README.md OPERATING-GUIDE.md COMMANDS.md .gitignore .env.example; do
+      [[ -f "$f" ]] && echo "$f"
+    done
+    # Rules
+    find .cursor/rules -type f -name '*.mdc' 2>/dev/null
+    # Skills canonical
+    find .cursor/skills -type f 2>/dev/null
+    # Hooks cursor (only md)
+    find .cursor/hooks -maxdepth 1 -type f -name '*.md' 2>/dev/null
+    # Claude side
+    [[ -f ".claude/CLAUDE.md" ]] && echo ".claude/CLAUDE.md"
+    find .claude/skills -type f 2>/dev/null
+    find .claude/hooks -maxdepth 1 -type f -name '*.md' 2>/dev/null
+    find .claude/workflows -type f 2>/dev/null
+    find .claude/commands -type f 2>/dev/null
+    # Scripts
+    find scripts -maxdepth 1 -type f \( -name '*.ps1' -o -name '*.sh' \) 2>/dev/null
+    # Git hooks
+    for f in scripts/git-hooks/pre-commit scripts/git-hooks/pre-push scripts/git-hooks/README.md; do
+      [[ -f "$f" ]] && echo "$f"
+    done
+    # MCP config (optional)
+    if [[ $INCLUDE_MCP -eq 1 && -f "claude-side/mcp-config.json" ]]; then
+      echo "claude-side/mcp-config.json"
+    fi
+  ) | sed 's|^\./||' | sort -u
+}
+
+# Blacklist check
+is_blacklisted() {
+  local p="$1"
+  case "$p" in
+    memory/*|docs/*|.cursor/plans/*|.taskmaster/*|.git/*|node_modules/*|dist/*|.next/*|claude-side/prompts/*)
+      return 0 ;;
+  esac
+  # .env but not .env.example or .env.sample
+  local base
+  base="$(basename "$p")"
+  case "$base" in
+    .env|.env.local) return 0 ;;
+    .env.example|.env.sample) return 1 ;;
+    .env.*) return 0 ;;
+  esac
+  # mcp config unless --include-mcp-config
+  if [[ $INCLUDE_MCP -eq 0 && "$p" == "claude-side/mcp-config.json" ]]; then
+    return 0
+  fi
+  return 1
+}
+
+mapfile -t WHITELIST < <(collect_whitelist)
+
+if [[ ${#WHITELIST[@]} -eq 0 ]]; then
+  echo "ERROR: no files matched the whitelist in the template. Is --template correct?" >&2
+  exit 2
+fi
+
+TO_CREATE=()
+TO_UPDATE=()
+UNCHANGED=0
+PROTECTED=()
+
+for rel in "${WHITELIST[@]}"; do
+  [[ -z "$rel" ]] && continue
+  if is_blacklisted "$rel"; then
+    PROTECTED+=("$rel")
+    continue
+  fi
+  src="$TEMPLATE_ROOT/$rel"
+  dst="$PROJECT_ROOT/$rel"
+  if [[ ! -f "$dst" ]]; then
+    TO_CREATE+=("$rel")
+  else
+    s="$(_hash "$src")"
+    d="$(_hash "$dst")"
+    if [[ "$s" == "$d" ]]; then
+      UNCHANGED=$((UNCHANGED+1))
+    else
+      TO_UPDATE+=("$rel")
+    fi
+  fi
+done
+
+echo "Whitelisted in template: ${#WHITELIST[@]} file(s)"
+echo ""
+
+if [[ ${#TO_CREATE[@]} -gt 0 ]]; then
+  echo "NEW (${#TO_CREATE[@]}):"
+  for f in "${TO_CREATE[@]}"; do echo "  + $f"; done
+  echo ""
+fi
+if [[ ${#TO_UPDATE[@]} -gt 0 ]]; then
+  echo "CHANGED (${#TO_UPDATE[@]}):"
+  for f in "${TO_UPDATE[@]}"; do echo "  ~ $f"; done
+  echo ""
+fi
+if [[ ${#PROTECTED[@]} -gt 0 ]]; then
+  echo "PROTECTED (${#PROTECTED[@]}):"
+  for f in "${PROTECTED[@]}"; do echo "  p $f"; done
+  echo ""
+fi
+echo "Unchanged: $UNCHANGED"
+
+TOTAL=$(( ${#TO_CREATE[@]} + ${#TO_UPDATE[@]} ))
+
+if [[ $TOTAL -eq 0 ]]; then
+  echo ""
+  echo "OK: project is already in sync with the template. Nothing to do."
+  exit 0
+fi
+
+if [[ $APPLY -eq 0 ]]; then
+  echo ""
+  echo "DRIFT DETECTED ($TOTAL files would change). Re-run with --apply to sync."
+  echo "Reminder: before applying, close Cursor/Claude on this project and commit/push pending changes."
+  exit 1
+fi
+
+if [[ $FORCE -eq 0 ]]; then
+  echo ""
+  read -r -p "Apply $TOTAL change(s) with automatic backups? (type 'yes' to proceed) " CONFIRM
+  if [[ "$CONFIRM" != "yes" ]]; then
+    echo "Aborted by user."
+    exit 1
+  fi
+fi
+
+TS="$(date +%Y%m%d-%H%M%S)"
+BACKED_UP=0
+CREATED=0
+UPDATED=0
+
+apply_one() {
+  local rel="$1"
+  local src="$TEMPLATE_ROOT/$rel"
+  local dst="$PROJECT_ROOT/$rel"
+  mkdir -p "$(dirname "$dst")"
+  if [[ -f "$dst" ]]; then
+    cp -f "$dst" "$dst.backup-$TS"
+    BACKED_UP=$((BACKED_UP+1))
+  fi
+  cp -f "$src" "$dst"
+}
+
+for rel in "${TO_CREATE[@]}"; do apply_one "$rel"; CREATED=$((CREATED+1)); done
+for rel in "${TO_UPDATE[@]}"; do apply_one "$rel"; UPDATED=$((UPDATED+1)); done
+
+echo ""
+echo "DONE"
+echo "  Created: $CREATED"
+echo "  Updated: $UPDATED"
+echo "  Backups: $BACKED_UP  (suffix: .backup-$TS)"
+echo ""
+echo "NEXT STEPS:"
+echo "  1. Run: git diff   (review the real changes)"
+echo "  2. If something looks wrong, restore from .backup-$TS files."
+echo "  3. Commit: git add . && git commit -m 'chore: sync from MASTERMIND template'"
+echo "  4. Reload Cursor window or reopen."
+echo "  5. Restart Claude Desktop / Claude Code fully."
+echo "  6. Sanity check: ask 'List the active hooks in this repo' -> expect the latest set."
+echo ""
+echo "To clean up backups when confident:"
+echo "  find . -name '*.backup-$TS' -delete"

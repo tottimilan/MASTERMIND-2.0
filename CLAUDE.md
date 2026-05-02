@@ -139,6 +139,7 @@ Full rule including when the agent should auto-downgrade HIGH → MEDIUM lives a
   - `worktree-spawn` / `worktree-cleanup` — parallel execution helpers.
   - `install-taskmaster` — per-project activation of `task-master-ai` MCP.
   - `install-git-hooks` + `git-hooks/` — pre-commit (sync + secret scan) and pre-push (no direct main push + soft phase warning) client-side hooks.
+  - `sync-from-template` — pull updates from an up-to-date MASTERMIND template into a project cloned from an older version, safely (whitelist + blacklist + per-file backup + dry-run by default).
 - `.cursor/hooks/` and `.claude/hooks/` → **agent-level behavioral hooks** (instruction files): `pre-task.doubt-surfacer`, `post-task.memory-updater`, `post-merge.docs-refresh`. Kill-switches via `MM_HOOK_*` env vars.
 - Optional local `CLAUDE.md` files can be placed in risky modules (e.g. `src/auth/CLAUDE.md`) to override the kernel for that subtree.
 
