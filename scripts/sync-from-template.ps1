@@ -23,6 +23,10 @@
       memory/**, docs/**, .cursor/plans/**, .taskmaster/**, .env*, claude-side/mcp-config.json,
       claude-side/prompts/**, .git/**, node_modules/**, dist/**, .next/**, any custom file not in the whitelist.
 
+    Opt-in exception for memory/: pass -IncludeNewMemoryFiles to CREATE memory/*.md skeletons
+    that exist in the template but not in the project. Existing memory files are still
+    protected and NEVER overwritten — the flag only adds new slots.
+
     Reports:
       + new        : file doesn't exist in the project and will be created
       ~ updated    : file exists and differs; will be backed up and overwritten
@@ -47,6 +51,9 @@
 .PARAMETER IncludeMcpConfig
     Switch. By default `claude-side/mcp-config.json` is NOT synced (projects often customize it with real tokens/servers). Set this to force it.
 
+.PARAMETER IncludeNewMemoryFiles
+    Switch. By default `memory/` is fully protected (never touched) so the script can never overwrite your project's decisions, session summaries, etc. With this flag, memory/*.md files that exist in the template but NOT in the project are CREATED (skeleton only). Existing memory files are still untouched. Use when the template has added a new memory slot (e.g. memory/14-design-system.md was introduced after your project was cloned) and you want to opt into it.
+
 .EXAMPLE
     pwsh -File scripts/sync-from-template.ps1 -Template "C:\Users\me\Desktop\MASTERMIND TEMPLATE 2.0"
     # Dry-run: shows what would change.
@@ -64,7 +71,8 @@ param(
     [Parameter(Mandatory=$true)][string]$Template,
     [switch]$Apply,
     [switch]$Force,
-    [switch]$IncludeMcpConfig
+    [switch]$IncludeMcpConfig,
+    [switch]$IncludeNewMemoryFiles
 )
 
 $ErrorActionPreference = 'Stop'
@@ -101,6 +109,7 @@ Write-Host "Project:   $projectRoot"
 Write-Host "Mode:      $(if ($Apply) { 'APPLY (will write + backup)' } else { 'DRY-RUN (read-only)' })"
 if ($Apply -and $Force) { Write-Host "Force:     yes (no confirmation prompt)" }
 if ($IncludeMcpConfig) { Write-Host "MCP cfg:   INCLUDED in sync" }
+if ($IncludeNewMemoryFiles) { Write-Host "Memory:    new skeletons will be CREATED if missing (existing files still protected)" }
 Write-Host ""
 
 # Whitelist: glob patterns relative to repo root. Order matters only for reporting.
@@ -129,6 +138,9 @@ $whitelistGlobs = @(
 
 if ($IncludeMcpConfig) {
     $whitelistGlobs += 'claude-side/mcp-config.json'
+}
+if ($IncludeNewMemoryFiles) {
+    $whitelistGlobs += 'memory/*.md'
 }
 
 # Blacklist: paths under the project that MUST NOT be touched, checked even if the whitelist
@@ -159,7 +171,9 @@ $blacklistFilenames = @(
     '.env.local'
 )
 
-# blacklist .env.* too (but keep .env.example)
+# Blacklist check. The -IncludeNewMemoryFiles exception is enforced in the
+# main diff loop (below): memory/*.md bypasses this check during opt-in, and
+# the main loop decides create-if-missing / skip-if-exists.
 function Test-Blacklisted {
     param([string]$RelPath)
     $normalized = $RelPath -replace '\\', '/'
@@ -185,7 +199,8 @@ function Get-TemplateWhitelistedFiles {
         $matches = Get-ChildItem -Path $fullGlob -File -Recurse -ErrorAction SilentlyContinue
         foreach ($m in $matches) {
             $rel = $m.FullName.Substring($templateRoot.Length).TrimStart('\', '/') -replace '\\', '/'
-            if (-not (Test-Blacklisted -RelPath $rel)) {
+            $isMemoryOptIn = $IncludeNewMemoryFiles -and ($rel -match '^memory/[^/]+\.md$')
+            if ($isMemoryOptIn -or (-not (Test-Blacklisted -RelPath $rel))) {
                 [void]$results.Add($rel)
             }
         }
@@ -216,7 +231,10 @@ foreach ($rel in $files) {
     $src = Join-Path $templateRoot ($rel -replace '/', '\')
     $dst = Join-Path $projectRoot ($rel -replace '/', '\')
 
-    if (Test-Blacklisted -RelPath $rel) {
+    # For memory/*.md under -IncludeNewMemoryFiles: bypass blacklist; allow CREATE only, never update.
+    $isMemoryOptIn = $IncludeNewMemoryFiles -and ($rel -match '^memory/[^/]+\.md$')
+
+    if (-not $isMemoryOptIn -and (Test-Blacklisted -RelPath $rel)) {
         [void]$protected.Add($rel)
         continue
     }
@@ -224,6 +242,11 @@ foreach ($rel in $files) {
     if (-not (Test-Path $dst)) {
         [void]$toCreate.Add($rel)
     } else {
+        if ($isMemoryOptIn) {
+            # Existing memory file: protected, even with -IncludeNewMemoryFiles. We only create new skeletons.
+            [void]$protected.Add($rel)
+            continue
+        }
         $srcHash = Get-FileHashSafe -Path $src
         $dstHash = Get-FileHashSafe -Path $dst
         if ($srcHash -eq $dstHash) {

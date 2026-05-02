@@ -11,6 +11,8 @@
 #   bash scripts/sync-from-template.sh --template /path/to/tpl --apply
 #   bash scripts/sync-from-template.sh --template /path/to/tpl --apply --force
 #   bash scripts/sync-from-template.sh --template /path/to/tpl --apply --include-mcp-config
+#   bash scripts/sync-from-template.sh --template /path/to/tpl --apply --include-new-memory-files
+#     (create memory/*.md skeletons that exist in template but not here; existing ones still protected)
 #
 # Exit codes:
 #   0  OK (dry-run: in sync; apply: success)
@@ -23,15 +25,17 @@ TEMPLATE=""
 APPLY=0
 FORCE=0
 INCLUDE_MCP=0
+INCLUDE_NEW_MEMORY=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --template)              TEMPLATE="${2:-}"; shift 2 ;;
-    --apply)                 APPLY=1; shift ;;
-    --force)                 FORCE=1; shift ;;
-    --include-mcp-config)    INCLUDE_MCP=1; shift ;;
+    --template)                 TEMPLATE="${2:-}"; shift 2 ;;
+    --apply)                    APPLY=1; shift ;;
+    --force)                    FORCE=1; shift ;;
+    --include-mcp-config)       INCLUDE_MCP=1; shift ;;
+    --include-new-memory-files) INCLUDE_NEW_MEMORY=1; shift ;;
     -h|--help)
-      sed -n '2,15p' "$0"
+      sed -n '2,17p' "$0"
       exit 0
       ;;
     *) echo "Unknown arg: $1" >&2; exit 2 ;;
@@ -86,6 +90,7 @@ else
 fi
 [[ $APPLY -eq 1 && $FORCE -eq 1 ]] && echo "Force:     yes (no confirmation prompt)"
 [[ $INCLUDE_MCP -eq 1 ]] && echo "MCP cfg:   INCLUDED in sync"
+[[ $INCLUDE_NEW_MEMORY -eq 1 ]] && echo "Memory:    new skeletons will be CREATED if missing (existing files still protected)"
 echo ""
 
 # Build whitelist of files relative to TEMPLATE_ROOT
@@ -118,10 +123,16 @@ collect_whitelist() {
     if [[ $INCLUDE_MCP -eq 1 && -f "claude-side/mcp-config.json" ]]; then
       echo "claude-side/mcp-config.json"
     fi
+    # memory/*.md (opt-in; skip-if-exists is enforced in the main diff below)
+    if [[ $INCLUDE_NEW_MEMORY -eq 1 ]]; then
+      find memory -maxdepth 1 -type f -name '*.md' 2>/dev/null
+    fi
   ) | sed 's|^\./||' | sort -u
 }
 
-# Blacklist check
+# Blacklist check. The --include-new-memory-files exception is enforced in
+# the main loop (below): memory/*.md bypasses this check during opt-in, and
+# the main loop then decides create-if-missing / skip-if-exists.
 is_blacklisted() {
   local p="$1"
   case "$p" in
@@ -157,7 +168,13 @@ PROTECTED=()
 
 for rel in "${WHITELIST[@]}"; do
   [[ -z "$rel" ]] && continue
-  if is_blacklisted "$rel"; then
+  is_memory_opt_in=0
+  if [[ $INCLUDE_NEW_MEMORY -eq 1 && "$rel" =~ ^memory/[^/]+\.md$ ]]; then
+    is_memory_opt_in=1
+  fi
+  # Blacklist check — except memory/*.md passes through when -IncludeNewMemoryFiles is on;
+  # create-only / skip-if-exists is enforced right below.
+  if [[ $is_memory_opt_in -eq 0 ]] && is_blacklisted "$rel"; then
     PROTECTED+=("$rel")
     continue
   fi
@@ -166,6 +183,11 @@ for rel in "${WHITELIST[@]}"; do
   if [[ ! -f "$dst" ]]; then
     TO_CREATE+=("$rel")
   else
+    if [[ $is_memory_opt_in -eq 1 ]]; then
+      # Existing memory file: protected even with -IncludeNewMemoryFiles. Only new skeletons get created.
+      PROTECTED+=("$rel")
+      continue
+    fi
     s="$(_hash "$src")"
     d="$(_hash "$dst")"
     if [[ "$s" == "$d" ]]; then
