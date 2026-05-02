@@ -10,7 +10,9 @@
 
 MASTERMIND 2.0 is a template repository that you **clone once per project**. It gives any AI agent working on the project:
 
-> **Start here:** [`OPERATING-GUIDE.md`](OPERATING-GUIDE.md) — the full operational manual (~2000 lines). Read linearly the first time; consult by section afterwards. Covers every phase, every skill, every workflow, with a worked end-to-end example ("Notas-AI") and an FAQ.
+> **Start here:**
+> - [`OPERATING-GUIDE.md`](OPERATING-GUIDE.md) — the full operational manual (~2000 lines). Read linearly the first time; consult by section afterwards. Covers every phase, every skill, every workflow, with a worked end-to-end example ("Notas-AI") and an FAQ.
+> - [`COMMANDS.md`](COMMANDS.md) — the fast reference for the 11 `/mm-*` slash commands. Keep it open to answer *"which command now?"* in 5 seconds.
 
 
 - A **kernel** (`CLAUDE.md`) that defines the operating rules.
