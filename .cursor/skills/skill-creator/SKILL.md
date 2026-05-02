@@ -218,7 +218,10 @@ These 19 skills form the canonical set. A new skill must not overlap > 60% with 
 - `continuous-learner` — promotes qualifying lessons to `~/.mastermind/global/` (lessons / patterns / pitfalls / stacks / vendors); applies the 3-part test; per-entry user approval.
 - `retroactive-documenter` — seeds `memory/` from an existing codebase (code + git log + README + lockfiles). Used during onboarding of projects not born from MASTERMIND. Per-file approval.
 
-Total: **20 skills** (14 System 1 + 6 System 2). System 2 is feature-complete.
+**System 1 — Design & prototyping (1):**
+- `prototype-designer` — bridges MASTERMIND memory (flows, features, design tokens) to Claude Design for interactive prototyping on top of the project's shadcn/ui install. Consumes memory/05, memory/06, memory/14; produces a prompt, guides the Claude Design session, captures the handoff bundle under docs/design/prototypes/, extracts decisions back into memory/14. Precedes `implementation-planner`.
+
+Total: **21 skills** (15 System 1 + 6 System 2). System 2 is feature-complete.
 
 Propose a new skill only if its purpose is not covered by the above list. Overlap > 60% with an existing skill = refactor the existing, do not duplicate.
 

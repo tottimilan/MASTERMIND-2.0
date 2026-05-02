@@ -1,6 +1,6 @@
 # COMMANDS.md — Quick reference for `/mm-*`
 
-> **What this is.** A fast, operational reference for the **12 slash commands** in this project. Designed to stay open and answer the question *"which command do I run now?"* in 5 seconds.
+> **What this is.** A fast, operational reference for the **13 slash commands** in this project. Designed to stay open and answer the question *"which command do I run now?"* in 5 seconds.
 >
 > **What this is NOT.** This is not the deep system documentation — for that, open [`OPERATING-GUIDE.md`](OPERATING-GUIDE.md). This is not the skill catalog — those live in `.cursor/skills/` and `.claude/skills/`.
 
@@ -42,6 +42,7 @@ The agent reads the file and follows the script. Same end result.
 | [`/mm-retro`](.claude/commands/mm-retro.md)         | 20–40 min weekly retrospective                             | Once a week during MVP/Iteration/Launch                          | Period (optional)               |
 | [`/mm-learn`](.claude/commands/mm-learn.md)         | Promote lessons to the cross-project global memory         | End of phase, notable post-mortem, weekly retro                  | Time window (optional)          |
 | [`/mm-onboard`](.claude/commands/mm-onboard.md)     | Integrate an existing project (not born from MASTERMIND) into the system | After `scripts/onboard-existing-project` installs the shell      | Hints like `audit-focus:monetization` (optional) |
+| [`/mm-design`](.claude/commands/mm-design.md)       | Prototype a feature via Claude Design on top of shadcn/ui                | Between `product-requirements`/`flow-analyzer` and `implementation-planner` | Feature + optional `fidelity:wireframe\|hi-fi`, `audience:stakeholder\|user-test\|handoff` |
 
 > **Pattern:** all share the `mm-` prefix (MASTERMIND) to group them visually and avoid clashes with Claude's native commands.
 
@@ -133,6 +134,14 @@ The agent reads the file and follows the script. Same end result.
 - **Discipline:** 20–40 minutes. If it runs longer, the project is doing too many things at once.
 - **Argument:** `period:<YYYY-MM-DD..YYYY-MM-DD>` (optional; default = last 7 days).
 
+### 13. `/mm-design` — Prototype a feature via Claude Design + shadcn
+
+- **Wraps:** skill [`prototype-designer`](.cursor/skills/prototype-designer/SKILL.md).
+- **When:** between spec (`product-requirements` / `flow-analyzer`) and implementation (`implementation-planner`). Especially for UI-heavy features; skip for pure backend / data pipelines.
+- **Prerequisites:** shadcn/ui installed (`components.json` exists; run `scripts/install-shadcn-mcp.ps1` if missing). `memory/14-design-system.md` at least with Project identity filled — otherwise output is generic.
+- **Does:** reads `memory/05-user-flows`, `memory/06-feature-map`, `memory/14-design-system`. Composes a structured prompt (goal + layout + content + audience + token constraints). Guides you to open `claude.ai/design`, link the repo, iterate. Captures the handoff bundle under `docs/design/prototypes/<feature>/`. Extracts decisions (new tokens, components to install, patterns, likes, anti-patterns) back into memory/14 with per-entry approval. Closes with a HIGH recommendation pointing to `/mm-plan`.
+- **Arguments:** feature name (or picks from `memory/06-feature-map.md`). Optional hints: `fidelity:wireframe|hi-fi`, `audience:stakeholder|user-test|handoff`, `skip-memory-update` (not recommended).
+
 ### 12. `/mm-onboard` — Bring an existing project into MASTERMIND
 
 - **Wraps:** workflow [`06-onboard-existing-project`](.claude/workflows/06-onboard-existing-project.md) + skill [`retroactive-documenter`](.claude/skills/retroactive-documenter/SKILL.md).
@@ -162,6 +171,9 @@ Is this an existing project you want to bring into MASTERMIND?
 
 Are you starting a project from scratch?
 └── Yes → /mm-bootstrap
+
+Do you need to prototype a UI feature visually before coding?
+└── Yes → /mm-design  (run scripts/install-shadcn-mcp first if shadcn isn't initialized)
 
 Do you have a bug, failing test, or incident?
 └── Yes → /mm-bug

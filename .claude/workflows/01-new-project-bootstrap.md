@@ -93,6 +93,20 @@ The output is a project that has:
 - **Output:** phase officially advanced to `Discovery`.
 - **Exit criterion:** `memory/02-current-state.md` Phase field now reads `Discovery`; `memory/13-phase-history.md` has the transition entry at the top.
 
+### Phase 5.5 — Design system bootstrap (optional but strongly recommended for apps with UI)
+
+- **Skill:** _(script `scripts/install-shadcn-mcp.ps1` / `.sh`)_ + manual fill of `memory/14-design-system.md`.
+- **Mode:** Executor.
+- **Input:** the just-bootstrapped project; memory/00-project-brief.md with the product personality already described.
+- **Steps:**
+  1. Decide: does this project ship a UI (web app, dashboard, marketing site, product)? If no (e.g. pure CLI, worker, library), SKIP this phase.
+  2. Run `scripts/install-shadcn-mcp.ps1` (PowerShell) or `scripts/install-shadcn-mcp.sh` (bash). It runs `npx shadcn@latest init`, registers the shadcn MCP server in `.cursor/mcp.json` and `.mcp.json`, and installs the official `shadcn/ui` Skill.
+  3. Reload Cursor / restart Claude Code. Sanity: shadcn MCP green dot in Cursor settings; `/mcp` shows `shadcn Connected` in Claude Code.
+  4. Open `memory/14-design-system.md`. Fill at minimum: Project identity (name, 3-5 personality adjectives, reference products), and Tokens (primary color, display/sans fonts, radius). Empty placeholders produce generic-IA prototypes later on.
+  5. In chat: *"Add button, card, input, dialog, and badge from shadcn"* — use the MCP to install a baseline so `components.json` has real entries.
+- **Output:** shadcn installed, MCP active, Skill loaded, memory/14 has the project's visual identity seeded.
+- **Exit criterion:** `components.json` exists; `.cursor/mcp.json` / `.mcp.json` reference shadcn; memory/14 has the identity section filled (not placeholders).
+
 ### Phase 6 — Close and handoff (memory-updater)
 
 - **Skill:** `memory-updater`

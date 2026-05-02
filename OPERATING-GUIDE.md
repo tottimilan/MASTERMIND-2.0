@@ -152,6 +152,7 @@ The template has four layers, in increasing order of abstraction. Every artifact
 | `memory/11-session-summary.md` | Append-mode log of every meaningful session |
 | `memory/12-open-doubts-and-questions.md` | AI ↔ user Q&A register |
 | `memory/13-phase-history.md` | Append-only log of phase transitions |
+| `memory/14-design-system.md` | Per-project source of truth for visual decisions: tokens, installed shadcn components, likes, anti-patterns, patterns, references. Updated by `prototype-designer` via `/mm-design`. |
 
 Plus the `docs/` folder (8 subfolders: product, architecture, features, flows, api, testing, security, adr) for human-readable artifacts, and `~/.mastermind/global/` for cross-project memory.
 
@@ -169,6 +170,7 @@ Plus the `docs/` folder (8 subfolders: product, architecture, features, flows, a
 | `05-claude-mcp-integration.mdc` | MCP policy (Context7 always, Playwright on demand); cross-project memory; task-master activation |
 | `06-execution-modes.mdc` | Coach / Executor / Auditor modes, selection priority, transitions |
 | `07-subagent-orchestration.mdc` | Subagent dispatch; worktrees; two-stage review; continuous learning loop |
+| `08-design-system.mdc` | Design system policy: shadcn/ui (via MCP + Skill) as default, Claude Design as prototyping surface, memory/14 as visual source of truth. |
 
 Plus the kernel `CLAUDE.md` at the root and `AGENTS.md` for non-Cursor agents.
 
@@ -1934,6 +1936,9 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 **System 2 — Onboarding**
 - `.cursor/skills/retroactive-documenter/SKILL.md`
 
+**System 1 — Design & prototyping**
+- `.cursor/skills/prototype-designer/SKILL.md`
+
 ### 15.2 Rules (8)
 
 - `.cursor/rules/00-project-operating-system.mdc`
@@ -1944,6 +1949,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.cursor/rules/05-claude-mcp-integration.mdc`
 - `.cursor/rules/06-execution-modes.mdc`
 - `.cursor/rules/07-subagent-orchestration.mdc`
+- `.cursor/rules/08-design-system.mdc`
 
 ### 15.3 Workflows (5)
 
@@ -1969,6 +1975,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.claude/commands/mm-retro.md`
 - `.claude/commands/mm-learn.md`
 - `.claude/commands/mm-onboard.md`
+- `.claude/commands/mm-design.md`
 - `.claude/commands/README.md` (index)
 
 ### 15.5 Memory files (14)
@@ -1987,6 +1994,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `memory/11-session-summary.md`
 - `memory/12-open-doubts-and-questions.md`
 - `memory/13-phase-history.md`
+- `memory/14-design-system.md`
 
 ### 15.6 Hooks
 
@@ -2012,6 +2020,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `scripts/install-git-hooks.ps1` / `.sh`
 - `scripts/sync-from-template.ps1` / `.sh`
 - `scripts/onboard-existing-project.ps1` / `.sh`
+- `scripts/install-shadcn-mcp.ps1` / `.sh`
 
 ### 15.8 MCP stack
 

@@ -126,7 +126,7 @@ Full rule including when the agent should auto-downgrade HIGH → MEDIUM lives a
 - `memory/` → **long-term project intelligence**, versioned in Git.
 - `docs/` → **source of truth** for product, architecture, features, flows, API, testing, security, ADRs.
 - `.cursor/rules/*.mdc` → **permanent instructions** always loaded by Cursor. Key rules for execution discipline: `00-project-operating-system` · `01-karpathy-principles` · `04-safety-and-git` · `06-execution-modes` (Coach/Executor/Auditor) · `07-subagent-orchestration` (subagents + parallel worktrees).
-- `.cursor/skills/*/SKILL.md` → **reusable playbooks**, loaded on demand to save context. **This is the canonical source** for skills. 20 skills total: 14 System 1 (analysis & documentation) + 6 System 2 (execution: `phase-gate-reviewer`, `approval-gatekeeper`, `subagent-dispatcher`, `parallel-executor`, `continuous-learner`, `retroactive-documenter`).
+- `.cursor/skills/*/SKILL.md` → **reusable playbooks**, loaded on demand to save context. **This is the canonical source** for skills. 21 skills total: 15 System 1 (analysis & documentation, incl. `prototype-designer`) + 6 System 2 (execution: `phase-gate-reviewer`, `approval-gatekeeper`, `subagent-dispatcher`, `parallel-executor`, `continuous-learner`, `retroactive-documenter`).
 - `.claude/skills/` → **generated mirror** of `.cursor/skills/` for Claude Code / Claude Desktop. Do not edit directly; run `scripts/sync-skills.ps1` (or `.sh`) after editing the source.
 - `memory/` → 13 canonical files. Notably `memory/13-phase-history.md` tracks phase transitions; `memory/11-session-summary.md` is append-mode.
 - `.claude/` → mirror for Claude Desktop (kernel reference + memory + skills + agents + workflows + commands + hooks).
@@ -141,6 +141,7 @@ Full rule including when the agent should auto-downgrade HIGH → MEDIUM lives a
   - `install-git-hooks` + `git-hooks/` — pre-commit (sync + secret scan) and pre-push (no direct main push + soft phase warning) client-side hooks.
   - `sync-from-template` — pull updates from an up-to-date MASTERMIND template into a project cloned from an older version, safely (whitelist + blacklist + per-file backup + dry-run by default).
   - `onboard-existing-project` — install the MASTERMIND shell into a project NOT born from the template, with stack auto-detection, phase bootstrap, conflict-as-proposal pattern, and pre-existing rules relocated to a timestamped backup. Complements workflow `06-onboard-existing-project` and the `/mm-onboard` command.
+  - `install-shadcn-mcp` — in a target project, runs `npx shadcn@latest init` + registers the shadcn MCP server in `.cursor/mcp.json` + `.mcp.json` + runs `npx skills add shadcn/ui`. One command wires the whole ecosystem so `prototype-designer` and `/mm-design` work end-to-end.
 - `.cursor/hooks/` and `.claude/hooks/` → **agent-level behavioral hooks** (instruction files): `pre-task.doubt-surfacer`, `post-task.memory-updater`, `post-merge.docs-refresh`. Kill-switches via `MM_HOOK_*` env vars.
 - Optional local `CLAUDE.md` files can be placed in risky modules (e.g. `src/auth/CLAUDE.md`) to override the kernel for that subtree.
 

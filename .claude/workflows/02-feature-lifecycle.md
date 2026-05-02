@@ -38,6 +38,20 @@ If any precondition fails, the workflow aborts and recommends the missing prior 
   4. Update `memory/06-feature-map.md` with the slice rows.
 - **Exit criterion:** ≥ 1 slice marked "First to ship"; all slices satisfy the independence / observability / reversibility rules.
 
+### Phase 1.5 — Prototype (Coach, optional but recommended for UI features)
+
+- **Skill:** `prototype-designer` (or `/mm-design`).
+- **Mode:** Coach (user drives Claude Design; skill orchestrates and captures).
+- **Input:** the chosen slice + `memory/05-user-flows.md` + `memory/14-design-system.md`.
+- **Steps:**
+  1. Decide: does this slice have a visual component worth prototyping before coding? (Pure backend / data pipeline / CLI? Skip. UI / form / flow / dashboard? Do it.)
+  2. Invoke `prototype-designer`. The skill composes a prompt for Claude Design using memory/14's tokens, likes, anti-patterns.
+  3. You open `claude.ai/design`, link the repo (so Claude Design reads real shadcn install + components.json), iterate.
+  4. Export handoff bundle → saved under `docs/design/prototypes/<feature>/`.
+  5. Skill extracts decisions (new tokens, components to install, patterns) into `memory/14-design-system.md` with per-entry approval.
+- **Output:** prototype bundle + updated memory/14.
+- **Exit criterion:** the stakeholder / you can click through the prototype and it represents the intended feature behavior; memory/14 reflects any new decisions.
+
 ### Phase 2 — Plan (Executor)
 
 - **Skill:** `implementation-planner` (once per slice).

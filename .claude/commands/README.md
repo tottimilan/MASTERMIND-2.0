@@ -19,6 +19,7 @@ Custom slash commands for Claude Code (`.claude/commands/`). Each file is a shor
 | [`/mm-gate`](mm-gate.md) | Workflow `04-phase-gate-transition` | Advance the project phase |
 | [`/mm-retro`](mm-retro.md) | Workflow `05-weekly-retrospective` | Weekly review with lesson promotion |
 | [`/mm-onboard`](mm-onboard.md) | Workflow `06-onboard-existing-project` + skill `retroactive-documenter` | Integrate an existing project into MASTERMIND |
+| [`/mm-design`](mm-design.md) | Skill `prototype-designer` | Prototype a feature via Claude Design + shadcn/ui |
 
 All commands share the `mm-` prefix to group them visually and avoid collisions with upstream Claude commands.
 

@@ -156,6 +156,41 @@ pwsh -File scripts/onboard-existing-project.ps1 -Template "<template path>" -Pha
 
 Exit codes for the script: `0` in-sync, `1` drift detected / aborted, `2` BLOCK (bad args, missing template, or running inside the template).
 
+### Design system + prototyping (shadcn/ui + Claude Design)
+
+MASTERMIND's default design system is **shadcn/ui**, consumed via its [official MCP server](https://ui.shadcn.com/docs/mcp) and [official Skill](https://ui.shadcn.com/docs/skills). Default prototyping surface is **Claude Design** (`claude.ai/design`), which reads the project's shadcn install to produce prototypes that use your real components and tokens.
+
+Why this combo: shadcn is copy-paste (you own the code), MCP gives agents live registry access without prop hallucinations, the Skill gives agents per-project context, and Claude Design hands off cleanly to Claude Code. Nothing to build, nothing to maintain — just integrate.
+
+Entry points:
+
+- **Rule:** [`.cursor/rules/08-design-system.mdc`](.cursor/rules/08-design-system.mdc) — conventions and non-negotiables.
+- **Memory file:** [`memory/14-design-system.md`](memory/14-design-system.md) — per-project source of truth for tokens, installed components, likes, anti-patterns, patterns, references.
+- **Skill:** [`.cursor/skills/prototype-designer/SKILL.md`](.cursor/skills/prototype-designer/SKILL.md) — bridges memory + Claude Design + shadcn.
+- **Command:** [`/mm-design`](.claude/commands/mm-design.md) — wraps the skill for single-command invocation.
+- **Script:** [`scripts/install-shadcn-mcp.ps1`](scripts/install-shadcn-mcp.ps1) (`.sh`) — one-shot install in a target project: CLI init + MCP registration + Skill install.
+
+Typical flow in a new MASTERMIND project:
+
+```powershell
+# After /mm-bootstrap completes Phases 1-5 and you have memory/00 filled:
+pwsh -File scripts/install-shadcn-mcp.ps1 -Apply -Defaults   # CLI + MCP + Skill in one shot.
+# Reload Cursor / restart Claude Code. Sanity: shadcn MCP green dot.
+
+# Fill the visual identity in memory/14-design-system.md (name, 3-5 personality adjectives, primary color, fonts, radius, likes, anti-patterns). 10 lines.
+
+# Install baseline components via MCP:
+# In chat: "Add button, card, input, dialog, badge from shadcn."
+
+# Later, when prototyping a feature:
+/mm-design notification-center fidelity:hi-fi audience:stakeholder
+# -> opens the prototype-designer skill: composes the prompt, guides the
+#    Claude Design session, captures the handoff bundle, extracts decisions
+#    back into memory/14. Next step is /mm-plan.
+```
+
+Empty `memory/14` produces generic-IA-flavored prototypes. Fill even the minimum (primary color, 3 personality adjectives, 2 likes, 2 anti-patterns) and every prototype from then on is on-brand. That's the whole trick.
+
 ### Syncing an existing project from an updated template
 
 When the template evolves and you have a project cloned from an older version, use [`scripts/sync-from-template.ps1`](scripts/sync-from-template.ps1) (`.sh`) to pull the updates **without touching project-specific content**.
@@ -434,16 +469,16 @@ Escape hatches: `git commit --no-verify`, `git push --no-verify`, or env vars `M
 |---|---|---|
 | **Kernel** | `CLAUDE.md` + `AGENTS.md` | 2 files |
 | **Rules** | `.cursor/rules/00..07.mdc` | 8 rules, always loaded |
-| **Skills (System 1)** | Analysis, documentation, quality | 14 skills |
+| **Skills (System 1)** | Analysis, documentation, quality, design & prototyping | 15 skills |
 | **Skills (System 2)** | Execution + orchestration + learning + onboarding | 6 skills |
 | **Workflows** | End-to-end recipes | 6 workflows |
-| **Slash commands** | `/mm-*` shortcuts | 12 commands |
+| **Slash commands** | `/mm-*` shortcuts | 13 commands |
 | **Memory bank** | Per-project intelligence (Git-versioned) | 14 files |
 | **Docs folder** | Product, architecture, features, flows, api, testing, security, adr | 8 subfolders |
 | **Cross-project memory** | `~/.mastermind/global/` (outside the repo) | 5 files + README |
 | **Hooks — agent** | Behavioral instruction files | 4 active + HOOKS.md |
 | **Hooks — git** | Client-side shell scripts (installable) | pre-commit + pre-push |
-| **Scripts** | Automation helpers | 8 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
+| **Scripts** | Automation helpers | 9 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
 
 **Canonical source vs mirror:**
 - Skills: canonical `.cursor/skills/`, mirror `.claude/skills/` (sync via `scripts/sync-skills`).

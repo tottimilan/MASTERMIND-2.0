@@ -28,6 +28,8 @@ Before picking a stack, run the analysis and record the result in `memory/03-arc
 - **Testing:** _TBD_
 - **Observability:** _TBD_
 - **Analytics:** _TBD_
+- **Design system:** shadcn/ui (via official MCP + Skill) — default. See `.cursor/rules/08-design-system.mdc` + `memory/14-design-system.md`. Override here only if this project uses something else, with a decision in `memory/07-decisions-log.md`.
+- **Prototyping tool:** Claude Design (`claude.ai/design`) — default for visual prototyping on top of the shadcn install. Invoke via `/mm-design`.
 
 ## Constraints
 
