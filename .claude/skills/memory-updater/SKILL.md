@@ -170,7 +170,7 @@ Keep the lesson short, context-free, and actionable (e.g. *"Supabase RLS policie
 
 ## Interactions with other skills
 
-- **Invoked as the finishing step by:** `project-deep-audit`, `product-requirements`, `architecture-mapper`, `feature-breakdown`, `flow-analyzer`, `implementation-planner`, `test-strategist`, `security-review`, `bug-investigator`, `code-reviewer`, `research-first`, `phase-gate-reviewer`, `approval-gatekeeper`.
+- **Invoked as the finishing step by:** `project-deep-audit`, `product-requirements`, `architecture-mapper`, `feature-breakdown`, `flow-analyzer`, `implementation-planner`, `test-strategist`, `security-review`, `bug-investigator`, `code-reviewer`, `research-first`, `phase-gate-reviewer`, `approval-gatekeeper`, `retroactive-documenter`.
 - **Invoked in limited scope by:** `doubt-surfacer` — but only to persist `memory/12-*`, never the full sweep.
 - **Invokes:** none.
 - **Pairs with:** `code-reviewer` — memory updates should be reviewed alongside code in the same PR.

@@ -114,6 +114,48 @@ MASTERMIND-2.0/
 - After editing any SKILL.md, run `pwsh -File scripts/sync-skills.ps1` (or the `.sh` variant).
 - Verify before commit: `pwsh -File scripts/sync-skills.ps1 -Check` (exits 1 on drift).
 
+### Onboarding an EXISTING project (not born from MASTERMIND)
+
+If you already have a project with code, commits, README, maybe tests and CI, and you want to bring it into MASTERMIND without starting over, use [`scripts/onboard-existing-project.ps1`](scripts/onboard-existing-project.ps1) (`.sh`) + workflow [`06-onboard-existing-project`](.claude/workflows/06-onboard-existing-project.md) + slash command `/mm-onboard`.
+
+What makes it safe:
+- **Dry-run by default.** Nothing is written unless `-Apply`.
+- **Conflict-as-proposal pattern.** If a file already exists in the target AND differs from the template, the template version is written next to it as `<file>.mastermind-proposal`. The original is NEVER overwritten. You merge manually.
+- **Pre-existing `.cursor/rules/` are relocated**, not deleted, to `.cursor/rules-backup-YYYYMMDD-HHMMSS/`. Use `-KeepExistingRules` to treat them as conflicts instead.
+- **Stack auto-detection** from `package.json` / `pyproject.toml` / `Cargo.toml` pre-fills `02-tech-stack.mdc` if the project does not already have one.
+- **Phase bootstrap.** You specify the initial phase (Idea / Discovery / Definition / MVP / Iteration / Launch); the script writes `memory/02-current-state.md` + a `memory/13-phase-history.md` entry coherently.
+- **Never touches** `src/`, `app/`, `tests/`, lockfiles, `.git/`, `node_modules/`, `dist/`, `.next/`, `.taskmaster/`, `.env*`, `docs/`, or `.cursor/plans/`.
+
+Recommended flow (full workflow at [`.claude/workflows/06-onboard-existing-project.md`](.claude/workflows/06-onboard-existing-project.md)):
+
+```powershell
+# 0. In the target project: commit/push pending work, close Cursor/Claude.
+cd "<target-project>"
+git add . && git commit -m "wip: pre-onboard checkpoint"
+# Copy the two scripts from the template:
+Copy-Item "<template>\scripts\onboard-existing-project.*" -Destination "scripts\" -Force
+
+# 1. Dry-run:
+pwsh -File scripts/onboard-existing-project.ps1 -Template "<template path>" -Phase MVP
+
+# 2. Apply:
+pwsh -File scripts/onboard-existing-project.ps1 -Template "<template path>" -Phase MVP -Apply
+
+# 3. Resolve any *.mastermind-proposal files manually (merge or delete).
+# 4. Commit: git add . && git commit -m "chore: onboard existing project into MASTERMIND"
+# 5. Reload Cursor, restart Claude. Sanity: ask "List active hooks" → expect 4.
+
+# 6. In chat:
+/mm-onboard
+# → runs the in-IDE phases of workflow 06:
+#   Phase 5: retroactive-documenter (seed memory/ from code + git log + README)
+#   Phase 6: project-deep-audit (12 angles + Hard Truth)
+#   Phase 7: phase-gate-reviewer (confirm the phase picked is correct)
+#   Phase 8: first /mm-retro if phase is MVP/Iteration/Launch
+```
+
+Exit codes for the script: `0` in-sync, `1` drift detected / aborted, `2` BLOCK (bad args, missing template, or running inside the template).
+
 ### Syncing an existing project from an updated template
 
 When the template evolves and you have a project cloned from an older version, use [`scripts/sync-from-template.ps1`](scripts/sync-from-template.ps1) (`.sh`) to pull the updates **without touching project-specific content**.
@@ -393,15 +435,15 @@ Escape hatches: `git commit --no-verify`, `git push --no-verify`, or env vars `M
 | **Kernel** | `CLAUDE.md` + `AGENTS.md` | 2 files |
 | **Rules** | `.cursor/rules/00..07.mdc` | 8 rules, always loaded |
 | **Skills (System 1)** | Analysis, documentation, quality | 14 skills |
-| **Skills (System 2)** | Execution foundation + orchestration + learning | 5 skills |
-| **Workflows** | End-to-end recipes | 5 workflows |
-| **Slash commands** | `/mm-*` shortcuts | 11 commands |
+| **Skills (System 2)** | Execution + orchestration + learning + onboarding | 6 skills |
+| **Workflows** | End-to-end recipes | 6 workflows |
+| **Slash commands** | `/mm-*` shortcuts | 12 commands |
 | **Memory bank** | Per-project intelligence (Git-versioned) | 14 files |
 | **Docs folder** | Product, architecture, features, flows, api, testing, security, adr | 8 subfolders |
 | **Cross-project memory** | `~/.mastermind/global/` (outside the repo) | 5 files + README |
 | **Hooks — agent** | Behavioral instruction files | 4 active + HOOKS.md |
 | **Hooks — git** | Client-side shell scripts (installable) | pre-commit + pre-push |
-| **Scripts** | Automation helpers | 7 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
+| **Scripts** | Automation helpers | 8 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
 
 **Canonical source vs mirror:**
 - Skills: canonical `.cursor/skills/`, mirror `.claude/skills/` (sync via `scripts/sync-skills`).

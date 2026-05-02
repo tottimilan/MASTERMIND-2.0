@@ -210,14 +210,15 @@ These 19 skills form the canonical set. A new skill must not overlap > 60% with 
 - Execution: `implementation-planner`, `test-strategist`
 - Quality: `bug-investigator`, `code-reviewer`, `security-review`
 
-**System 2 — Execution (5):**
+**System 2 — Execution (6):**
 - `phase-gate-reviewer` — validates Idea → Discovery → Definition → MVP → Iteration → Launch transitions.
 - `approval-gatekeeper` — enforces Human-in-the-Loop for sensitive actions.
 - `subagent-dispatcher` — drives plan execution task-by-task within one workspace, fresh subagent per task, two-stage review (spec then code quality).
 - `parallel-executor` — coordinates parallel execution across Git worktrees, independence analysis, runtime isolation decisions, merge order planning.
 - `continuous-learner` — promotes qualifying lessons to `~/.mastermind/global/` (lessons / patterns / pitfalls / stacks / vendors); applies the 3-part test; per-entry user approval.
+- `retroactive-documenter` — seeds `memory/` from an existing codebase (code + git log + README + lockfiles). Used during onboarding of projects not born from MASTERMIND. Per-file approval.
 
-Total: **19 skills** (14 System 1 + 5 System 2). System 2 is feature-complete as of Sub-phase 2.4.
+Total: **20 skills** (14 System 1 + 6 System 2). System 2 is feature-complete.
 
 Propose a new skill only if its purpose is not covered by the above list. Overlap > 60% with an existing skill = refactor the existing, do not duplicate.
 

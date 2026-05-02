@@ -1,6 +1,6 @@
 # COMMANDS.md — Quick reference for `/mm-*`
 
-> **What this is.** A fast, operational reference for the **11 slash commands** in this project. Designed to stay open and answer the question *"which command do I run now?"* in 5 seconds.
+> **What this is.** A fast, operational reference for the **12 slash commands** in this project. Designed to stay open and answer the question *"which command do I run now?"* in 5 seconds.
 >
 > **What this is NOT.** This is not the deep system documentation — for that, open [`OPERATING-GUIDE.md`](OPERATING-GUIDE.md). This is not the skill catalog — those live in `.cursor/skills/` and `.claude/skills/`.
 
@@ -41,6 +41,7 @@ The agent reads the file and follows the script. Same end result.
 | [`/mm-gate`](.claude/commands/mm-gate.md)           | Phase advance with hard verification                       | End of a phase (Idea/Discovery/Definition/MVP/Iteration/Launch)  | Target phase                    |
 | [`/mm-retro`](.claude/commands/mm-retro.md)         | 20–40 min weekly retrospective                             | Once a week during MVP/Iteration/Launch                          | Period (optional)               |
 | [`/mm-learn`](.claude/commands/mm-learn.md)         | Promote lessons to the cross-project global memory         | End of phase, notable post-mortem, weekly retro                  | Time window (optional)          |
+| [`/mm-onboard`](.claude/commands/mm-onboard.md)     | Integrate an existing project (not born from MASTERMIND) into the system | After `scripts/onboard-existing-project` installs the shell      | Hints like `audit-focus:monetization` (optional) |
 
 > **Pattern:** all share the `mm-` prefix (MASTERMIND) to group them visually and avoid clashes with Claude's native commands.
 
@@ -132,6 +133,16 @@ The agent reads the file and follows the script. Same end result.
 - **Discipline:** 20–40 minutes. If it runs longer, the project is doing too many things at once.
 - **Argument:** `period:<YYYY-MM-DD..YYYY-MM-DD>` (optional; default = last 7 days).
 
+### 12. `/mm-onboard` — Bring an existing project into MASTERMIND
+
+- **Wraps:** workflow [`06-onboard-existing-project`](.claude/workflows/06-onboard-existing-project.md) + skill [`retroactive-documenter`](.claude/skills/retroactive-documenter/SKILL.md).
+- **When:** you have a project that was NOT born from this template (may have code, commits, README, maybe prior `.cursor/rules/`) and you want to bring it into the MASTERMIND system.
+- **Prerequisite:** run `scripts/onboard-existing-project.ps1` (or `.sh`) first from the terminal. That installs the MASTERMIND shell. Only then invoke `/mm-onboard` in chat — it orchestrates the in-IDE phases 5–8 of the workflow.
+- **Does:** retroactively seeds `memory/` from the codebase (code + git log + README + lockfiles + tests) with `retroactive-documenter`, then strategic audit via `/mm-audit`, then phase confirmation via `/mm-gate`, then optional first `/mm-retro`.
+- **Per-file approval:** every draft entry written to `memory/` is approved one at a time (approve/edit/skip). No auto-write.
+- **Flags what it cannot infer:** strategy, personas, monetization — those come from the audit, not from the code.
+- **Argument:** optional hints like `audit-focus:monetization` or `skip-retro`.
+
 ### 11. `/mm-learn` — Promote lessons to global memory
 
 - **Wraps:** skill [`continuous-learner`](.claude/skills/continuous-learner/SKILL.md).
@@ -146,6 +157,9 @@ The agent reads the file and follows the script. Same end result.
 ## Decision tree "I don't know which one to use"
 
 ```
+Is this an existing project you want to bring into MASTERMIND?
+└── Yes → run scripts/onboard-existing-project.ps1 first, then /mm-onboard
+
 Are you starting a project from scratch?
 └── Yes → /mm-bootstrap
 

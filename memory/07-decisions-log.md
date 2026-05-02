@@ -16,6 +16,30 @@
 
 ## Entries
 
+### 2026-05-02 — Added onboarding path for existing projects (script + workflow 06 + skill + /mm-onboard)
+- **Decision:** Ship a full onboarding path for projects that exist outside MASTERMIND and want to join the system. The path covers: (1) `scripts/onboard-existing-project.ps1` / `.sh` for the shell install + stack auto-detect + phase bootstrap + conflict-as-proposal pattern + rules relocation to backup; (2) workflow `06-onboard-existing-project.md` for the full procedure (8 phases); (3) skill `retroactive-documenter` that seeds memory/ from code+git+README with per-file user approval; (4) slash command `/mm-onboard` that orchestrates the in-IDE phases 5–8.
+- **Reason:** Before this, MASTERMIND covered "new project from idea" (`/mm-bootstrap`) and "project clone of the template that fell behind" (`sync-from-template`). Projects not born from MASTERMIND but with real history had no safe on-ramp. The user has ~10 such projects (mostly Next.js + TS). Without a formal onboarding path, they either stay outside the system (no compounding benefit, no cross-project memory) or get migrated by hand (error-prone, easy to overwrite project state).
+- **Alternatives considered:**
+  - Reuse `sync-from-template` as-is — rejected: it assumes the project already has the full shell, just outdated. Existing projects have no shell at all, and may have `.cursor/rules/` customizations that belong to the user.
+  - Brute-force copy the whole template on top — rejected: overwrites custom rules, risks stomping on README / `.gitignore` / any pre-existing `CLAUDE.md`. No phase bootstrap, no stack awareness.
+  - Fork the template and pull — rejected: existing projects are independent git repos, not forks. Rebasing onto a fork is invasive and breaks project history.
+  - Manual checklist in docs — rejected: not repeatable, no machine-assisted conflict detection, easy to miss a file.
+  - Single command, auto-write without review — rejected: opaque and dangerous for projects with custom state. The conflict-as-proposal pattern makes every change explicit.
+- **Consequences:**
+  - New scripts: `onboard-existing-project.ps1` (~360 lines) and `.sh` (~310 lines). Dry-run default. Conflict-as-proposal pattern: existing-and-different files are written as `<file>.mastermind-proposal` next to the original; never overwrites. Pre-existing `.cursor/rules/` relocated to `.cursor/rules-backup-<ts>/` (opt-out via `-KeepExistingRules`). Stack auto-detected from package.json / pyproject.toml / Cargo.toml and pre-fills `02-tech-stack.mdc`. Phase argument required on `-Apply`; writes to `memory/02-current-state.md` and `memory/13-phase-history.md` coherently.
+  - New skill: `retroactive-documenter` (~220 lines). Reads code + git log + README + lockfiles + tests. Drafts content for `memory/00`, `02`, `03`, `04`, `06`, `08` based on observed reality (never strategy — that's the audit's job). Per-file user approval (approve / edit / skip). Writes only on approval; one commit per file. Flags what code cannot tell (strategy, Hard Truth, personas) and recommends `/mm-audit` as the natural next step.
+  - New workflow: `06-onboard-existing-project.md` (~180 lines). Eight phases: Prep, Install, Resolve conflicts, Commit+Reload, Retroactive seed, Strategic audit, Confirm phase, First retro (optional for MVP/Iteration/Launch).
+  - New slash command: `/mm-onboard` (~35 lines). Wraps phases 5–8 of workflow 06. Checks preconditions (shell installed, no pending proposals, phase concrete).
+  - Skill-creator registry updated: 20 skills now (14 System 1 + 6 System 2). `retroactive-documenter` listed under a new "System 2 — Onboarding" sub-bucket.
+  - `memory-updater` Interactions updated: `retroactive-documenter` added to "Invoked as the finishing step by".
+  - README.md: new section "Onboarding an EXISTING project (not born from MASTERMIND)" with the recommended flow (commands + safety notes). Final map updated: 6 skills in System 2, 6 workflows, 12 commands, 8 script helpers.
+  - COMMANDS.md: new row for `/mm-onboard` in the summary table, new section "12. `/mm-onboard` — Bring an existing project into MASTERMIND", decision tree updated with the "existing project" branch first.
+  - Workflows and commands README indexes updated.
+  - CLAUDE.md memory architecture script list gains `onboard-existing-project`.
+  - OPERATING-GUIDE.md appendix lists workflow 06, command `/mm-onboard`, skill `retroactive-documenter`, and the two new scripts.
+- **Files affected:** `scripts/onboard-existing-project.ps1` (new), `scripts/onboard-existing-project.sh` (new), `.cursor/skills/retroactive-documenter/SKILL.md` (new), `.claude/skills/retroactive-documenter/SKILL.md` (new, synced), `.claude/workflows/06-onboard-existing-project.md` (new), `.claude/commands/mm-onboard.md` (new), `.cursor/skills/skill-creator/SKILL.md`, `.claude/skills/skill-creator/SKILL.md`, `.cursor/skills/memory-updater/SKILL.md`, `.claude/skills/memory-updater/SKILL.md`, `CLAUDE.md`, `README.md`, `COMMANDS.md`, `OPERATING-GUIDE.md`, `.claude/workflows/README.md`, `.claude/commands/README.md`, `memory/07-decisions-log.md` (this entry).
+- **Supersedes:** no previous mechanism; first formal onboarding path for non-MASTERMIND projects.
+
 ### 2026-05-02 — Added `scripts/sync-from-template` (safe template sync for cloned projects)
 - **Decision:** Ship a new pair of scripts (`sync-from-template.ps1` + `.sh`) that pulls updates from an up-to-date MASTERMIND template into an existing project cloned from an older version of the template, without touching project-specific content.
 - **Reason:** Projects cloned from the template drift as the template evolves (new skills, new rules, new hooks). Without a safe-by-construction sync mechanism, users copy files by hand and either forget something or accidentally overwrite project data (memory/, docs/, .cursor/plans/). The script formalizes the whitelist (template files) and blacklist (project-specific files), with dry-run by default and per-file timestamped backups.

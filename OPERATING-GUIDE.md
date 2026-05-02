@@ -1931,6 +1931,9 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 **System 2 — Learning**
 - `.cursor/skills/continuous-learner/SKILL.md`
 
+**System 2 — Onboarding**
+- `.cursor/skills/retroactive-documenter/SKILL.md`
+
 ### 15.2 Rules (8)
 
 - `.cursor/rules/00-project-operating-system.mdc`
@@ -1949,6 +1952,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.claude/workflows/03-bug-triage.md`
 - `.claude/workflows/04-phase-gate-transition.md`
 - `.claude/workflows/05-weekly-retrospective.md`
+- `.claude/workflows/06-onboard-existing-project.md`
 - `.claude/workflows/README.md` (index)
 
 ### 15.4 Commands (11)
@@ -1964,6 +1968,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.claude/commands/mm-gate.md`
 - `.claude/commands/mm-retro.md`
 - `.claude/commands/mm-learn.md`
+- `.claude/commands/mm-onboard.md`
 - `.claude/commands/README.md` (index)
 
 ### 15.5 Memory files (14)
@@ -2005,6 +2010,8 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `scripts/worktree-cleanup.ps1` / `.sh`
 - `scripts/install-taskmaster.ps1` / `.sh`
 - `scripts/install-git-hooks.ps1` / `.sh`
+- `scripts/sync-from-template.ps1` / `.sh`
+- `scripts/onboard-existing-project.ps1` / `.sh`
 
 ### 15.8 MCP stack
 
