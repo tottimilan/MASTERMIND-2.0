@@ -282,6 +282,33 @@ Workflows are ordered recipes that chain skills into end-to-end operations. Slas
 
 In Cursor (which does not natively interpret `/`-prefixed commands the same way Claude Code does), invoke them by reference: *"Run `.claude/commands/mm-ship.md` with `auth-mvp`"*.
 
+### Command Recommendation Protocol (active on every turn)
+
+The agent actively **recommends the next `/mm-*` command** at the end of any non-trivial turn, with an explicit **confidence level** so you always know the operational next step.
+
+| Level | When it fires | Format the agent uses |
+|---|---|---|
+| **HIGH** | One command clearly applies | `Next recommended command: /mm-X [args]` + `Why:` + `Go ahead: type` `go` `to proceed` + `Skip if: …` |
+| **MEDIUM** | Two or more commands plausible | `Possible next commands (pick one): a) /mm-X / b) /mm-Y / c) Nothing yet` — you reply `a`, `b`, or `c` |
+| **LOW** | No command fits (pure exploration) | Explicit "no recommendation"; the agent does **not** force one |
+
+**What "integrated" means in practice:**
+
+- **Consistent output:** every non-trivial turn closes with one of these blocks. No more guessing "what's the next step?".
+- **One-keystroke confirmation:** for HIGH, you type `go` and the agent proceeds as if you ran the command. For MEDIUM you pick the letter. For LOW you take the lead.
+- **Never auto-executes without consent:** the agent always waits for your `go` (HIGH), your pick (MEDIUM), or your direction (LOW). Running the command yourself by typing `/mm-X` works identically.
+- **Safety preserved:** even after `go`, sensitive actions (auth, payments, schema, production) still route through `approval-gatekeeper`. This protocol never bypasses safety rules.
+- **Auto-downgrade built-in:** if a HIGH has a plausible alternative, the agent self-downgrades to MEDIUM. Protects against false confidence.
+- **Never spam:** trivial replies, clarifying Q&A, or turns already inside `doubt-surfacer` get no recommendation block.
+
+**Where it lives:**
+
+- Contract: [`CLAUDE.md §5`](CLAUDE.md).
+- Hook: [`.cursor/hooks/post-output.suggest-command.md`](.cursor/hooks/post-output.suggest-command.md) with activation conditions, templates, and auto-downgrade rule.
+- Skill closings updated: the `Closing` step of 14 skills (project-deep-audit, product-requirements, architecture-mapper, feature-breakdown, flow-analyzer, implementation-planner, test-strategist, code-reviewer, security-review, phase-gate-reviewer, research-first, subagent-dispatcher, parallel-executor, bug-investigator) uses the three-level format.
+- Quick reference for users: [`COMMANDS.md §Command Recommendation Protocol`](COMMANDS.md).
+- Kill-switch: `MM_HOOK_SUGGEST_COMMAND=off`.
+
 ### Hooks (Sub-phase 2.4)
 
 Two classes of hooks, both in place:
@@ -293,8 +320,9 @@ Two classes of hooks, both in place:
 | [`pre-task.doubt-surfacer`](.cursor/hooks/pre-task.doubt-surfacer.md) | Before non-trivial user turns | Force Question Protocol when keywords / phase / scope warrant it |
 | [`post-task.memory-updater`](.cursor/hooks/post-task.memory-updater.md) | After task completion | Ensure memory-updater ran before closing the turn |
 | [`post-merge.docs-refresh`](.cursor/hooks/post-merge.docs-refresh.md) | After a merge to main | Propose refreshing docs/memory that the merge made stale |
+| [`post-output.suggest-command`](.cursor/hooks/post-output.suggest-command.md) | End of any non-trivial turn | Emit a HIGH / MEDIUM / LOW recommendation for the next `/mm-*` command (see Command Recommendation Protocol above) |
 
-Each hook has a kill-switch env var (`MM_HOOK_DOUBT_SURFACER=off`, etc.). Full documentation in [`.cursor/hooks/HOOKS.md`](.cursor/hooks/HOOKS.md).
+Each hook has a kill-switch env var (`MM_HOOK_DOUBT_SURFACER=off`, `MM_HOOK_MEMORY_UPDATER=off`, `MM_HOOK_DOCS_REFRESH=off`, `MM_HOOK_SUGGEST_COMMAND=off`). Full documentation in [`.cursor/hooks/HOOKS.md`](.cursor/hooks/HOOKS.md).
 
 **Git client-side hooks** (`scripts/git-hooks/`, installable): shell scripts installed into `.git/hooks/` via installer.
 
@@ -332,7 +360,7 @@ Escape hatches: `git commit --no-verify`, `git push --no-verify`, or env vars `M
 | **Memory bank** | Per-project intelligence (Git-versioned) | 14 files |
 | **Docs folder** | Product, architecture, features, flows, api, testing, security, adr | 8 subfolders |
 | **Cross-project memory** | `~/.mastermind/global/` (outside the repo) | 5 files + README |
-| **Hooks — agent** | Behavioral instruction files | 3 active + HOOKS.md |
+| **Hooks — agent** | Behavioral instruction files | 4 active + HOOKS.md |
 | **Hooks — git** | Client-side shell scripts (installable) | pre-commit + pre-push |
 | **Scripts** | Automation helpers | 6 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
 
