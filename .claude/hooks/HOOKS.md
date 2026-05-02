@@ -36,5 +36,6 @@ These are **agent-level behavioral hooks** — instruction files that MASTERMIND
 | `pre-task.doubt-surfacer` | Before a non-trivial user turn | Force the Question Protocol when keywords / phase / scope warrant it | [`../../.cursor/hooks/pre-task.doubt-surfacer.md`](../../.cursor/hooks/pre-task.doubt-surfacer.md) |
 | `post-task.memory-updater` | After non-trivial task completion | Ensure memory-updater ran before closing the turn | [`../../.cursor/hooks/post-task.memory-updater.md`](../../.cursor/hooks/post-task.memory-updater.md) |
 | `post-merge.docs-refresh` | After a merge to main | Propose refreshing docs that the merge made stale | [`../../.cursor/hooks/post-merge.docs-refresh.md`](../../.cursor/hooks/post-merge.docs-refresh.md) |
+| `post-output.suggest-command` | End of any non-trivial turn | Emit a HIGH / MEDIUM / LOW recommendation for the next `/mm-*` command | [`../../.cursor/hooks/post-output.suggest-command.md`](../../.cursor/hooks/post-output.suggest-command.md) |
 
 **Git client-side hooks** (pre-commit, pre-push) are a different class — they are shell scripts installed into `.git/hooks/`. Their canonical source is `scripts/git-hooks/`. Install with `scripts/install-git-hooks.ps1` (or `.sh`). See `scripts/git-hooks/README.md`.

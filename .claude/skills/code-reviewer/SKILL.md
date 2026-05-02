@@ -148,7 +148,40 @@ No code changes are written by this skill. The skill reviews — the fix is a se
 
 ### Step 9 — Closing
 
-> "Review complete. Verdict: <status>. <N> Critical, <M> Important, <K> Suggestions. Recommended next step: <address blockers | hand off to security-review | merge>. Do you want me to hand off blockers to `implementation-planner` or `bug-investigator`?"
+Deliver the review in the 11-category format, then emit a Command Recommendation whose confidence level depends on the verdict:
+
+**If verdict = "Not ready" (at least one Critical)** → **HIGH**:
+```markdown
+"Review complete. Verdict: Not ready. <N> Critical, <M> Important, <K> Suggestions.
+
+---
+**Next recommended command:** `/mm-plan fix-<main-critical-slug>`
+**Why:** Critical issues block merge; the plan will sequence fixes with TDD for the blocker.
+**Go ahead:** type `go` and I'll proceed to `implementation-planner` scoped to the blocker.
+**Skip if:** you prefer to dispatch each blocker via `/mm-bug` individually (e.g. when they are regressions)."
+```
+
+**If verdict = "Ready with fixes" (Important only)** → **MEDIUM**:
+```markdown
+"Review complete. Verdict: Ready with fixes. 0 Critical, <M> Important, <K> Suggestions.
+
+---
+**Possible next commands (pick one):**
+a) `/mm-plan fix-minor-issues` — if you want to close the Important findings before merging.
+b) Merge now + open follow-up tickets — if the Important findings can be tracked for later.
+c) `/mm-review <same-branch>` after the author fixes them — if you prefer a re-review loop.
+**Which?** reply `a`, `b`, or `c`."
+```
+
+**If verdict = "Ready to merge" (clean or Suggestions only)** → **HIGH**:
+```markdown
+"Review complete. Verdict: Ready to merge. 0 Critical, 0 Important, <K> Suggestions.
+
+---
+**Next recommended command:** merge the PR (no `/mm-*` needed — `memory-updater` runs automatically after merge).
+**Why:** nothing blocks; Suggestions can go into a backlog ticket.
+**Skip if:** you want to apply Suggestions before merging."
+```
 
 ## Outputs
 

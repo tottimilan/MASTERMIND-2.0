@@ -181,7 +181,18 @@ Persist:
 
 ### Step 11 — Closing
 
-> "Test strategy updated. Phase ratio: <X/Y/Z>. Mandatory coverage areas: <K/K>. Open gaps: <N> (<S/M/L severity mix>). Do you want to (a) close the highest-severity gap now, (b) hand off to `implementation-planner` for a specific missing test, or (c) review the mock strategy?"
+Summarize the strategy, then emit a **MEDIUM** Command Recommendation:
+
+```markdown
+"Test strategy updated. Phase ratio: <X/Y/Z>. Mandatory coverage areas: <K/K>. Open gaps: <N> (<S/M/L severity mix>).
+
+---
+**Possible next commands (pick one):**
+a) `/mm-plan <test-coverage-slug>` — if the highest-severity gap needs a plan now.
+b) Accept risk in `memory/08-known-risks.md` — if the gap is cheaper to accept than to close right now.
+c) `/mm-review` of the mock strategy — if the mock decisions need a second look before coding.
+**Which?** reply `a`, `b`, or `c`."
+```
 
 ## Outputs
 

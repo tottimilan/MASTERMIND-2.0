@@ -16,6 +16,22 @@
 
 ## Entries
 
+### 2026-05-02 — Added Command Recommendation Protocol (HIGH / MEDIUM / LOW)
+- **Decision:** Introduce a template-wide contract for the agent to recommend the next `/mm-*` command at the end of every non-trivial turn, with a confidence level (HIGH / MEDIUM / LOW) dictating the format. Lives in `CLAUDE.md §5` as the canonical spec, enforced by the new `.cursor/hooks/post-output.suggest-command.md` hook, and referenced from rule `00-project-operating-system.mdc` Output Contract. Unified the "Closing" step of 14 skills to use the new format (HIGH when one command is obvious, MEDIUM when options are plausible, LOW when context is exploratory).
+- **Reason:** The system depends on skills and workflows chaining correctly. Before this protocol, skills closed with "hand off to skill X" — which is correct but not **operational**: the user (especially a new one) has to translate skill names into `/mm-*` commands. Adding an explicit, actionable next-command block with a confidence level closes that gap without creating spam: HIGH gives decisive direction, MEDIUM shows the real ambiguity when it exists, LOW admits when there is no next command to recommend.
+- **Alternatives considered:**
+  - Auto-execute HIGH recommendations when the user types nothing — rejected: the user must retain explicit control; auto-executing violates the safety contract for sensitive commands (auth / payments / schema).
+  - Single confidence level with a verbose block — rejected: 90% of HIGH cases don't need options; 90% of LOW cases would become dishonest HIGHs if forced. The three levels match how the agent actually reasons.
+  - Implement only as the hook without updating the skills — rejected: the hook alone is discoverable only by agents; users reading a skill's `SKILL.md` would still see the old handoff format and get mixed signals.
+- **Consequences:**
+  - New canonical spec in `CLAUDE.md §5`; rule 00 references it; new hook `.cursor/hooks/post-output.suggest-command.md`.
+  - 14 skills updated with the three-level format in their Closing step: `project-deep-audit`, `product-requirements`, `architecture-mapper`, `feature-breakdown`, `flow-analyzer`, `implementation-planner`, `test-strategist`, `code-reviewer`, `security-review`, `phase-gate-reviewer`, `research-first`, `subagent-dispatcher`, `parallel-executor`, `bug-investigator`.
+  - 5 skills intentionally NOT updated: `doubt-surfacer` (its own closing is the user invitation; LOW-by-design), `memory-updater` (invoked by others, no user-facing closing), `skill-creator` (meta; users don't chain from it), `continuous-learner` (emits approve/edit/skip prompts per entry — different format on purpose), `approval-gatekeeper` (it's an interrupt, not a terminal step).
+  - `COMMANDS.md` and `OPERATING-GUIDE.md §6.6 + §Hooks` reference the protocol.
+  - Kill-switch available: `MM_HOOK_SUGGEST_COMMAND=off`.
+- **Files affected:** `CLAUDE.md`, `.cursor/rules/00-project-operating-system.mdc`, `.cursor/hooks/post-output.suggest-command.md` (new), `.cursor/hooks/HOOKS.md`, `.claude/hooks/HOOKS.md`, 14 `.cursor/skills/<name>/SKILL.md` files, `COMMANDS.md`, `OPERATING-GUIDE.md`, `memory/07-decisions-log.md` (this entry).
+- **Supersedes:** the previous informal "Closing" handoff pattern ("Do you want to (a)/(b)/(c)…") which is now replaced by the canonical three-level format.
+
 ### 2026-05-02 — Added `COMMANDS.md` (root-level quick reference for `/mm-*`)
 - **Decision:** Introduce a new top-level `COMMANDS.md` as a fast, operational reference for the 11 `/mm-*` slash commands, in English, linked from `README.md`.
 - **Reason:** Users (and future collaborators) need a single-screen answer to *"which command do I run now?"* that is scannable in 5 seconds. The `OPERATING-GUIDE.md` is exhaustive (~2000 lines) and the `.claude/commands/README.md` is a technical index; neither serves as a fast daily cheat-sheet. `COMMANDS.md` fills that gap without duplicating either.

@@ -713,6 +713,18 @@ The user confirms (or the workflow auto-confirms if the policy allows). The next
 
 Full rule at [`.cursor/rules/06-execution-modes.mdc`](.cursor/rules/06-execution-modes.mdc).
 
+### 6.6 Command Recommendation Protocol (closing every turn)
+
+At the **end of any non-trivial turn** — regardless of the active mode — the agent emits a **Command Recommendation block** with one of three confidence levels:
+
+- **HIGH** — one command clearly applies; the agent shows it, explains why, and offers `go` as confirmation.
+- **MEDIUM** — two or more commands are plausible; the agent presents options `(a)/(b)/(c)` and asks the user to pick.
+- **LOW** — no command fits the situation; the agent says so explicitly instead of forcing one.
+
+The agent **never auto-executes** a recommended command; the user either types `go` (shortcut to proceed as if the command were invoked) or runs the command themselves. This prevents drift ("I forgot the next step") and at the same time keeps the human in charge of every transition.
+
+Full contract: [`CLAUDE.md §5`](CLAUDE.md), [`.cursor/hooks/post-output.suggest-command.md`](.cursor/hooks/post-output.suggest-command.md). Quick reference: [`COMMANDS.md`](COMMANDS.md) §Command Recommendation Protocol.
+
 ---
 
 ## 7. How components coordinate
@@ -1618,6 +1630,7 @@ Instruction files that MASTERMIND-aware agents read at the relevant lifecycle ev
 | [`pre-task.doubt-surfacer.md`](.cursor/hooks/pre-task.doubt-surfacer.md) | Before non-trivial user turns | If keywords (design, pivot, auth, ≥5 files, etc.) or phase (Launch + prod-touching) or scope (>4h) match, force `doubt-surfacer` before any output. Kill-switch: `MM_HOOK_DOUBT_SURFACER=off`. |
 | [`post-task.memory-updater.md`](.cursor/hooks/post-task.memory-updater.md) | After task completion | If a skill finished, commits were created, memory was edited, or a decision was taken, ensure `memory-updater` ran. Emits "no-op" if nothing changed. Kill-switch: `MM_HOOK_MEMORY_UPDATER=off`. |
 | [`post-merge.docs-refresh.md`](.cursor/hooks/post-merge.docs-refresh.md) | After merge to main | If the merge touched architecture / data / flows / MCP, propose refreshing the matching docs. Offers refresh/later/not-needed; never refreshes silently. Kill-switch: `MM_HOOK_DOCS_REFRESH=off`. |
+| [`post-output.suggest-command.md`](.cursor/hooks/post-output.suggest-command.md) | End of any non-trivial turn | Emits a HIGH / MEDIUM / LOW recommendation for the next `/mm-*` command per the Command Recommendation Protocol (`CLAUDE.md §5`). Never auto-executes — user types `go` or runs the command manually. Kill-switch: `MM_HOOK_SUGGEST_COMMAND=off`. |
 
 **Example in practice.** Day 13 of Notas-AI — you type:
 

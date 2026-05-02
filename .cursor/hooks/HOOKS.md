@@ -19,6 +19,7 @@ This folder is the Cursor-side home for hooks. The Claude Desktop mirror lives a
 | **Pre-task — doubt-surfacer** | Before non-trivial user turns | [`pre-task.doubt-surfacer.md`](pre-task.doubt-surfacer.md) |
 | **Post-task — memory-updater** | After task completion | [`post-task.memory-updater.md`](post-task.memory-updater.md) |
 | **Post-merge — docs-refresh** | After merge to `main` | [`post-merge.docs-refresh.md`](post-merge.docs-refresh.md) |
+| **Post-output — suggest-command** | End of any non-trivial turn | [`post-output.suggest-command.md`](post-output.suggest-command.md) |
 
 Git client-side hooks (pre-commit, pre-push) live separately under `scripts/git-hooks/`. Install with `pwsh -File scripts/install-git-hooks.ps1` (or `.sh`).
 

@@ -174,7 +174,18 @@ When all parallel tracks have merged:
 
 ### Step 10 — Closing handoff
 
-Emit the standard Handoff block (per rule 06). Propose the next mode (typically Auditor for a cross-cutting review, or a new Coach round if iteration is needed).
+Emit the standard Handoff block (per rule 06) with a **MEDIUM** Command Recommendation since multiple next steps are plausible when parallel tracks land:
+
+```markdown
+"Parallel run complete. <N> worktrees merged, <K> PRs closed. Cross-track review: <status>.
+
+---
+**Possible next commands (pick one):**
+a) `/mm-review origin/main` — cross-track review over the combined diff to catch emergent inconsistencies.
+b) `/mm-ship <next-epic>` — if this cycle is done and the next epic is queued.
+c) `/mm-retro` — if the parallel sprint deserves a week-in-review before more work.
+**Which?** reply `a`, `b`, or `c`."
+```
 
 ## Best-of-N strategy (variant)
 

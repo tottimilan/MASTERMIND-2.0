@@ -193,7 +193,18 @@ Invoke `memory-updater` to persist:
 
 ### Phase 7 — Closing
 
-> "Bug <slug> fixed. Root cause: <category> — <one line>. Regression test: <path>. <Post-mortem at docs/bugs/...md | No post-mortem needed — trivial>. Do you want to (a) review the fix, (b) open the follow-up for <related rot> surfaced during investigation, or (c) run `code-reviewer` on the PR?"
+Summarize the fix, then emit a **HIGH** Command Recommendation (after a bug fix the next steps are almost always review + optional lesson promotion):
+
+```markdown
+"Bug <slug> fixed. Root cause: <category> — <one line>. Regression test: <path>. Post-mortem: <path or 'trivial, none'>.
+
+---
+**Next recommended command:** `/mm-review <fix-branch>`
+**Why:** a fix benefits from a dedicated review that checks no scope creep and that the regression test actually fails on the broken commit.
+**Go ahead:** type `go` and I'll run `code-reviewer` (+ `security-review` if the bug touched trust boundaries).
+**Also consider:** `/mm-learn` if the post-mortem surfaced a cross-project lesson candidate.
+**Skip if:** this was a trivial typo-class fix and the commit message already captured root cause + test path."
+```
 
 ## Outputs
 

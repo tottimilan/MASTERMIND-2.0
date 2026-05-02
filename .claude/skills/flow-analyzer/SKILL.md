@@ -204,7 +204,18 @@ Persist:
 
 ### Step 10 — Closing invitation
 
-> "Flow <Name> documented at `docs/flows/<slug>.md`. <K> error paths and <N> edge cases identified. Do you want to (a) review the error matrix, (b) hand off to `test-strategist` to plan coverage, or (c) document another flow?"
+Summarize the flow doc, then emit a **MEDIUM** Command Recommendation:
+
+```markdown
+"Flow <Name> documented at `docs/flows/<slug>.md`. <K> error paths and <N> edge cases identified.
+
+---
+**Possible next commands (pick one):**
+a) `/mm-plan <test-coverage-slug>` — hand off to `test-strategist` / `implementation-planner` for E2E coverage of this flow.
+b) Run `flow-analyzer` on another flow — if there is another critical flow pending documentation.
+c) `/mm-review` on the error matrix — if you want a second pass before testing.
+**Which?** reply `a`, `b`, or `c`."
+```
 
 ## Outputs
 

@@ -132,6 +132,18 @@ Invoke `memory-updater` to:
 - Update `memory/09-testing-status.md` with new tests registered during the run.
 - If a task surfaced a candidate cross-project lesson, flag it.
 
+Then emit a **HIGH** Command Recommendation tied to the final review outcome:
+
+```markdown
+"Dispatcher run complete. <N> tasks executed, all reviews green. Final roll-up verdict: <status>.
+
+---
+**Next recommended command:** `/mm-review <branch>` (if not already run) or merge.
+**Why:** the two-stage per-task reviews pass; a final branch-level review closes the loop before merge.
+**Go ahead:** type `go` and I'll run `code-reviewer` on the full branch.
+**Skip if:** the final reviewer subagent already issued Ready-to-merge — then merge directly."
+```
+
 ## Model selection table
 
 | Task complexity signal | Model tier |

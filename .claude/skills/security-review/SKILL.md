@@ -191,7 +191,40 @@ Persist:
 
 ### Step 10 — Closing
 
-> "Security review complete. Verdict: <status>. <C> Critical, <H> High, <M> Medium, <L> Low. Scheduled follow-ups: <N>. Accepted risks logged: <K>. Do you want to (a) address blockers, (b) hand off to `implementation-planner` for the remediation plan, or (c) re-scan after the fixes?"
+Deliver the verdict, then emit a Command Recommendation whose confidence depends on severity:
+
+**If verdict = "Not safe to merge" (any Critical/High)** → **HIGH**:
+```markdown
+"Security review complete. Verdict: Not safe to merge. <C> Critical, <H> High.
+
+---
+**Next recommended command:** `/mm-plan security-remediation-<main-finding>`
+**Why:** Critical/High findings block merge; plan the remediation before anything else.
+**Go ahead:** type `go` and I'll proceed to `implementation-planner` scoped to the remediation.
+**Skip if:** you prefer to open a dedicated incident track outside the feature branch."
+```
+
+**If verdict = "Safe to merge with fixes" (Medium findings, no Critical/High)** → **MEDIUM**:
+```markdown
+"Security review complete. Verdict: Safe with fixes. <M> Medium, <L> Low. Accepted risks logged: <K>.
+
+---
+**Possible next commands (pick one):**
+a) `/mm-plan security-fix-pack` — close the Medium findings before merging.
+b) Accept the risk and merge — if the findings are logged in `memory/08-known-risks.md` with expiry.
+c) `/mm-review` after the fixes — if a re-scan is cheaper than risk acceptance.
+**Which?** reply `a`, `b`, or `c`."
+```
+
+**If verdict = "Safe to merge" (clean)** → **HIGH**:
+```markdown
+"Security review complete. Verdict: Safe to merge. 0 Critical/High/Medium, <L> Low.
+
+---
+**Next recommended command:** merge the PR (no `/mm-*` needed).
+**Why:** no open security blockers; Lows can live in the risk log with expiry.
+**Skip if:** you want to address Lows as part of the same PR for hygiene."
+```
 
 ## Outputs
 

@@ -175,9 +175,18 @@ Persist:
 
 ### Step 9 — Closing invitation
 
-Finish with:
+Finish with the PRD summary, then emit a **MEDIUM** Command Recommendation:
 
-> "PRD draft saved. The MVP is scoped to <N> stories, <estimated weeks>, targeting <success metric>. Do you want to (a) validate the MVP boundary with me, (b) move to `architecture-mapper`, or (c) adjust the RICE scores before we commit?"
+```markdown
+"PRD draft saved. The MVP is scoped to <N> stories, <estimated weeks>, targeting <success metric>.
+
+---
+**Possible next commands (pick one):**
+a) `/mm-doubt "MVP boundary validation"` — if you want a Question Protocol pass before committing.
+b) `/mm-plan <architecture>` — if you're ready to move to `architecture-mapper` for the technical side.
+c) Nothing yet — if you want to iterate on the RICE scores or talk to users before committing.
+**Which?** reply `a`, `b`, or `c`."
+```
 
 ## Outputs
 

@@ -221,7 +221,17 @@ Persist:
 
 ### Step 9 — Closing
 
-> "Plan `.cursor/plans/<slug>.md` ready. <N> tasks, <~estimated minutes>. All steps have test + expected output. Pick an execution option (A/B/C) and I will hand off."
+Summarize the plan, then emit a **HIGH** Command Recommendation (executing the plan is the natural next step):
+
+```markdown
+"Plan `.cursor/plans/<slug>.md` ready. <N> tasks, <~estimated minutes>. All steps have test + expected output.
+
+---
+**Next recommended command:** `/mm-ship <epic-slug>`
+**Why:** the plan is the input to workflow 02; the dispatcher will walk each task with two-stage review.
+**Go ahead:** type `go` and I'll proceed to `subagent-dispatcher` (or `parallel-executor` if slices are independent) as if you ran `/mm-ship`.
+**Skip if:** you want to review the plan manually first, or execute inline via Cursor Plan Mode."
+```
 
 ## Outputs
 

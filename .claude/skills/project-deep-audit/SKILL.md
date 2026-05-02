@@ -127,9 +127,18 @@ Close by running `memory-updater` to persist:
 
 ### Step 8 — Closing invitation
 
-Finish the chat response with:
+Finish the chat response with the Audit summary, then emit a **MEDIUM** Command Recommendation (two or more plausible next steps):
 
-> "Audit complete. The most important thing I learned is: <one line>. The hardest truth is: <one line>. What do you want to do first — address the Hard Truth, start the PRD with `product-requirements`, or dig deeper into one of the 12 angles?"
+```markdown
+"Audit complete. The most important thing I learned is: <one line>. The hardest truth is: <one line>.
+
+---
+**Possible next commands (pick one):**
+a) `/mm-doubt` — if the Hard Truth deserves a fresh Question Protocol pass before anything else.
+b) `/mm-plan <first-epic-slug>` — if the Hard Truth is acknowledged and you're ready to draft the PRD/plan via `product-requirements`.
+c) `/mm-audit <angle>` — if one of the 12 angles needs deeper investigation before moving on.
+**Which?** reply `a`, `b`, or `c`."
+```
 
 ## Outputs
 

@@ -93,3 +93,4 @@ When responding to the user:
 - If you made assumptions, state them.
 - If a task is ambiguous, apply the Question & Doubt Protocol instead of guessing.
 - Prefer small reversible steps over large irreversible ones.
+- At the end of any non-trivial output, apply the **Command Recommendation Protocol** (see `CLAUDE.md §5` and `.cursor/hooks/post-output.suggest-command.md`): emit a HIGH / MEDIUM / LOW recommendation for the next `/mm-*` command when one fits naturally. Never auto-execute.

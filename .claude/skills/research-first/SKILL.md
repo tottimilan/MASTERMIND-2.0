@@ -168,9 +168,17 @@ Persist:
 
 ### Step 8 — Closing
 
-Return to the caller (usually another skill or the user) with:
+Return to the caller (usually another skill or the user). Emit a **HIGH** Command Recommendation when `research-first` was invoked standalone; when it was invoked from inside another skill, just hand the TL;DR back and let the caller continue.
 
-> "Research on <topic> complete. TL;DR: <2 bullets>. Full note at `docs/architecture/research/<slug>.md`. Ready to proceed with <next step>?"
+```markdown
+"Research on <topic> complete. TL;DR: <2 bullets>. Full note at `docs/architecture/research/<slug>.md`.
+
+---
+**Next recommended command:** `/mm-plan <original-task-slug>`
+**Why:** the research gates whatever code/architecture decision was blocked; the plan can now use the verified API signatures and caveats.
+**Go ahead:** type `go` to resume the original task with the research findings baked in.
+**Skip if:** the research revealed a blocker that needs a new decision first (run `/mm-doubt <topic>`)."
+```
 
 ## Outputs
 

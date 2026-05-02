@@ -138,11 +138,48 @@ On user confirmation:
 
 ### Step 9 — Closing handoff
 
-Based on the new phase, recommend the next mode and skills. Examples:
+Based on the new phase, emit a **HIGH** Command Recommendation with a per-phase next step. The transition is decisive, so the next move is almost always clear.
 
-- Entered Discovery → *"Recommend `doubt-surfacer` then `project-deep-audit`. Enter Coach mode."*
-- Entered Definition → *"Recommend `product-requirements` then `architecture-mapper`."*
-- Entered MVP → *"Recommend `feature-breakdown` per epic, then `implementation-planner` per slice. Consider installing `task-master-ai` MCP (see `.cursor/rules/05-claude-mcp-integration.mdc §Reserved for System 2`)."*
+**Entered Discovery** → HIGH on `/mm-audit`:
+```markdown
+**Next recommended command:** `/mm-audit` (or `/mm-doubt` first if the brief is still vague).
+**Why:** Discovery work lives in the 12-angle audit; this phase expects the audit and its Hard Truth.
+**Go ahead:** type `go` and I'll proceed to `project-deep-audit` as if you ran `/mm-audit`.
+**Skip if:** you'd rather start with user interviews or research before the audit.
+```
+
+**Entered Definition** → HIGH on `/mm-plan`:
+```markdown
+**Next recommended command:** `/mm-plan <first-epic-slug>` (drives `product-requirements` → `architecture-mapper`).
+**Why:** Definition locks the MVP scope; the PRD and architecture land now.
+**Go ahead:** type `go` and I'll start with `product-requirements` on the first epic.
+**Skip if:** you want to re-run `/mm-audit` with a specific angle before defining.
+```
+
+**Entered MVP** → HIGH on `/mm-ship`:
+```markdown
+**Next recommended command:** `/mm-ship <first-epic-slug>`.
+**Why:** MVP execution is the feature-lifecycle workflow; this phase expects shipped slices.
+**Go ahead:** type `go` and I'll kick off workflow 02 on the first epic.
+**Consider:** installing `task-master-ai` if the MVP plan has ≥ 10 tasks — run `pwsh -File scripts/install-taskmaster.ps1 -ClaudeCodeAuth`.
+**Skip if:** you want to walk through `feature-breakdown` manually first for a specific epic.
+```
+
+**Entered Iteration** → HIGH on the rhythm setup:
+```markdown
+**Next recommended command:** `/mm-retro` (set the weekly cadence now).
+**Why:** Iteration rewards the weekly discipline; the first retro sets the pattern.
+**Go ahead:** type `go` and I'll walk workflow 05.
+**Skip if:** you want to ship one more slice before the first retro.
+```
+
+**Entered Launch** → HIGH on security pass:
+```markdown
+**Next recommended command:** `/mm-review` with security focus (trigger `security-review`).
+**Why:** Launch phase is the tightest gate on security; a targeted pass before public exposure is warranted.
+**Go ahead:** type `go` and I'll run `code-reviewer` + `security-review` on the current branch/main.
+**Skip if:** the security pass already happened in the previous PR cycle.
+```
 
 ## Outputs
 

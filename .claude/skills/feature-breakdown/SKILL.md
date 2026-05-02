@@ -147,7 +147,17 @@ Persist:
 
 ### Step 10 — Closing
 
-> "Epic <name> broken into <N> slices. Critical path: <slice-list>. First slice to ship: <Slice 1>. Do you want to (a) hand off Slice 1 to `implementation-planner`, (b) refine an individual slice, or (c) break down the next epic?"
+Summarize the breakdown, then emit a **HIGH** Command Recommendation (the next step is almost always planning the first slice):
+
+```markdown
+"Epic <name> broken into <N> slices. Critical path: <slice-list>. First slice to ship: <Slice 1>.
+
+---
+**Next recommended command:** `/mm-plan <Slice 1 slug>`
+**Why:** slices are sequenced and independent; planning the first unblocks the TDD implementation loop.
+**Go ahead:** type `go` and I'll proceed to `implementation-planner` as if you ran it.
+**Skip if:** you want to refine a slice or run the next epic's breakdown first."
+```
 
 ## Outputs
 

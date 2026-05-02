@@ -197,6 +197,26 @@ Just closed a phase or a notable post-mortem?
 
 ---
 
+## Command Recommendation Protocol (how the agent suggests the next command)
+
+At the end of any non-trivial output, the agent emits a recommendation with one of three **confidence levels**:
+
+- **HIGH** → one command clearly applies. Format:
+  ```
+  **Next recommended command:** `/mm-<name> [args]`
+  **Why:** …
+  **Go ahead:** type `go` to proceed.
+  **Skip if:** …
+  ```
+- **MEDIUM** → two or more commands plausible. The agent offers options (`a`/`b`/`c`) and asks you to pick.
+- **LOW** → no command fits (pure exploration, clarifying Q&A). The agent does **not** push a command.
+
+**Rules:** the agent never auto-executes — you type `go` or run the command yourself. If the agent ever emits HIGH without a valid "Skip if" reason, that is a protocol failure.
+
+Full contract: [`CLAUDE.md §5`](CLAUDE.md) and [`.cursor/hooks/post-output.suggest-command.md`](.cursor/hooks/post-output.suggest-command.md). Kill-switch: `MM_HOOK_SUGGEST_COMMAND=off`.
+
+---
+
 ## Golden rules for the commands
 
 1. **Command ≠ skill ≠ workflow.** A command is a *shortcut* that loads context and fires a skill or a workflow. If you're unsure what it does under the hood, open the matching `.md` — they're intentionally short.

@@ -186,7 +186,18 @@ Persist:
 
 ### Step 10 — Closing
 
-> "Architecture map updated. <N> ADRs accepted. <M> third-party dependencies with research notes. Non-functional budget: p95 <X>ms, SLA <Y>%, cost ceiling <Z>. Do you want to (a) review a specific ADR, (b) hand off to `feature-breakdown` or `implementation-planner`, or (c) run a threat-model pass with `security-review`?"
+Summarize the architecture, then emit a **MEDIUM** Command Recommendation:
+
+```markdown
+"Architecture map updated. <N> ADRs accepted. <M> third-party dependencies with research notes. Non-functional budget: p95 <X>ms, SLA <Y>%, cost ceiling <Z>.
+
+---
+**Possible next commands (pick one):**
+a) `/mm-plan <epic-slug>` — if you're ready to feed the architecture into `feature-breakdown` / `implementation-planner`.
+b) `/mm-review` with security focus — if the architecture surfaces trust boundaries that need a threat-model pass.
+c) `/mm-doubt "architectural trade-off"` — if a specific ADR still feels unresolved.
+**Which?** reply `a`, `b`, or `c`."
+```
 
 ## Outputs
 

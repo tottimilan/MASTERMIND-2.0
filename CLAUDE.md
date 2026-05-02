@@ -64,7 +64,50 @@ Never produce a numeric quality score. Self-critique is qualitative — numeric 
 - Prefer **referencing** an existing file (`memory/…`, `docs/…`) over rewriting its content.
 - When answering inside a session with many long tool outputs, summarize older content compactly before continuing rather than carrying the raw output forward.
 
-### 5. General Rules
+### 5. Command Recommendation Protocol
+
+At the end of any non-trivial output, recommend the next `/mm-*` command when one fits naturally. The agent assigns a **confidence level** to the recommendation and formats accordingly. This makes the system operable for new users and prevents drift between sessions.
+
+**HIGH — one command clearly applies.** Use when the current output has a single natural next step (e.g. a plan is ready → execute it; a review verdict is Ready → merge; a phase gate passed → the per-phase handoff command).
+
+```markdown
+---
+**Next recommended command:** `/mm-<name> [args]`
+**Why:** <1–2 sentences tying the recommendation to what was just produced>
+**Go ahead:** type `go` and I'll proceed as if you ran it, or run it yourself.
+**Skip if:** <one condition under which you'd ignore this>
+```
+
+**MEDIUM — two or more commands are plausible.** Use when the output opens several reasonable next steps and the agent should not decide for the user.
+
+```markdown
+---
+**Possible next commands (pick one):**
+a) `/mm-<X> [args]` — if <condition A>.
+b) `/mm-<Y> [args]` — if <condition B>.
+c) Nothing yet — if <condition C, e.g. "you want to keep exploring">.
+**Which?** reply `a`, `b`, or `c`.
+```
+
+**LOW — no command fits, or context is ambiguous.** Use in pure Coach exploration, clarifying questions, or when forcing a command would be dishonest.
+
+```markdown
+---
+I don't have a clear next-command recommendation here — we're either exploring
+or the next step depends on a decision you haven't made yet. Tell me the
+direction and I'll resume with a sensible `/mm-*`.
+```
+
+**Rules that prevent abuse:**
+- **Never auto-execute.** The agent never runs a command without the user's `go` or the user running it themselves. Recommendations are recommendations.
+- **Never spam.** Skip the block for trivial answers, clarifying questions, and pure Coach conversations that are still in discovery.
+- **Never downgrade HIGH to auto-skip.** If HIGH fits, show it — even if the user will probably ignore it once.
+- **Always name the cost of skipping.** The "Skip if" line must be honest, not a formality.
+- **The protocol does not replace doubt-surfacer.** If the context needs the Question Protocol, run that first; the command recommendation comes after.
+
+Full rule including when the agent should auto-downgrade HIGH → MEDIUM lives at `.cursor/hooks/post-output.suggest-command.md`.
+
+### 6. General Rules
 
 - Every non-trivial task → use **Plan Mode** first (Cursor) or an explicit written plan (Claude).
 - For recurring operations, prefer invoking a **workflow** (`.claude/workflows/`) or a **slash command** (`.claude/commands/mm-*`) instead of chaining skills manually. `/mm-ship`, `/mm-bug`, `/mm-gate`, `/mm-retro` are the most used.
