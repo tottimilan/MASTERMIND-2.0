@@ -133,6 +133,7 @@ Full rule including when the agent should auto-downgrade HIGH → MEDIUM lives a
 - `.claude/workflows/*.md` → **ordered recipes** that chain skills into end-to-end operations (new-project-bootstrap, feature-lifecycle, bug-triage, phase-gate-transition, weekly-retrospective). See `.claude/workflows/README.md`.
 - `.claude/commands/mm-*.md` → **slash commands** for Claude Code that wrap skills or workflows (`/mm-ship`, `/mm-bug`, `/mm-audit`, `/mm-plan`, `/mm-doubt`, `/mm-next`, `/mm-review`, `/mm-gate`, `/mm-retro`, `/mm-bootstrap`). See `.claude/commands/README.md`.
 - `claude-side/mcp-config.json` → MCP servers the project relies on.
+- `.template-meta/` → **gitignored**. Local-only working dir of the MASTERMIND template author (live current-state, decisions log, session summaries, in-progress plans about the template itself). Does not exist on fresh clones. See `.template-meta/README.md` for the convention. **If you cloned MASTERMIND to start a project, ignore this entry.**
 - `scripts/` → automation:
   - `sync-skills` — canonical ↔ mirror sync for skills.
   - `phase-gate-check` — dry-run verifier against phase artifacts.

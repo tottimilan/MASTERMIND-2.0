@@ -91,3 +91,6 @@ temp/
 
 # --- Local research notes (out of git, used to evaluate ecosystem tools). ---
 research/
+
+# --- Template-author meta-work (kept local, never committed). See .template-meta/README.md. ---
+.template-meta/

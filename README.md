@@ -745,6 +745,26 @@ This is the single rule that most differentiates MASTERMIND 2.0 from a chat-styl
 
 ---
 
+## Note for the template author (advanced)
+
+> **If you cloned MASTERMIND to start a project, you can skip this section.** It only applies if you are developing the MASTERMIND template itself.
+
+The repository serves two roles: (a) the template that anyone clones, and (b) the working dir of the template author. To prevent the second from contaminating the first, the author's live meta-work — current state of the template, decisions log entries about MASTERMIND itself, session summaries of template development, and in-progress plans — lives under a local-only folder:
+
+```
+.template-meta/
+├── README.md                    # explains the convention
+├── memory/02|07|11-*.md         # author's live working memory
+└── plans/<date>-<slug>.md       # template-development plans
+└── plans/baselines/*.txt        # skill-quality-evaluator snapshots
+```
+
+`.template-meta/` is `.gitignore`d so that clones get clean placeholders at `memory/02`, `memory/07`, `memory/11`, and an empty `.cursor/plans/`. The folder is **not** versioned in Git; preserve it via cloud backup or a private side-repo if you care about its history (see `.template-meta/README.md`).
+
+When working on the template itself, read from `.template-meta/memory/` to recover state. Structural changes (new skills, rules, scripts, docs) are committed normally — only the live meta-work stays out of Git.
+
+---
+
 ## Status
 
 This repository is the template. Per-project clones diverge from here.
