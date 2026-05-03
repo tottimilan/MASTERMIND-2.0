@@ -57,7 +57,7 @@ MASTERMIND 2.0 is **a Project Operating System** that makes AI-assisted developm
                                        │  composes
                                        ▼
           ┌───────────────────────────────────────────────────────┐
-          │  SKILLS  (.cursor/skills/, 19 total)                  │
+          │  SKILLS  (.cursor/skills/, 23 total)                  │
           │  System 1 — doubt-surfacer · project-deep-audit ·     │
           │  product-requirements · architecture-mapper ·         │
           │  feature-breakdown · flow-analyzer · research-first · │
@@ -178,21 +178,21 @@ Plus the kernel `CLAUDE.md` at the root and `AGENTS.md` for non-Cursor agents.
 
 **Purpose.** Reusable, composable procedures for specific tasks. Each skill has a single responsibility.
 
-19 skills, organized in the next section.
+23 skills, organized in the next section.
 
 ### L4 — Commands + Workflows (the ergonomics)
 
 **Purpose.** Turn "remember to run skill X, then Y, then Z, then log to `memory/07`" into a single invocation.
 
-5 workflows + 11 slash commands. Workflows are the sequences; commands are shortcuts to workflows or skills with curated context loading.
+7 workflows + 14 slash commands. Workflows are the sequences; commands are shortcuts to workflows or skills with curated context loading.
 
 ---
 
 ## 3. Skill inventory map
 
-The 19 skills, grouped by role along the project lifecycle.
+The 23 skills, grouped by role along the project lifecycle.
 
-### System 1 — Analysis & Documentation (14 skills)
+### System 1 — Analysis & Documentation (16 skills)
 
 **Foundation (3).** The cross-cutting skills every other one depends on.
 
@@ -233,7 +233,7 @@ The 19 skills, grouped by role along the project lifecycle.
 | `code-reviewer` | 11-category review (plan compliance, scope, correctness, tests, architecture, quality, performance, readability, simplicity, docs, git hygiene). Verdict by severity. |
 | `security-review` | Threat model + OWASP-contextual review for auth, payments, schema, public API, etc. |
 
-### System 2 — Execution & Orchestration (5 skills)
+### System 2 — Execution & Orchestration (7 skills)
 
 **Execution foundation (2).** When and who intervenes.
 
@@ -1896,7 +1896,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 
 ## 15. Appendix — full component index
 
-### 15.1 Skills (19)
+### 15.1 Skills (23)
 
 **System 1 — Foundation**
 - `.cursor/skills/doubt-surfacer/SKILL.md`
@@ -1936,11 +1936,14 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 **System 2 — Onboarding**
 - `.cursor/skills/retroactive-documenter/SKILL.md`
 
+**System 2 — Quality gate**
+- `.cursor/skills/skill-quality-evaluator/SKILL.md`
+
 **System 1 — Design & prototyping**
 - `.cursor/skills/prototype-designer/SKILL.md` — single-feature prototyping (during MVP / Iteration)
 - `.cursor/skills/mockup-factory/SKILL.md` — full-app iterative prototyping (dedicated Prototype phase)
 
-### 15.2 Rules (8)
+### 15.2 Rules (9)
 
 - `.cursor/rules/00-project-operating-system.mdc`
 - `.cursor/rules/01-karpathy-principles.mdc`
@@ -1952,7 +1955,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.cursor/rules/07-subagent-orchestration.mdc`
 - `.cursor/rules/08-design-system.mdc`
 
-### 15.3 Workflows (5)
+### 15.3 Workflows (7)
 
 - `.claude/workflows/01-new-project-bootstrap.md`
 - `.claude/workflows/02-feature-lifecycle.md`
@@ -1963,7 +1966,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.claude/workflows/07-full-app-prototyping.md`
 - `.claude/workflows/README.md` (index)
 
-### 15.4 Commands (11)
+### 15.4 Commands (14)
 
 - `.claude/commands/mm-bootstrap.md`
 - `.claude/commands/mm-audit.md`
