@@ -102,6 +102,8 @@ Always emit exactly one of these three outcomes, with reasoning:
 
 ### Step 5 — If REQUIRE_HUMAN_APPROVAL: present the approval request
 
+> **Optional premortem hook:** when the action's category is **High-impact** AND its reversibility is **Destructive — cannot undo** AND the project phase is `Iteration` or `Launch`, suggest running `/mm-premortem` against the action before presenting the Approval Request below. Wait for the user's `yes` / `skip` reply. Premortem is never auto-run — only offered. If the user accepts, the premortem's Hidden Assumption and Most Likely Failure are pasted into the **Risks if approved** section of the request.
+
 Structure the request so the user can decide in 30 seconds:
 
 ```markdown
