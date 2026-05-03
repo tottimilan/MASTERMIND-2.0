@@ -169,6 +169,20 @@
   - Calibrate heuristic on the spot for the 2 false positives — rejected: violates "do not calibrate before 4 weeks of observation" principle (Plan A anti-patterns section). Tracked in baseline notes for v1.1.
 - **Consequences:**
   - 13 plan tasks executed across 16 commits on `feat/skill-quality-evaluator` (`be5253a..HEAD`, including planning commit + 13 task commits + 1 post-review fixes commit + 1 final session/testing memory commit).
+
+### 2026-05-03 — Plan A merged to `main` (--no-ff, history preserved)
+- **Decision:** Merge `feat/skill-quality-evaluator` into `main` via `git merge --no-ff` (merge commit `e012a5e`). Preserves the 17-commit TDD history (red→green→commit rhythm) and the dispatcher review checkpoints. Squash-merge was rejected because the per-task atomic commits ARE the audit trail of the dispatcher run.
+- **Reason:** `/mm-ship` workflow aborted by preconditions (no MVP phase, no epic file, no PRD — this is meta-template work, not a user feature). Direct merge is the right shape for this class of work; a future `/mm-internal` or equivalent command may eventually formalize the "template-development" lifecycle path. For now, manual merge with explicit decision log.
+- **Alternatives considered:**
+  - `--squash` merge — rejected: would collapse the 17 atomic commits into 1, destroying the TDD red→green trail that documents the dispatcher's discipline. The history IS valuable here (first dispatcher run on the template).
+  - PR-based review via `gh pr create` — rejected: redundant after the holistic final review by code-reviewer subagent. Would add ceremony without new information.
+  - Bureaucratic backfill (create `docs/features/skill-quality-evaluator.md` retroactively) — rejected: would force a feature-shape onto meta-template work that does not need it.
+- **Consequences:**
+  - `main` advances by 1 merge commit (`e012a5e`). Branch `feat/skill-quality-evaluator` retained until Plan B starts (no immediate `branch -d`).
+  - Post-merge verification on `main`: 10/10 Pester green, `sync-skills.ps1 -Check` exit 0, self-eval of `skill-quality-evaluator` = 100/100. No regressions.
+  - `memory/02-current-state.md` updated: skill-quality-evaluator now "shipped" on main, Plan B is the next planned work.
+  - `main` has NOT been pushed to `origin`. The user controls when to push.
+- **Files affected:** `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry).
   - 8 new files: `.cursor/skills/skill-quality-evaluator/SKILL.md`, `scripts/eval.ps1`, `scripts/eval.Tests.ps1`, `references/anti-patterns.md`, 2 fixtures, `.cursor/plans/baselines/2026-05-03-skill-baseline.txt`, plus `.gitkeep`s.
   - 3 modified files: `.cursor/skills/skill-creator/SKILL.md` (interaction added), `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry).
   - Skill count: 21 → 22 (15 System 1 + 7 System 2; `skill-quality-evaluator` joins System 2 as a quality gate).
