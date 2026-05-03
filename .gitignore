@@ -85,3 +85,6 @@ test-results/
 .temp/
 tmp/
 temp/
+
+# --- Backups created by scripts/sync-from-template; safe to delete after review. ---
+.mastermind-backups/
