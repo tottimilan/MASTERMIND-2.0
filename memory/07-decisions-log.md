@@ -160,3 +160,18 @@
   - Plan B (`adopt-tob-patterns`) becomes feasible after baseline: refactor the 3 worst-scoring skills with Trail of Bits patterns (blast radius → `code-reviewer`; First Principles + 5 Whys → `project-deep-audit`; Insecure Defaults + Rationalizations to Reject → `security-review`).
   - `memory/02-current-state.md` will move "Plan A" to "In progress" once the user picks an execution option (A/C/E).
 - **Files affected:** `.cursor/plans/2026-05-03-build-skill-quality-evaluator.md` (new), `memory/07-decisions-log.md` (this entry).
+
+### 2026-05-03 — Plan `build-skill-quality-evaluator` executed (13/13 tasks complete, 10/10 tests green, self-eval 100/100)
+- **Decision:** Execution of `.cursor/plans/2026-05-03-build-skill-quality-evaluator.md` complete on branch `feat/skill-quality-evaluator`. Skill `skill-quality-evaluator` is operational, scores 100/100 against itself, baseline of 22 skills captured (avg 97.5/100). Two-stage subagent review applied to substantive Tasks 5-8 with verdict APPROVED_WITH_FIXES — 3 fixes applied (cross-platform paths, test cleanup in finally, typo).
+- **Reason:** Closes the longest-standing blind spot in MASTERMIND. The library now has an automated quality measure. First baseline reveals 3 skills with findings: 1 real bug (prototype-designer description >1024 chars) and 2 likely false positives (heuristic for MISSING_TRIGGER does not recognize "use at" / "use during" / "when the user asks" patterns). Calibration backlog for v1.1 documented in baseline notes.
+- **Alternatives considered:**
+  - Apply ToB pattern absorptions in this same plan (Plan B merged in) — rejected per planning-stage decision (see prior log entry). Confirmed correct in retrospect: the evaluator immediately surfaced 3 candidates for Plan B with concrete data, making the absorption sequencing data-driven instead of speculative.
+  - Calibrate heuristic on the spot for the 2 false positives — rejected: violates "do not calibrate before 4 weeks of observation" principle (Plan A anti-patterns section). Tracked in baseline notes for v1.1.
+- **Consequences:**
+  - 13 commits on `feat/skill-quality-evaluator` (b5253a..d52571f tail of Tasks 5-8 review fixes plus the trailing chore commits).
+  - 8 new files: `.cursor/skills/skill-quality-evaluator/SKILL.md`, `scripts/eval.ps1`, `scripts/eval.Tests.ps1`, `references/anti-patterns.md`, 2 fixtures, `.cursor/plans/baselines/2026-05-03-skill-baseline.txt`, plus `.gitkeep`s.
+  - 3 modified files: `.cursor/skills/skill-creator/SKILL.md` (interaction added), `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry).
+  - Skill count: 21 → 22 (15 System 1 + 7 System 2; `skill-quality-evaluator` joins System 2 as a quality gate).
+  - Pester 5.7.1 installed in CurrentUser scope as test framework. Documented in skill prerequisites.
+  - Plan B (`adopt-tob-patterns`) is now data-driven: prototype-designer needs real fix first, then ToB absorption into the 3 target skills, with the evaluator measuring before/after.
+- **Files affected:** all of the above + `.claude/skills/skill-quality-evaluator/**` mirror created in Task 13 sync, `memory/07-decisions-log.md` (this entry).
