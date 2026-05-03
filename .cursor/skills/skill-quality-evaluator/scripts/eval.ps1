@@ -49,7 +49,7 @@ function Test-NameValid {
     param([string]$Name)
     if ([string]::IsNullOrWhiteSpace($Name)) { return $false }
     if ($Name.Length -gt 64) { return $false }
-    if ($Name -notmatch '^[a-z0-9]+(-[a-z0-9]+)*$') { return $false }
+    if ($Name -cnotmatch '^[a-z0-9]+(-[a-z0-9]+)*$') { return $false }
     if ($Name -match '(anthropic|claude)') { return $false }
     return $true
 }
@@ -62,11 +62,80 @@ function Test-DescriptionValid {
     return $true
 }
 
+function Invoke-SkillEval {
+    [CmdletBinding()]
+    param([string]$SkillMdPath)
+
+    $findings = @()
+    $score = 100
+
+    if (-not (Test-Path $SkillMdPath)) {
+        $findings += [pscustomobject]@{ Severity='Critical'; Code='FILE_NOT_FOUND'; Message="Path does not exist: $SkillMdPath" }
+        return [pscustomobject]@{ Path=$SkillMdPath; Score=0; Findings=$findings }
+    }
+
+    $frontmatter = Get-SkillFrontmatter -SkillMdPath $SkillMdPath
+    if (-not $frontmatter) {
+        $findings += [pscustomobject]@{ Severity='Critical'; Code='MISSING_FRONTMATTER'; Message='No YAML frontmatter found at top of file.' }
+        $score -= 50
+    } else {
+        if (-not (Test-NameValid -Name $frontmatter.name)) {
+            $findings += [pscustomobject]@{ Severity='Critical'; Code='INVALID_NAME'; Message="name must match ^[a-z0-9]+(-[a-z0-9]+)*$, le 64 chars, no 'anthropic'/'claude'. Got: '$($frontmatter.name)'" }
+            $score -= 25
+        }
+        if (-not (Test-DescriptionValid -Description $frontmatter.description)) {
+            $descLen = if ($null -eq $frontmatter.description) { 0 } else { $frontmatter.description.Length }
+            $findings += [pscustomobject]@{ Severity='Critical'; Code='EMPTY_DESCRIPTION'; Message="description must be 1-1024 chars and non-empty. Length: $descLen" }
+            $score -= 25
+        }
+    }
+
+    return [pscustomobject]@{
+        Path     = $SkillMdPath
+        Score    = [Math]::Max(0, $score)
+        Findings = $findings
+    }
+}
+
+function Resolve-SkillMdPath {
+    [CmdletBinding()]
+    param([string]$InputPath)
+    $resolved = Resolve-Path $InputPath -ErrorAction Stop
+    if ((Get-Item $resolved).PSIsContainer) {
+        return Join-Path $resolved 'SKILL.md'
+    }
+    return $resolved.Path
+}
+
+function Format-SkillEvalResult {
+    [CmdletBinding()]
+    param([pscustomobject]$Result, [switch]$AsJson)
+    if ($AsJson) {
+        return ($Result | ConvertTo-Json -Depth 5)
+    }
+    $out = "Skill: $($Result.Path)`nScore: $($Result.Score)/100`nFindings:"
+    if ($Result.Findings.Count -eq 0) {
+        $out += "`n  (none)"
+    } else {
+        foreach ($f in $Result.Findings) {
+            $out += "`n  [$($f.Severity)] $($f.Code) - $($f.Message)"
+        }
+    }
+    return $out
+}
+
 if (-not $Path -and -not $All) {
     Write-Output "Usage: pwsh -File eval.ps1 -Path <skill-dir-or-skill-md> [-Json] [-Strict]"
     Write-Output "       pwsh -File eval.ps1 -All [-Json] [-Strict]"
     exit 0
 }
 
-# Implementation continues in subsequent tasks.
-Write-Output "skill-quality-evaluator: scaffold ready, evaluation logic to be added in tasks 6-8."
+if ($Path) {
+    $skillMd = Resolve-SkillMdPath -InputPath $Path
+    $result = Invoke-SkillEval -SkillMdPath $skillMd
+    Format-SkillEvalResult -Result $result -AsJson:$Json | Write-Output
+    if ($Strict -and ($result.Findings | Where-Object { $_.Severity -eq 'Critical' }).Count -gt 0) {
+        exit 1
+    }
+    exit 0
+}
