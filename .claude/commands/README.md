@@ -11,6 +11,7 @@ Custom slash commands for Claude Code (`.claude/commands/`). Each file is a shor
 | [`/mm-bootstrap`](mm-bootstrap.md) | Workflow `01-new-project-bootstrap` | Empty clone → Discovery-complete |
 | [`/mm-audit`](mm-audit.md) | Skill `project-deep-audit` | Multi-angle audit with Hard Truth |
 | [`/mm-plan`](mm-plan.md) | Skill `implementation-planner` | TDD plan for a slice or task |
+| [`/mm-premortem`](mm-premortem.md) | Skill `premortem` | Klein-method failure-narrative for irreversible/high-cost decisions |
 | [`/mm-ship`](mm-ship.md) | Workflow `02-feature-lifecycle` | Epic → merged, reviewed feature |
 | [`/mm-bug`](mm-bug.md) | Workflow `03-bug-triage` | Bug report → fix with regression test |
 | [`/mm-doubt`](mm-doubt.md) | Skill `doubt-surfacer` | Force the Question & Doubt Protocol |
