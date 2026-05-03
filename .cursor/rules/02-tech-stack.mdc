@@ -19,17 +19,38 @@ Before picking a stack, run the analysis and record the result in `memory/03-arc
 
 ## This project
 
-- **Framework:** _TBD_
-- **Language:** _TBD_
+- **Platform:** _TBD_  (one of: `web`, `mobile`, `cross`)
+- **Framework:** _TBD_  (web: Next.js / Remix / Astro / Vite React; mobile: Expo SDK + RN; cross: both)
+- **Language:** _TBD_  (TypeScript strict recommended for both web and mobile)
 - **Database:** _TBD_
 - **Auth:** _TBD_
 - **Payments:** _TBD_
-- **Hosting:** _TBD_
-- **Testing:** _TBD_
+- **Hosting:** _TBD_  (web: Vercel / Railway / Cloudflare; mobile: EAS Build + App Store + Play Store)
+- **Testing:** _TBD_  (web: Vitest / Playwright; mobile: Jest + React Native Testing Library + Maestro for e2e)
 - **Observability:** _TBD_
 - **Analytics:** _TBD_
-- **Design system:** shadcn/ui (via official MCP + Skill) — default. See `.cursor/rules/08-design-system.mdc` + `memory/14-design-system.md`. Override here only if this project uses something else, with a decision in `memory/07-decisions-log.md`.
-- **Prototyping tool:** Claude Design (`claude.ai/design`) — default for visual prototyping on top of the shadcn install. Invoke via `/mm-design`.
+
+### Design + UI (platform-aware)
+
+- **Design system (web):** shadcn/ui (via official MCP + Skill). Only applies if Platform is `web` or `cross`.
+- **Design system (mobile):** [react-native-reusables](https://reactnativereusables.com) (RNR) + NativeWind v4. Only applies if Platform is `mobile` or `cross`. Same `npx shadcn init` CLI — Expo auto-detected.
+- **Prototyping tool:** Claude Design (`claude.ai/design`) — works for both tracks; `prototype-designer` tunes the prompt based on Platform. Invoke via `/mm-design`.
+- **DESIGN.md:** portable cross-tool export generated from `memory/14` via `scripts/export-design-md`.
+
+### Mobile-specific (only fill if Platform = `mobile` or `cross`)
+
+- **Expo SDK:** _TBD_  (default target: latest stable, currently 52+)
+- **Navigation:** Expo Router (file-based, type-safe)  — default per `08-design-system.mdc`
+- **Styling:** NativeWind v4  — default per `08-design-system.mdc`
+- **Animations:** React Native Reanimated 3
+- **Gestures:** React Native Gesture Handler
+- **Safe-area:** `react-native-safe-area-context`
+- **State mgmt:** _TBD_  (Zustand / Jotai / Redux Toolkit)
+- **Data fetching:** _TBD_  (TanStack Query recommended)
+- **Secure storage:** `expo-secure-store` (tokens, PII)
+- **Notifications:** _TBD_  (Expo Notifications / OneSignal / Firebase)
+- **Native modules required:** _TBD_  (if any, you need dev client; otherwise Expo Go works)
+- **Build / submit:** EAS Build + EAS Submit
 
 ## Constraints
 

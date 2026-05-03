@@ -1,6 +1,6 @@
 ---
 name: prototype-designer
-description: Bridge MASTERMIND's memory and requirements to Claude Design (claude.ai/design) for interactive prototyping on top of the project's shadcn/ui install. Reads memory/05-user-flows, memory/06-feature-map, and memory/14-design-system; composes the optimal prompt for Claude Design (goal + layout + content + audience + token constraints); guides the user through opening the Claude Design project, linking the repo, iterating, and exporting the handoff bundle; stores the bundle under docs/design/prototypes/<feature>/; extracts decisions back into memory/14-design-system.md; recommends implementation-planner as the next step. Use between product-requirements/flow-analyzer and implementation-planner, or whenever the user says "prototype this", "design this feature", "let's mock it up", "mm-design". Requires shadcn/ui installed (via scripts/install-shadcn-mcp) and a Claude subscription with Claude Design access.
+description: Bridge MASTERMIND's memory and requirements to Claude Design (claude.ai/design) for interactive prototyping on top of the project's design system install. Platform-aware: reads memory/14-design-system.md §Platform and branches the workflow between web (shadcn/ui + Tailwind) and mobile (react-native-reusables + NativeWind + Expo + Expo Go for preview). Consumes memory/05-user-flows + memory/06-feature-map + memory/14-design-system; composes a platform-tuned prompt for Claude Design (goal + layout + content + audience + token constraints + platform-specific non-negotiables); guides the user through opening the Claude Design project, linking the repo, iterating, and exporting the handoff bundle; stores the bundle under docs/design/prototypes/<feature>/; extracts decisions back into memory/14-design-system.md; recommends implementation-planner as the next step. Use between product-requirements/flow-analyzer and implementation-planner, or whenever the user says "prototype this", "design this feature", "let's mock it up", "mm-design". Requires the design system installed (via scripts/install-shadcn-mcp, which is itself platform-aware) and a Claude subscription with Claude Design access.
 ---
 
 # Prototype Designer
@@ -38,10 +38,19 @@ Read:
 
 Check the environment:
 
-- `components.json` exists → shadcn is initialized.
+- `components.json` exists → the design system is initialized.
 - `.cursor/mcp.json` or `.mcp.json` references the shadcn MCP server → agents have live registry access.
 - If either is missing, STOP and tell the user to run `scripts/install-shadcn-mcp.ps1` (or `.sh`) first.
 - Access to Claude Design: the user's Claude plan (Pro/Max/Team/Enterprise) must have it enabled. If the user says they don't, fall back to a text-based spec and skip Claude Design; still produce the handoff to `implementation-planner`.
+
+### Platform detection (mandatory first move)
+
+Read `memory/14-design-system.md §Platform`. The skill branches on this field:
+
+- `Platform: web` → web track (shadcn/ui + Tailwind + browser preview).
+- `Platform: mobile` → mobile track (react-native-reusables / RNR + NativeWind + Expo + Expo Go on-device preview).
+- `Platform: cross` → ask the user which surface this specific prototype is for (a single feature is usually web OR mobile, even in cross projects). Default to whichever surface the user is actively working on this session.
+- Field missing → STOP. Tell the user to fill `memory/14-design-system.md §Platform` first. A wrong assumption compounds into a wrong prototype.
 
 ## Process
 
@@ -56,50 +65,113 @@ Ask the user (or infer from recent chat context):
 
 If any of those is unclear, use `doubt-surfacer` and stop here. Do NOT guess.
 
-### Step 2 — Compose the Claude Design prompt
+### Step 2 — Compose the Claude Design prompt (platform-specific)
 
-Produce a prompt in the shape Claude Design rewards (it's documented: **goal + layout + content + audience + constraints**). Draft it:
+Produce a prompt in the shape Claude Design rewards (**goal + layout + content + audience + constraints**), tuned by Platform. Use the skeleton that matches memory/14 §Platform:
+
+#### Web track prompt skeleton
 
 ```markdown
-### Claude Design prompt for: <feature name>
+### Claude Design prompt for: <feature name> (WEB)
 
+**Platform:** web app (responsive). Browser targets from memory/14.
 **Goal:** <1–2 sentences from memory/05-user-flows / memory/06-feature-map>
-**Screens / flow:** <numbered list from memory/05-user-flows>
+**Screens / routes:** <numbered list from memory/05-user-flows — think in terms of URL routes>
 **Primary actions per screen:** <bullet list>
-**Content examples:** <realistic sample text/data; pull from memory/03-architecture entities where possible>
+**Content examples:** <realistic sample text/data; pull from memory/03-architecture entities>
 **Audience:** <who uses this; from memory/00-project-brief>
 
 **Design constraints (from memory/14-design-system):**
 - Tokens: primary <color>, radius <value>, fonts <display + sans>, dark mode <yes/no>.
-- Installed components to compose from: <list from memory/14 §Installed components>
-- Patterns we reuse: <from memory/14 §Patterns>
-- Likes: <bullet list from memory/14 §What I like>
-- Anti-patterns — DO NOT: <bullet list from memory/14 §What I don't like>
+- Components: shadcn/ui — use <Button>, <Card>, <Dialog>, <Tabs>, <Sheet>, <Form>, etc. Full list: <memory/14 §Installed components>.
+- Layout: Tailwind grid/flex. Breakpoints: sm/md/lg/xl. Mobile-first.
+- Navigation: standard web patterns (header, footer, sidebar, breadcrumbs where appropriate).
+- Patterns we reuse: <memory/14 §Patterns filtered by Platform = web or both>
+- Likes: <memory/14 §What I like>
+- Anti-patterns — DO NOT: <memory/14 §What I don't like>
 
 **References (make it feel like):** <URLs from memory/14 §References>
 
 **Fidelity:** <wireframe | hi-fi>
 
-**Deliverable:** interactive prototype I can click through; export as handoff bundle for Claude Code.
+**Deliverable:** interactive web prototype I can click through; export as handoff bundle for Claude Code.
 ```
 
-Present this to the user. Get `approve` / `edit <changes>` / `abort` before proceeding.
+#### Mobile track prompt skeleton
 
-### Step 3 — Guide the Claude Design session
+```markdown
+### Claude Design prompt for: <feature name> (MOBILE — Expo + React Native)
+
+**Platform:** MOBILE APP (iOS + Android). This is NOT a responsive website. Do not generate browser-chrome. Generate a native app prototype.
+**Framework:** Expo + React Native. Navigation: Expo Router (file-based, tab/stack groups).
+**Goal:** <1–2 sentences from memory/05-user-flows / memory/06-feature-map>
+**Screens / flow:** <numbered list; think mobile screens, not URL routes>
+**Primary actions per screen:** <bullet list>
+**Content examples:** <realistic sample text/data from memory/03-architecture>
+**Audience:** <from memory/00-project-brief>
+
+**Design constraints (from memory/14-design-system):**
+- Tokens: primary <color>, radius <value>, fonts <display + sans>, dark mode <yes/no / system-follows>.
+- Components: react-native-reusables (RNR) — use <Button>, <Card>, <Dialog>, <Sheet>, <Form>, etc. (RNR's mobile-tuned variants). Full list: <memory/14 §Installed components>.
+- Styling: NativeWind (Tailwind for RN). No inline styles. No StyleSheet unless NativeWind cannot express it.
+- Layout: mobile-first (iPhone 13 width baseline). Tab bar at bottom (if applicable), not top nav. Safe-area on every screen.
+- Navigation: Expo Router patterns. Tab bar with 4 tabs max. Stack groups per tab.
+- Touch targets: ≥ 44pt iOS / 48dp Android.
+- Platform differences: iOS + Android subtle divergences (swipe-back gesture, back button). Don't over-branch.
+- Haptics: on primary CTAs (subtle); never on destructive (avoid false positives).
+- Mobile-specific from memory/14 §Mobile-specific: <safe-area strategy, orientation, tab bar pattern, gestures>.
+- Patterns we reuse: <memory/14 §Patterns filtered by Platform = mobile or both>
+- Likes: <memory/14 §What I like>
+- Anti-patterns — DO NOT: <memory/14 §What I don't like (mobile ones especially: no alert(), no modal-stacking 3+ deep, no Platform.OS branching everywhere, no legacy Animated API)>
+
+**References (make it feel like):** <URLs from memory/14 §References>
+
+**Fidelity:** <wireframe | hi-fi>
+
+**Deliverable:** interactive mobile app prototype; preview on device via Expo Go (or dev client if custom native modules). Export as handoff bundle for Claude Code — Claude Code will implement with Expo Router, NativeWind, Reanimated 3, SafeAreaView wrapping, following `.cursor/templates/CLAUDE.md.mobile.md` conventions.
+```
+
+#### Cross track
+
+If memory/14 §Platform = `cross`, ASK the user which surface the current prototype is for. Don't try to do both in one Claude Design project — the mental model is cleaner when you prototype web and mobile separately, even if they share tokens.
+
+---
+
+Present the drafted prompt to the user. Get `approve` / `edit <changes>` / `abort` before proceeding.
+
+### Step 3 — Guide the Claude Design session (platform-specific preview)
 
 Instruct the user:
 
 1. Open `claude.ai/design`.
 2. Create a new project named `<project-name> / <feature>`.
-3. Import → link this GitHub repo (the shadcn install lets Claude Design infer tokens and components automatically; it uses the real `components.json`).
+3. Import → link this GitHub repo. Claude Design reads `components.json` + `tailwind.config.*` + (if present) `DESIGN.md` to infer tokens and components.
+   - **Pro tip**: run `pwsh -File scripts/export-design-md.ps1 -Apply` first if DESIGN.md doesn't exist or is stale. The portable DESIGN.md gives Claude Design far more context than just reading the repo.
 4. Paste the prompt from Step 2.
 5. Iterate:
    - Use **chat** for structural changes ("split this into 2 screens", "add an empty state").
    - Use **inline comments** for local tweaks ("soften this shadow", "use our Primary Button here").
    - If a direction goes sideways: *"Save what we have and try a completely different approach"* → Claude Design keeps both.
-6. When the prototype is stable, export: **Export → Hand off to Claude Code** → copy the URL of the handoff bundle.
 
-Do NOT automate this — Claude Design is a web UI, not a scriptable API (yet). The skill's job is to drive the loop, not click for the user.
+#### Mobile-specific: preview on device (Expo Go)
+
+For `Platform: mobile` prototypes, Claude Design alone shows a web preview — which is useful but not native-fidelity. After the prototype is stable in Claude Design:
+
+6a. Export the handoff bundle (URL).
+6b. In a separate terminal: clone/navigate to a scratch Expo project (or use a dedicated `mockup/` branch per workflow `07-full-app-prototyping` once it exists).
+6c. Ask Claude Code to implement the bundle in that Expo project: `claude code "Implement the Claude Design handoff at <URL> into this Expo project. Honor .cursor/templates/CLAUDE.md.mobile.md conventions."`
+6d. Run `npx expo start` and preview on real device with Expo Go. Iterate with the stakeholder on real hardware.
+6e. Feed device-observed issues (on a 5.5" phone vs the canvas) back to Claude Design or Claude Code.
+
+#### Web-specific: preview in browser
+
+For `Platform: web`: Claude Design's canvas is already a faithful browser preview. When you export the handoff bundle, Claude Code implements into your actual Next.js / Vite project. Preview via `npm run dev`.
+
+---
+
+Do NOT automate the Claude Design session itself — it's a web UI, not a scriptable API (yet). The skill's job is to drive the loop, not click for the user.
+
+6. When the prototype is stable, export: **Export → Hand off to Claude Code** → copy the URL of the handoff bundle.
 
 ### Step 4 — Capture the handoff
 
@@ -192,6 +264,7 @@ Emit a HIGH Command Recommendation pointing to `implementation-planner`. The pla
 ## Anti-patterns
 
 - **NEVER:** Skip memory/14 and dump a generic prompt to Claude Design. The output will be visually off-brand and useless in 2 weeks.
+- **NEVER:** Ignore memory/14 §Platform. If it's `mobile`, the prompt MUST say "MOBILE APP, not a responsive website", or Claude Design defaults to web aesthetics. If it's `web`, mentioning Expo / React Native in the prompt confuses the output. Platform field drives everything.
 - **NEVER:** Commit the prototype's HTML/JSX to `src/`. It's an artifact, not code. Claude Code (via `implementation-planner`) produces the real implementation using the project's shadcn + conventions.
 - **NEVER:** Batch-approve memory/14 updates. Each entry is a small decision that may echo into other projects via `continuous-learner`; treat it with the respect that implies.
 - **NEVER:** Auto-install components that appeared in the prototype without the user confirming. Installation is `implementation-planner`'s move, not this skill's.

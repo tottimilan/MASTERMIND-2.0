@@ -156,11 +156,34 @@ pwsh -File scripts/onboard-existing-project.ps1 -Template "<template path>" -Pha
 
 Exit codes for the script: `0` in-sync, `1` drift detected / aborted, `2` BLOCK (bad args, missing template, or running inside the template).
 
-### Design system + prototyping (shadcn/ui + Claude Design)
+### Design system + prototyping (platform-aware: web & mobile)
 
-MASTERMIND's default design system is **shadcn/ui**, consumed via its [official MCP server](https://ui.shadcn.com/docs/mcp) and [official Skill](https://ui.shadcn.com/docs/skills). Default prototyping surface is **Claude Design** (`claude.ai/design`), which reads the project's shadcn install to produce prototypes that use your real components and tokens.
+MASTERMIND's design layer is **platform-aware**. `memory/14-design-system.md §Platform` drives the whole stack:
 
-Why this combo: shadcn is copy-paste (you own the code), MCP gives agents live registry access without prop hallucinations, the Skill gives agents per-project context, and Claude Design hands off cleanly to Claude Code. Nothing to build, nothing to maintain — just integrate.
+**Web track** (Platform = `web` or `cross` on web files):
+- Component library: **shadcn/ui** via [official MCP](https://ui.shadcn.com/docs/mcp) + [official Skill](https://ui.shadcn.com/docs/skills).
+- Styling: Tailwind CSS + Radix primitives.
+- Prototyping: Claude Design (web mode) → Claude Code handoff.
+
+**Mobile track** (Platform = `mobile` or `cross` on mobile files):
+- Component library: **[react-native-reusables](https://reactnativereusables.com)** (RNR) — the mobile sibling of shadcn/ui by the same author behind shadcn's official Expo PR. 8k+ stars, active, universal (works on React Native Web too). Same `npx shadcn init` CLI — the tool detects Expo and uses RNR under the hood.
+- Styling: NativeWind v4 (Tailwind for React Native).
+- Stack: Expo + Expo Router + Reanimated 3 + Gesture Handler + safe-area-context.
+- Prototyping: Claude Design (mobile mode — prompt tuned to "mobile app, iOS + Android") + Expo Go on-device preview + Claude Code handoff with mobile CLAUDE.md conventions.
+
+**Cross-platform** (single repo for both): both tracks live side by side; components share 80%+ API.
+
+**Portable export — `DESIGN.md`:** memory/14 stays canonical inside MASTERMIND. Run `scripts/export-design-md.ps1` (`.sh`) to regenerate a portable `DESIGN.md` at the project root — the 9-section cross-tool format that Claude Design, Google Stitch, Cursor, v0, and Claude Code all read. Edit memory/14, re-export. One source of truth.
+
+Entry points:
+
+- **Rule:** [`.cursor/rules/08-design-system.mdc`](.cursor/rules/08-design-system.mdc) — platform-aware conventions (web track + mobile track + cross).
+- **Memory:** [`memory/14-design-system.md`](memory/14-design-system.md) — per-project source of truth with a Platform field, shared identity + tokens, mobile-specific section, patterns, likes, anti-patterns.
+- **Skill:** [`.cursor/skills/prototype-designer/SKILL.md`](.cursor/skills/prototype-designer/SKILL.md) — composes Claude Design prompts tuned by Platform.
+- **Command:** [`/mm-design`](.claude/commands/mm-design.md).
+- **Script (install):** [`scripts/install-shadcn-mcp.ps1`](scripts/install-shadcn-mcp.ps1) (`.sh`) — platform-aware installer, auto-detects Expo vs Next.js.
+- **Script (export):** [`scripts/export-design-md.ps1`](scripts/export-design-md.ps1) (`.sh`) — memory/14 → DESIGN.md.
+- **Template:** [`.cursor/templates/CLAUDE.md.mobile.md`](.cursor/templates/CLAUDE.md.mobile.md) — mobile CLAUDE.md seed for new Expo projects (Expo Router + NativeWind + Platform.OS minimization + SafeAreaView wrap + Reanimated 3 + touch target policies + expo-secure-store + etc.).
 
 Entry points:
 
@@ -170,26 +193,41 @@ Entry points:
 - **Command:** [`/mm-design`](.claude/commands/mm-design.md) — wraps the skill for single-command invocation.
 - **Script:** [`scripts/install-shadcn-mcp.ps1`](scripts/install-shadcn-mcp.ps1) (`.sh`) — one-shot install in a target project: CLI init + MCP registration + Skill install.
 
-Typical flow in a new MASTERMIND project:
+Typical flow in a new MASTERMIND project (both tracks):
 
 ```powershell
 # After /mm-bootstrap completes Phases 1-5 and you have memory/00 filled:
-pwsh -File scripts/install-shadcn-mcp.ps1 -Apply -Defaults   # CLI + MCP + Skill in one shot.
+
+# First, set Platform in memory/14. Open the file and set:
+#   - **Platform:** web    (or mobile, or cross)
+# This drives everything below.
+
+# Install platform-aware in one shot (auto-detects Expo vs Next.js from package.json):
+pwsh -File scripts/install-shadcn-mcp.ps1 -Apply -Defaults
+
+# For web: installs shadcn/ui + Tailwind + MCP + Skill.
+# For mobile: installs shadcn/ui with Expo integration (RNR registry) + NativeWind + safe-area-context + Reanimated + Gesture Handler + MCP + Skill + optionally seeds CLAUDE.md.mobile template.
+
 # Reload Cursor / restart Claude Code. Sanity: shadcn MCP green dot.
 
-# Fill the visual identity in memory/14-design-system.md (name, 3-5 personality adjectives, primary color, fonts, radius, likes, anti-patterns). 10 lines.
+# Fill the visual identity in memory/14-design-system.md (Platform, name, 3-5 personality adjectives, primary color, fonts, radius, likes, anti-patterns, and for mobile also safe-area strategy + orientation + tab bar pattern).
+
+# Optional: export portable DESIGN.md for external tools.
+pwsh -File scripts/export-design-md.ps1 -Apply
 
 # Install baseline components via MCP:
-# In chat: "Add button, card, input, dialog, badge from shadcn."
+# Web: in chat "Add button, card, input, dialog, badge from shadcn."
+# Mobile: "Add button, card, input, dialog, tabs, badge from shadcn (this is an Expo project)."
 
 # Later, when prototyping a feature:
 /mm-design notification-center fidelity:hi-fi audience:stakeholder
-# -> opens the prototype-designer skill: composes the prompt, guides the
-#    Claude Design session, captures the handoff bundle, extracts decisions
-#    back into memory/14. Next step is /mm-plan.
+# -> prototype-designer reads memory/14 §Platform, composes a platform-tuned prompt
+#    (web prompt OR mobile prompt), guides the Claude Design session, captures the
+#    handoff bundle, extracts decisions back into memory/14. For mobile, the next
+#    step is previewing on device via Expo Go. Then /mm-plan.
 ```
 
-Empty `memory/14` produces generic-IA-flavored prototypes. Fill even the minimum (primary color, 3 personality adjectives, 2 likes, 2 anti-patterns) and every prototype from then on is on-brand. That's the whole trick.
+**Empty `memory/14` produces generic IA-flavored prototypes.** Fill even the minimum (Platform, primary color, 3 personality adjectives, 2 likes, 2 anti-patterns, plus for mobile: safe-area + orientation + tab bar) and every prototype from then on is on-brand AND platform-correct. That's the whole trick.
 
 ### Syncing an existing project from an updated template
 
@@ -478,7 +516,7 @@ Escape hatches: `git commit --no-verify`, `git push --no-verify`, or env vars `M
 | **Cross-project memory** | `~/.mastermind/global/` (outside the repo) | 5 files + README |
 | **Hooks — agent** | Behavioral instruction files | 4 active + HOOKS.md |
 | **Hooks — git** | Client-side shell scripts (installable) | pre-commit + pre-push |
-| **Scripts** | Automation helpers | 9 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
+| **Scripts** | Automation helpers | 10 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
 
 **Canonical source vs mirror:**
 - Skills: canonical `.cursor/skills/`, mirror `.claude/skills/` (sync via `scripts/sync-skills`).

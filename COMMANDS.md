@@ -138,8 +138,9 @@ The agent reads the file and follows the script. Same end result.
 
 - **Wraps:** skill [`prototype-designer`](.cursor/skills/prototype-designer/SKILL.md).
 - **When:** between spec (`product-requirements` / `flow-analyzer`) and implementation (`implementation-planner`). Especially for UI-heavy features; skip for pure backend / data pipelines.
-- **Prerequisites:** shadcn/ui installed (`components.json` exists; run `scripts/install-shadcn-mcp.ps1` if missing). `memory/14-design-system.md` at least with Project identity filled — otherwise output is generic.
-- **Does:** reads `memory/05-user-flows`, `memory/06-feature-map`, `memory/14-design-system`. Composes a structured prompt (goal + layout + content + audience + token constraints). Guides you to open `claude.ai/design`, link the repo, iterate. Captures the handoff bundle under `docs/design/prototypes/<feature>/`. Extracts decisions (new tokens, components to install, patterns, likes, anti-patterns) back into memory/14 with per-entry approval. Closes with a HIGH recommendation pointing to `/mm-plan`.
+- **Prerequisites:** design system installed via `scripts/install-shadcn-mcp.ps1` (platform-aware — works for Next.js web OR Expo mobile). `components.json` must exist. `memory/14-design-system.md §Platform` must be set (`web` / `mobile` / `cross`) — drives everything else.
+- **Platform-aware:** reads `memory/14 §Platform` and branches. Web prompt to Claude Design emphasizes shadcn/ui + Tailwind + responsive browser patterns. Mobile prompt emphasizes React Native + NativeWind + Expo Router + tab bar at bottom + safe-area + touch targets ≥ 44pt iOS / 48dp Android — and includes Expo Go on-device preview in the workflow.
+- **Does:** reads `memory/05-user-flows`, `memory/06-feature-map`, `memory/14-design-system`. Composes a platform-tuned prompt. Guides you to open `claude.ai/design`, link the repo, iterate. Captures the handoff bundle under `docs/design/prototypes/<feature>/`. Extracts decisions back into memory/14 with per-entry approval. Closes with a HIGH recommendation pointing to `/mm-plan`.
 - **Arguments:** feature name (or picks from `memory/06-feature-map.md`). Optional hints: `fidelity:wireframe|hi-fi`, `audience:stakeholder|user-test|handoff`, `skip-memory-update` (not recommended).
 
 ### 12. `/mm-onboard` — Bring an existing project into MASTERMIND

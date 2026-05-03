@@ -152,7 +152,7 @@ The template has four layers, in increasing order of abstraction. Every artifact
 | `memory/11-session-summary.md` | Append-mode log of every meaningful session |
 | `memory/12-open-doubts-and-questions.md` | AI ↔ user Q&A register |
 | `memory/13-phase-history.md` | Append-only log of phase transitions |
-| `memory/14-design-system.md` | Per-project source of truth for visual decisions: tokens, installed shadcn components, likes, anti-patterns, patterns, references. Updated by `prototype-designer` via `/mm-design`. |
+| `memory/14-design-system.md` | Per-project source of truth for visual decisions, **platform-aware**. Fields: Platform (web/mobile/cross), Project identity, Tokens (colors/typography/spacing/motion), Installed components, Custom components, Mobile-specific (safe-area, orientation, tab bar, gestures, preview pipeline), Likes, Anti-patterns, Patterns, References, Changelog. Updated by `prototype-designer` via `/mm-design`. Exportable to portable `DESIGN.md` via `scripts/export-design-md`. |
 
 Plus the `docs/` folder (8 subfolders: product, architecture, features, flows, api, testing, security, adr) for human-readable artifacts, and `~/.mastermind/global/` for cross-project memory.
 
@@ -170,7 +170,7 @@ Plus the `docs/` folder (8 subfolders: product, architecture, features, flows, a
 | `05-claude-mcp-integration.mdc` | MCP policy (Context7 always, Playwright on demand); cross-project memory; task-master activation |
 | `06-execution-modes.mdc` | Coach / Executor / Auditor modes, selection priority, transitions |
 | `07-subagent-orchestration.mdc` | Subagent dispatch; worktrees; two-stage review; continuous learning loop |
-| `08-design-system.mdc` | Design system policy: shadcn/ui (via MCP + Skill) as default, Claude Design as prototyping surface, memory/14 as visual source of truth. |
+| `08-design-system.mdc` | Design system policy, **platform-aware**. Web track: shadcn/ui + Tailwind + Claude Design. Mobile track: react-native-reusables (RNR) + NativeWind + Expo + Claude Design mobile mode + Expo Go preview. Cross = both. memory/14 §Platform drives everything. |
 
 Plus the kernel `CLAUDE.md` at the root and `AGENTS.md` for non-Cursor agents.
 
@@ -2020,7 +2020,8 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `scripts/install-git-hooks.ps1` / `.sh`
 - `scripts/sync-from-template.ps1` / `.sh`
 - `scripts/onboard-existing-project.ps1` / `.sh`
-- `scripts/install-shadcn-mcp.ps1` / `.sh`
+- `scripts/install-shadcn-mcp.ps1` / `.sh` (platform-aware: web + mobile)
+- `scripts/export-design-md.ps1` / `.sh` (memory/14 → DESIGN.md portable)
 
 ### 15.8 MCP stack
 

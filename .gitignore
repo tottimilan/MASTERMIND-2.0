@@ -88,3 +88,6 @@ temp/
 
 # --- Backups created by scripts/sync-from-template; safe to delete after review. ---
 .mastermind-backups/
+
+# --- Local research notes (out of git, used to evaluate ecosystem tools). ---
+research/
