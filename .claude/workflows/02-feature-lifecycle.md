@@ -74,6 +74,18 @@ If any precondition fails, the workflow aborts and recommends the missing prior 
   2. Classify: if Sensitive or High-impact, present the Approval Request and wait for user `approve` / `adjust` / `block`.
 - **Exit criterion:** `AUTO_APPROVE` or user-written `approve` recorded; decision logged in `memory/07-decisions-log.md`.
 
+### Phase 3.5 — Premortem (optional, Coach)
+
+- **Skill:** `premortem`
+- **Mode:** Coach
+- **Trigger condition:** the plan touches **auth / payments / schema** OR estimated effort exceeds **2 days** OR the slice is the **last one before a public launch**.
+- **Steps:**
+  1. Suggest `/mm-premortem` to the user, citing which trigger condition fired. The user may accept or skip.
+  2. On accept: run the premortem against the plan + breakdown.
+  3. The synthesis (Most Likely Failure, Most Dangerous Failure, Hidden Assumption) feeds back into the Approval Request from Phase 3 as additional context — paste into the **Risks if approved** section.
+  4. The Revised Plan items become amendments to `.cursor/plans/<file>.md` via a `## Amendment YYYY-MM-DD` section.
+- **Exit criterion:** premortem skipped explicitly OR premortem run + amendments applied + user re-confirms approval.
+
 ### Phase 4 — Execute (dispatcher or parallel)
 
 Choose one based on the breakdown:
