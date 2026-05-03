@@ -168,7 +168,7 @@
   - Apply ToB pattern absorptions in this same plan (Plan B merged in) — rejected per planning-stage decision (see prior log entry). Confirmed correct in retrospect: the evaluator immediately surfaced 3 candidates for Plan B with concrete data, making the absorption sequencing data-driven instead of speculative.
   - Calibrate heuristic on the spot for the 2 false positives — rejected: violates "do not calibrate before 4 weeks of observation" principle (Plan A anti-patterns section). Tracked in baseline notes for v1.1.
 - **Consequences:**
-  - 13 commits on `feat/skill-quality-evaluator` (b5253a..d52571f tail of Tasks 5-8 review fixes plus the trailing chore commits).
+  - 13 plan tasks executed across 16 commits on `feat/skill-quality-evaluator` (`be5253a..HEAD`, including planning commit + 13 task commits + 1 post-review fixes commit + 1 final session/testing memory commit).
   - 8 new files: `.cursor/skills/skill-quality-evaluator/SKILL.md`, `scripts/eval.ps1`, `scripts/eval.Tests.ps1`, `references/anti-patterns.md`, 2 fixtures, `.cursor/plans/baselines/2026-05-03-skill-baseline.txt`, plus `.gitkeep`s.
   - 3 modified files: `.cursor/skills/skill-creator/SKILL.md` (interaction added), `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry).
   - Skill count: 21 → 22 (15 System 1 + 7 System 2; `skill-quality-evaluator` joins System 2 as a quality gate).
