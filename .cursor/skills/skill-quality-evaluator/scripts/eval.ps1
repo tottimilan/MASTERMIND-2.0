@@ -90,6 +90,59 @@ function Invoke-SkillEval {
         }
     }
 
+    # --- Body checks ---
+    $allLines = Get-Content -Path $SkillMdPath -Encoding UTF8
+    $bodyStartIdx = 0
+    $dashCount = 0
+    for ($i = 0; $i -lt $allLines.Count; $i++) {
+        if ($allLines[$i] -match '^---\s*$') {
+            $dashCount++
+            if ($dashCount -eq 2) { $bodyStartIdx = $i + 1; break }
+        }
+    }
+    $bodyLines = if ($bodyStartIdx -gt 0 -and $bodyStartIdx -lt $allLines.Count) {
+        $allLines[$bodyStartIdx..($allLines.Count - 1)]
+    } else {
+        $allLines
+    }
+    $bodyLineCount = $bodyLines.Count
+
+    if ($bodyLineCount -gt 500) {
+        $findings += [pscustomobject]@{ Severity='Important'; Code='BLOATED_SKILL'; Message="Body is $bodyLineCount lines (soft cap 500). Split into references/, scripts/, or assets/." }
+        $score -= 15
+    }
+
+    if ($frontmatter -and (Test-DescriptionValid -Description $frontmatter.description)) {
+        $desc = $frontmatter.description.ToLower()
+        $triggerHints = @('use when', 'use whenever', 'use before', 'use after', 'always', 'trigger', 'invoke')
+        $hasTrigger = $false
+        foreach ($hint in $triggerHints) {
+            if ($desc.Contains($hint)) { $hasTrigger = $true; break }
+        }
+        if (-not $hasTrigger) {
+            $findings += [pscustomobject]@{ Severity='Important'; Code='MISSING_TRIGGER'; Message="description should include a 'use when...' phrase or trigger keywords. Agents won't know when to fire this skill otherwise." }
+            $score -= 15
+        }
+    }
+
+    $requiredSections = @('Goal', 'When to use', 'Process', 'Anti-patterns')
+    $sectionLines = @()
+    foreach ($line in $bodyLines) {
+        if ($line -match '^##\s+(.+?)\s*$') {
+            $sectionLines += $matches[1].Trim()
+        }
+    }
+    foreach ($req in $requiredSections) {
+        $found = $false
+        foreach ($sec in $sectionLines) {
+            if ($sec -like "*$req*") { $found = $true; break }
+        }
+        if (-not $found) {
+            $findings += [pscustomobject]@{ Severity='Important'; Code='MISSING_SECTION'; Message="Required H2 section '$req' not found." }
+            $score -= 10
+        }
+    }
+
     return [pscustomobject]@{
         Path     = $SkillMdPath
         Score    = [Math]::Max(0, $score)

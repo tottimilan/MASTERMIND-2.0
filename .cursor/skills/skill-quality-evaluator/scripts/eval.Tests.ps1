@@ -81,3 +81,64 @@ description: Has valid description but invalid uppercase name. Use when testing 
         Remove-Item -Recurse -Force $tmpDir
     }
 }
+
+Describe 'eval.ps1 — body anti-patterns' {
+    BeforeAll {
+        $script:BloatedFixture = Join-Path $script:FixturesDir 'bloated-skill.md'
+    }
+
+    It 'flags BLOATED_SKILL on the bloated-skill fixture (>500 lines)' {
+        $result = & pwsh -File $script:EvalScript -Path $script:BloatedFixture -Json | ConvertFrom-Json
+        $codes = $result.Findings | ForEach-Object { $_.Code }
+        $codes | Should -Contain 'BLOATED_SKILL'
+    }
+
+    It 'flags MISSING_TRIGGER when description has no use-when/trigger keyword pattern' {
+        $tmpDir = Join-Path $env:TEMP "skill-eval-test-$(Get-Random)"
+        New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+        $tmpSkill = Join-Path $tmpDir 'SKILL.md'
+        @"
+---
+name: no-trigger
+description: This skill does some useful generic things in the codebase.
+---
+
+# No Trigger
+"@ | Set-Content $tmpSkill -Encoding UTF8
+
+        $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
+        $codes = $result.Findings | ForEach-Object { $_.Code }
+        $codes | Should -Contain 'MISSING_TRIGGER'
+
+        Remove-Item -Recurse -Force $tmpDir
+    }
+
+    It 'flags MISSING_SECTION when a required H2 section is absent' {
+        $tmpDir = Join-Path $env:TEMP "skill-eval-test-$(Get-Random)"
+        New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+        $tmpSkill = Join-Path $tmpDir 'SKILL.md'
+        @"
+---
+name: no-process
+description: Skill missing the Process section. Use when testing the section detector. Trigger test.
+---
+
+# No Process
+
+## Goal
+Test fixture.
+
+## When to use
+Always: in tests.
+
+## Anti-patterns
+- None.
+"@ | Set-Content $tmpSkill -Encoding UTF8
+
+        $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
+        $codes = $result.Findings | ForEach-Object { $_.Code }
+        $codes | Should -Contain 'MISSING_SECTION'
+
+        Remove-Item -Recurse -Force $tmpDir
+    }
+}
