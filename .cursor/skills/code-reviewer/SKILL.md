@@ -87,6 +87,17 @@ For each category below, write a short paragraph with findings. If a category ha
 9. **Simplicity (YAGNI)** — abstractions that were not requested? Speculative flexibility? If yes, flag.
 10. **Documentation** — `memory/` and `docs/` updates present? Was `memory-updater` called?
 11. **Git hygiene** — commits small and focused, Conventional Commit messages, no secrets in diff, branch name matches `04-safety-and-git.mdc`.
+12. **Blast radius (adapted from Trail of Bits `differential-review`)** — if this change ships and a regression appears, what else breaks? Map the dependency graph for the changed lines:
+
+    - **Direct callers** — every function, route, job, or test that imports / invokes the changed code. List them or flag if too many to enumerate (signal of high blast radius).
+    - **Persisted state touched** — DB columns written, cache keys invalidated, files in storage, queue messages emitted. Each is a new failure surface.
+    - **External integrations affected** — third-party APIs called with new parameters, webhooks emitted with new payload shapes, SDK upgrades that change wire format.
+    - **Data already in production** — does the change require migration of existing rows / files / cache entries? If yes, the change is implicitly a 2-step deploy (migration first, then code).
+    - **Reversibility** — can this change be reverted with a single `git revert` in <5 minutes if it breaks production? If no, what's the rollback procedure?
+
+    Write the blast radius as 3-6 bullets. A change with one-bullet blast radius is low-risk; six bullets is "open follow-up issue, schedule monitoring".
+
+    Source: pattern adapted from [trailofbits/skills `differential-review`](https://github.com/trailofbits/skills/tree/main/differential-review). See `research/03-trail-of-bits-skills.md` for evaluation context.
 
 ### Step 4 — Categorize every issue by severity
 
