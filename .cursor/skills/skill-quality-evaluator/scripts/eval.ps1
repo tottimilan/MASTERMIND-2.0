@@ -183,6 +183,52 @@ if (-not $Path -and -not $All) {
     exit 0
 }
 
+if ($All) {
+    $skillsDir = Join-Path (Get-Location) '.cursor\skills'
+    if (-not (Test-Path $skillsDir)) {
+        Write-Error "Cannot find .cursor/skills/ from current directory: $(Get-Location). Run from repo root."
+        exit 2
+    }
+    $allSkillMds = Get-ChildItem -Path $skillsDir -Recurse -Filter 'SKILL.md' -File | Where-Object {
+        $_.FullName -notmatch '\\references\\fixtures\\'
+    }
+    $results = @()
+    foreach ($md in $allSkillMds) {
+        $results += Invoke-SkillEval -SkillMdPath $md.FullName
+    }
+    $avg = if ($results.Count -gt 0) {
+        [Math]::Round((($results | Measure-Object -Property Score -Average).Average), 1)
+    } else { 0 }
+    $worst = $results | Sort-Object Score | Select-Object -First 5 | ForEach-Object {
+        [pscustomobject]@{ Path=$_.Path; Score=$_.Score; FindingCount=$_.Findings.Count }
+    }
+    $summary = [pscustomobject]@{
+        SkillCount   = $results.Count
+        AverageScore = $avg
+        WorstSkills  = $worst
+        Results      = $results
+    }
+    if ($Json) {
+        $summary | ConvertTo-Json -Depth 6 | Write-Output
+    } else {
+        Write-Output "===== Skill Quality Report ====="
+        Write-Output "Skills evaluated: $($summary.SkillCount)"
+        Write-Output "Average score: $($summary.AverageScore)/100"
+        Write-Output ""
+        Write-Output "By skill (lowest first):"
+        $repoRootPath = (Get-Location).Path + [System.IO.Path]::DirectorySeparatorChar
+        foreach ($r in ($results | Sort-Object Score)) {
+            $rel = $r.Path -replace [regex]::Escape($repoRootPath), ''
+            Write-Output ("  {0,3}/100  {1,2} findings  {2}" -f $r.Score, $r.Findings.Count, $rel)
+        }
+    }
+    if ($Strict) {
+        $criticalCount = ($results | ForEach-Object { $_.Findings } | Where-Object { $_.Severity -eq 'Critical' }).Count
+        if ($criticalCount -gt 0) { exit 1 }
+    }
+    exit 0
+}
+
 if ($Path) {
     $skillMd = Resolve-SkillMdPath -InputPath $Path
     $result = Invoke-SkillEval -SkillMdPath $skillMd

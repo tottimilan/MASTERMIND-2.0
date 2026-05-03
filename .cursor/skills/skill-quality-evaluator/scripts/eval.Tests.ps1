@@ -142,3 +142,18 @@ Always: in tests.
         Remove-Item -Recurse -Force $tmpDir
     }
 }
+
+Describe 'eval.ps1 - batch mode' {
+    It '-All scans every skill under .cursor/skills/ and emits a summary' {
+        $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
+        Push-Location $repoRoot
+        try {
+            $output = & pwsh -File $script:EvalScript -All -Json | ConvertFrom-Json
+            $output.SkillCount | Should -BeGreaterThan 10
+            $output.Results | Should -Not -BeNullOrEmpty
+            $output.AverageScore | Should -BeGreaterThan 0
+        } finally {
+            Pop-Location
+        }
+    }
+}
