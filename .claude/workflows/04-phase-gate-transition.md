@@ -27,6 +27,7 @@ Formalize the moment when the project changes posture. Phases are strategic stat
 - **Steps:**
   1. Run `pwsh -File scripts/phase-gate-check.ps1 -NextPhase <TARGET>` (or `.sh` equivalent).
   2. Read the output: PASS / GAPS / BLOCK.
+  3. **For Definition→MVP and MVP→Launch transitions only:** before invoking `phase-gate-reviewer` in Phase 3, suggest `/mm-premortem` against the imminent transition (the MVP scope, or the launch plan). Other transitions skip this — the cost of being wrong is too low to justify the premortem cost.
 - **Exit criterion:** clear picture of which artifacts are missing or stale.
 
 ### Phase 2 — Remediate gaps (Executor, conditional)
