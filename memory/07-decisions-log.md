@@ -199,6 +199,19 @@
   - 2 false-positive findings (retroactive-documenter, phase-gate-reviewer MISSING_TRIGGER) intentionally NOT addressed in Plan B (calibration deferred to v1.1 after observation).
   - `memory/02-current-state.md` will move "Plan B" to "In progress" once user picks an execution option (C or E).
 - **Files affected:** `.cursor/plans/2026-05-03-adopt-tob-patterns.md` (new), `memory/07-decisions-log.md` (this entry).
+
+### 2026-05-03 — Plan B `adopt-tob-patterns` executed (5/5 tasks complete, avg 98.6/100, +1.1 vs Plan A baseline)
+- **Decision:** Execution of `.cursor/plans/2026-05-03-adopt-tob-patterns.md` complete on branch `feat/adopt-tob-patterns`. 4 skills updated, 0 regressions. The new average across 22 skills is 98.6/100 (was 97.5; delta +1.1, exceeded +0.5 forecast because the prototype-designer rewrite explicitly addressed the MISSING_TRIGGER heuristic that would otherwise have resurfaced after the description trim).
+- **Reason:** First dog-food validation of `skill-quality-evaluator`. Successfully fixed the only Critical finding (prototype-designer EMPTY_DESCRIPTION) and absorbed 3 Trail of Bits patterns into existing skills with explicit attribution. Two heuristic false positives (retroactive-documenter, phase-gate-reviewer MISSING_TRIGGER) intentionally left unaddressed for v1.1 calibration.
+- **Alternatives considered:**
+  - Calibrate the MISSING_TRIGGER heuristic on the spot to fix the 2 false positives — rejected per Plan A anti-pattern: "Avoid calibrating thresholds before observing real-world output for at least 4 weeks". Wait for v1.1.
+  - Move the new content to `references/` to keep SKILL.md leaner — rejected: all 3 absorptions stayed under 500 lines, no BLOATED_SKILL emerged.
+- **Consequences:**
+  - 4 skills updated: `prototype-designer` (description fix, 75→100), `code-reviewer` (Blast radius, +11 lines, 100→100), `project-deep-audit` (First Principles + 5 Whys, +20 lines, 100→100), `security-review` (Insecure Defaults + Rationalizations to Reject, +45 lines, 100→100).
+  - 4 commits on branch (one per skill). New baseline at `.cursor/plans/baselines/2026-05-03-skill-baseline-after-tob.txt`.
+  - Trail of Bits credited explicitly in 4 places (footer per absorption + research file reference).
+  - **Incident discovered**: Cursor IDE silently reverted modified-and-committed files in working tree (post-commit cache write-back). Mitigation: `git restore` from HEAD; lesson logged in baseline notes for cross-project promotion candidacy.
+- **Files affected:** `.cursor/skills/prototype-designer/SKILL.md`, `.cursor/skills/code-reviewer/SKILL.md`, `.cursor/skills/project-deep-audit/SKILL.md`, `.cursor/skills/security-review/SKILL.md`, `.cursor/plans/baselines/2026-05-03-skill-baseline-after-tob.txt`, `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry). Plus `.claude/skills/**` mirror via `scripts/sync-skills.ps1`.
   - 8 new files: `.cursor/skills/skill-quality-evaluator/SKILL.md`, `scripts/eval.ps1`, `scripts/eval.Tests.ps1`, `references/anti-patterns.md`, 2 fixtures, `.cursor/plans/baselines/2026-05-03-skill-baseline.txt`, plus `.gitkeep`s.
   - 3 modified files: `.cursor/skills/skill-creator/SKILL.md` (interaction added), `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry).
   - Skill count: 21 → 22 (15 System 1 + 7 System 2; `skill-quality-evaluator` joins System 2 as a quality gate).

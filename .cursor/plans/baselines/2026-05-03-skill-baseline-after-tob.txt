@@ -1,0 +1,65 @@
+===== Skill Quality Report =====
+Skills evaluated: 22
+Average score: 98.6/100
+
+By skill (lowest first):
+   85/100   1 findings  .cursor\skills\retroactive-documenter\SKILL.md
+   85/100   1 findings  .cursor\skills\phase-gate-reviewer\SKILL.md
+  100/100   0 findings  .cursor\skills\approval-gatekeeper\SKILL.md
+  100/100   0 findings  .cursor\skills\skill-quality-evaluator\SKILL.md
+  100/100   0 findings  .cursor\skills\skill-creator\SKILL.md
+  100/100   0 findings  .cursor\skills\security-review\SKILL.md
+  100/100   0 findings  .cursor\skills\research-first\SKILL.md
+  100/100   0 findings  .cursor\skills\prototype-designer\SKILL.md
+  100/100   0 findings  .cursor\skills\project-deep-audit\SKILL.md
+  100/100   0 findings  .cursor\skills\product-requirements\SKILL.md
+  100/100   0 findings  .cursor\skills\parallel-executor\SKILL.md
+  100/100   0 findings  .cursor\skills\memory-updater\SKILL.md
+  100/100   0 findings  .cursor\skills\implementation-planner\SKILL.md
+  100/100   0 findings  .cursor\skills\flow-analyzer\SKILL.md
+  100/100   0 findings  .cursor\skills\feature-breakdown\SKILL.md
+  100/100   0 findings  .cursor\skills\doubt-surfacer\SKILL.md
+  100/100   0 findings  .cursor\skills\continuous-learner\SKILL.md
+  100/100   0 findings  .cursor\skills\code-reviewer\SKILL.md
+  100/100   0 findings  .cursor\skills\bug-investigator\SKILL.md
+  100/100   0 findings  .cursor\skills\architecture-mapper\SKILL.md
+  100/100   0 findings  .cursor\skills\subagent-dispatcher\SKILL.md
+  100/100   0 findings  .cursor\skills\test-strategist\SKILL.md
+
+===== Notes (manual, post-Plan-B baseline) =====
+
+Plan A baseline (2026-05-03, pre-ToB):
+  Average: 97.5/100
+  Worst: prototype-designer 75/100 (EMPTY_DESCRIPTION)
+         retroactive-documenter 85/100 (MISSING_TRIGGER false positive)
+         phase-gate-reviewer    85/100 (MISSING_TRIGGER false positive)
+
+Plan B baseline (2026-05-03, post-ToB):
+  Average: 98.6/100
+  Delta: +1.1 (better than +0.5 expected from prototype-designer fix alone — MISSING_TRIGGER on prototype-designer would have resurfaced post-trim, but the rewrite included explicit "Use when..." prefix)
+  Resolved: prototype-designer EMPTY_DESCRIPTION fixed (75 -> 100)
+  Unchanged (intentional, calibration-deferred):
+    retroactive-documenter MISSING_TRIGGER false positive
+    phase-gate-reviewer    MISSING_TRIGGER false positive
+
+Plan B absorptions (no regression):
+  code-reviewer:        100/100 (Blast radius added, +11 lines body)
+  project-deep-audit:   100/100 (First Principles + 5 Whys added, +20 lines body)
+  security-review:      100/100 (Insecure Defaults + Rationalizations added, +45 lines body)
+
+===== Incident note (worth tracking) =====
+
+During Plan B execution, the IDE working tree silently reverted 5 modified files
+(the 4 skills + memory/07-decisions-log.md) AFTER each commit completed
+successfully. Diagnosis: Cursor IDE buffer cache held the pre-edit state and
+"saved" it back over the on-disk version when the file lost focus or auto-save
+fired. Symptom: evaluator scored prototype-designer 75/100 even though the fix
+commit (8b1f912) was on the branch.
+
+Fix during this session: `git restore <files>` to overwrite working tree from
+HEAD before re-running the evaluator.
+
+Lesson candidate (for cross-project promotion): when the IDE has files open
+during programmatic edits via the agent, ALWAYS verify with `git status` and
+`git diff HEAD` after the commit, not just after the edit. The commit may be
+correct while the working tree is silently stale.
