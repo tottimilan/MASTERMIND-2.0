@@ -78,6 +78,26 @@ Walk through each angle below. For each, write 2–6 bullet points directly into
 
 For each angle, apply three lenses in order: **Senior strategist** (what makes this work commercially), **Senior architect** (what makes this work technically), **Devil's advocate** (what would kill this).
 
+### Per-angle methodology — First Principles + 5 Whys
+
+Required for **angles 1 (First principles)** and **7 (Technical architecture)**. Recommended for **angles 5 (Business model)** and **10 (Risks)**. Adapted from Trail of Bits `audit-context-building`.
+
+For each angle in scope:
+
+1. **State the system as you currently understand it** in 1-3 sentences. No hedging, no caveats — your honest current model.
+2. **First principles pass** — what's the irreducible problem this system solves? Strip every implementation detail and write the problem in 1 sentence as if explaining to someone who has never seen software. If the irreducible problem isn't crisp, the rest of the audit will be vague.
+3. **5 Whys** — ask "why?" five times in sequence:
+   - Why does the system work the way it does today? (mechanism)
+   - Why was it built that way and not another way? (history / constraint)
+   - Why is the original constraint still valid? (or: when did it stop being valid?)
+   - Why hasn't anyone changed it? (organizational / cost / risk)
+   - Why might that need to change in the next 6-12 months? (forward pressure)
+4. **Output** — 5 bullets per angle, each one a finding tagged "current model | irreducible problem | why-N | forward pressure". Add to the angle's destination file under a "## First-principles trace" subsection.
+
+This methodology is intentionally slower than scanning. Use it only when the angle is high-stakes (architecture decisions, pivots, risks). For inventory-style angles (8 Feature inventory, 11 Security surface), a scan + table is sufficient.
+
+Source: pattern adapted from [trailofbits/skills `audit-context-building`](https://github.com/trailofbits/skills/tree/main/audit-context-building). See `research/03-trail-of-bits-skills.md` for evaluation context.
+
 ### Step 3 — Synthesize the executive summary
 
 Write a 300–500 word executive summary in `docs/product/executive-summary.md`. Structure:
