@@ -256,11 +256,11 @@ BACKUP_ROOT="$PROJECT_ROOT/.mastermind-backups/sync-$TS"
 GITIGNORE="$PROJECT_ROOT/.gitignore"
 if [[ -f "$GITIGNORE" ]]; then
   if ! grep -qxE '\.mastermind-backups/?' "$GITIGNORE"; then
-    printf '\n# Backups created by scripts/sync-from-template; safe to delete after review.\n.mastermind-backups/\n' >> "$GITIGNORE"
+    printf '\n# --- Backups created by scripts/sync-from-template; safe to delete after review. ---\n.mastermind-backups/\n' >> "$GITIGNORE"
     echo "  Added '.mastermind-backups/' to .gitignore."
   fi
 else
-  printf '# Backups created by scripts/sync-from-template; safe to delete after review.\n.mastermind-backups/\n' > "$GITIGNORE"
+  printf '# --- Backups created by scripts/sync-from-template; safe to delete after review. ---\n.mastermind-backups/\n' > "$GITIGNORE"
   echo "  Created .gitignore with '.mastermind-backups/'."
 fi
 

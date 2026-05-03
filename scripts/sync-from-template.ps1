@@ -334,11 +334,11 @@ $gitignoreEntry = '.mastermind-backups/'
 if (Test-Path $gitignorePath) {
     $existing = Get-Content $gitignorePath -Raw -ErrorAction SilentlyContinue
     if ($existing -notmatch '(?m)^\.mastermind-backups/?\s*$') {
-        Add-Content -Path $gitignorePath -Value "`n# Backups created by scripts/sync-from-template; safe to delete after review.`n$gitignoreEntry"
+        Add-Content -Path $gitignorePath -Value "`n# --- Backups created by scripts/sync-from-template; safe to delete after review. ---`n$gitignoreEntry"
         Write-Host "  Added '$gitignoreEntry' to .gitignore." -ForegroundColor DarkGray
     }
 } else {
-    Set-Content -Path $gitignorePath -Value "# Backups created by scripts/sync-from-template; safe to delete after review.`n$gitignoreEntry`n"
+    Set-Content -Path $gitignorePath -Value "# --- Backups created by scripts/sync-from-template; safe to delete after review. ---`n$gitignoreEntry`n"
     Write-Host "  Created .gitignore with '$gitignoreEntry'." -ForegroundColor DarkGray
 }
 
