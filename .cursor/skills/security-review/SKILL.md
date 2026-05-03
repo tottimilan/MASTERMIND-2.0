@@ -149,6 +149,51 @@ Each finding:
   - **Regression test:** <how we will verify it next time>
 ```
 
+### Step 5b — Insecure defaults checklist + Rationalizations to Reject
+
+Two artifacts adapted from Trail of Bits security skills (`insecure-defaults` + their security-skill authoring template).
+
+#### Insecure defaults — scan every review for these
+
+Patterns where the framework / language / library default is unsafe and a deliberate override is required:
+
+- **Auth & sessions** — session cookies without `Secure` / `HttpOnly` / `SameSite=Lax`+; JWT with `alg: none` permitted; refresh tokens stored in localStorage; password reset tokens without expiry.
+- **CORS** — `Access-Control-Allow-Origin: *` on any authenticated endpoint; `Access-Control-Allow-Credentials: true` paired with reflected origin.
+- **CSRF** — state-changing endpoints without CSRF tokens or SameSite cookie protection.
+- **Database** — connection strings with passwords in URL (vs env / secret manager); ORM defaults that disable prepared statements; soft-delete that leaves PII in disk forever.
+- **HTTP client defaults** — `verify=False` / `rejectUnauthorized: false`; no timeout (unbounded hang); follow-redirects without scheme validation (HTTP→file://).
+- **File handling** — temp files with default umask; uploads stored under web root; filename used as path without sanitization.
+- **Logging** — request bodies / cookies / Authorization headers logged in full; PII written to stdout in production.
+- **Secrets** — credentials checked into `.env.example`; CI secrets exposed to PR builds from forks; `.env` not in `.gitignore`.
+- **Dev hooks left on** — debug routes (`/debug`, `/admin/dev`) reachable in production; `DEBUG=True` in framework; verbose stack traces returned to clients.
+- **Crypto** — random number generation via `Math.random()` / `random.random()` for security-sensitive values; MD5 / SHA1 for passwords or token derivation; hardcoded IVs.
+- **Container / deploy** — running as root; `latest` tag in production manifests; secrets baked into image layers.
+- **Dependencies** — direct deps without lockfile pinning; transitive deps not audited; `npm install` instead of `npm ci` in CI.
+- **Fail-open** — auth middleware that returns 200 on internal error; rate limit that opens on cache miss; feature flag that defaults to "enabled if check fails".
+
+Each match in the diff is at least an Important finding. Multiple matches together are usually Critical (defense-in-depth has been bypassed).
+
+#### Rationalizations to Reject
+
+When a developer (or AI agent) tries to dismiss a security finding with one of these phrases, the reviewer must push back rather than accept:
+
+| Rationalization | Reality |
+|---|---|
+| *"This endpoint is internal-only."* | Internal services get exposed accidentally; tunnels, port-forwards, and misconfigured ingresses happen. Defense in depth applies. |
+| *"Only admins use it."* | Admin accounts get phished; insider threats exist; admin tooling is the highest-value target for an attacker. |
+| *"We trust our users."* | Trust is not a security control. It's also not transitive (a trusted user's account can be compromised). |
+| *"Nobody knows the URL."* | Security through obscurity is not security. URLs leak via referer headers, error pages, browser history, screen shares. |
+| *"It's behind a firewall."* | Lateral movement is the norm in 2026. Once one machine is in, the firewall stops mattering. |
+| *"The framework handles that."* | Maybe. Verify with the docs of the version you actually deploy. Versions matter. |
+| *"We'll fix it in v2."* | v2 ships when it ships. The vulnerability ships now. Choose: fix or accept the risk in `memory/08-known-risks.md` with expiry. |
+| *"Adding rate-limit / validation / encryption would slow things down."* | Quantify the slowdown. If the answer is hand-wavy, the trade-off has not been thought through. |
+| *"This is just a prototype."* | Prototypes leak. Prototypes get deployed by mistake. Either keep it on a kill-switched route, or harden it. |
+| *"It's the same as how X does it."* | X may also be vulnerable. Independent justification required. |
+
+When the developer's response to a finding matches one of the above, document both (the finding, the rationalization) in the review verdict; the response template lives in this table.
+
+Source: `insecure defaults` checklist adapted from [trailofbits/skills `insecure-defaults`](https://github.com/trailofbits/skills/tree/main/insecure-defaults); `Rationalizations to Reject` table adapted from Trail of Bits skill-authoring conventions (`trailofbits/skills/CLAUDE.md` §Security Skills). See `research/03-trail-of-bits-skills.md` for evaluation context.
+
 ### Step 6 — Accepted risks
 
 Any Medium or Low risk the team decides not to fix now must be logged in `memory/08-known-risks.md` with:
