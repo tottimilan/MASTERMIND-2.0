@@ -4,7 +4,9 @@
 # CURRENT project, without touching project-specific content (memory/, docs/,
 # .cursor/plans/, .taskmaster/, .env*, .git/).
 #
-# Defaults to DRY-RUN. Pass --apply to actually write (with per-file backups).
+# Defaults to DRY-RUN. Pass --apply to actually write, with automatic backups
+# grouped in .mastermind-backups/sync-YYYYMMDD-HHMMSS/ (relative paths preserved).
+# The backup folder is auto-added to .gitignore so it never pollutes commits.
 #
 # Usage:
 #   bash scripts/sync-from-template.sh --template /path/to/mastermind-template
@@ -247,13 +249,30 @@ BACKED_UP=0
 CREATED=0
 UPDATED=0
 
+# Grouped backup folder (single location, preserves relative paths inside).
+BACKUP_ROOT="$PROJECT_ROOT/.mastermind-backups/sync-$TS"
+
+# Ensure .mastermind-backups/ is in .gitignore (idempotent).
+GITIGNORE="$PROJECT_ROOT/.gitignore"
+if [[ -f "$GITIGNORE" ]]; then
+  if ! grep -qxE '\.mastermind-backups/?' "$GITIGNORE"; then
+    printf '\n# Backups created by scripts/sync-from-template; safe to delete after review.\n.mastermind-backups/\n' >> "$GITIGNORE"
+    echo "  Added '.mastermind-backups/' to .gitignore."
+  fi
+else
+  printf '# Backups created by scripts/sync-from-template; safe to delete after review.\n.mastermind-backups/\n' > "$GITIGNORE"
+  echo "  Created .gitignore with '.mastermind-backups/'."
+fi
+
 apply_one() {
   local rel="$1"
   local src="$TEMPLATE_ROOT/$rel"
   local dst="$PROJECT_ROOT/$rel"
   mkdir -p "$(dirname "$dst")"
   if [[ -f "$dst" ]]; then
-    cp -f "$dst" "$dst.backup-$TS"
+    local backup="$BACKUP_ROOT/$rel"
+    mkdir -p "$(dirname "$backup")"
+    cp -f "$dst" "$backup"
     BACKED_UP=$((BACKED_UP+1))
   fi
   cp -f "$src" "$dst"
@@ -266,15 +285,22 @@ echo ""
 echo "DONE"
 echo "  Created: $CREATED"
 echo "  Updated: $UPDATED"
-echo "  Backups: $BACKED_UP  (suffix: .backup-$TS)"
+if [[ $BACKED_UP -gt 0 ]]; then
+  echo "  Backups: $BACKED_UP files in .mastermind-backups/sync-$TS/"
+else
+  echo "  Backups: 0 (no files were overwritten)"
+fi
 echo ""
 echo "NEXT STEPS:"
-echo "  1. Run: git diff   (review the real changes)"
-echo "  2. If something looks wrong, restore from .backup-$TS files."
+echo "  1. Run: git diff   (review the real changes; .mastermind-backups/ is gitignored)"
+echo "  2. If something looks wrong, restore from .mastermind-backups/sync-$TS/<same-relative-path>."
+echo "     Example: cp .mastermind-backups/sync-$TS/CLAUDE.md CLAUDE.md"
 echo "  3. Commit: git add . && git commit -m 'chore: sync from MASTERMIND template'"
 echo "  4. Reload Cursor window or reopen."
 echo "  5. Restart Claude Desktop / Claude Code fully."
 echo "  6. Sanity check: ask 'List the active hooks in this repo' -> expect the latest set."
 echo ""
-echo "To clean up backups when confident:"
-echo "  find . -name '*.backup-$TS' -delete"
+echo "When confident, clean up this session's backups:"
+echo "  rm -rf .mastermind-backups/sync-$TS"
+echo "Or wipe all old backup sessions at once:"
+echo "  rm -rf .mastermind-backups"

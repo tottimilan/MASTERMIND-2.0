@@ -5,7 +5,7 @@
 .DESCRIPTION
     Use this when your project was cloned from a MASTERMIND template at some point in the past and the template has evolved since then. Run from the root of the target project, pointing -Template to the up-to-date template repo on disk.
 
-    Defaults to DRY-RUN: nothing is written. Pass -Apply to actually write, with automatic per-file backups (<file>.backup-YYYYMMDD-HHMMSS).
+    Defaults to DRY-RUN: nothing is written. Pass -Apply to actually write, with automatic backups grouped in .mastermind-backups/sync-YYYYMMDD-HHMMSS/ (relative paths preserved inside). The backup folder is auto-added to .gitignore so it never pollutes commits.
 
     What gets synced (whitelist):
       Root docs         : CLAUDE.md, AGENTS.md, README.md, OPERATING-GUIDE.md, COMMANDS.md, .gitignore, .env.example
@@ -325,6 +325,23 @@ $backedUp = 0
 $created  = 0
 $updated  = 0
 
+# Grouped backup folder (single location, preserves relative paths inside).
+$backupRoot = Join-Path $projectRoot ".mastermind-backups\sync-$ts"
+
+# Ensure .mastermind-backups/ is in .gitignore (idempotent).
+$gitignorePath = Join-Path $projectRoot '.gitignore'
+$gitignoreEntry = '.mastermind-backups/'
+if (Test-Path $gitignorePath) {
+    $existing = Get-Content $gitignorePath -Raw -ErrorAction SilentlyContinue
+    if ($existing -notmatch '(?m)^\.mastermind-backups/?\s*$') {
+        Add-Content -Path $gitignorePath -Value "`n# Backups created by scripts/sync-from-template; safe to delete after review.`n$gitignoreEntry"
+        Write-Host "  Added '$gitignoreEntry' to .gitignore." -ForegroundColor DarkGray
+    }
+} else {
+    Set-Content -Path $gitignorePath -Value "# Backups created by scripts/sync-from-template; safe to delete after review.`n$gitignoreEntry`n"
+    Write-Host "  Created .gitignore with '$gitignoreEntry'." -ForegroundColor DarkGray
+}
+
 foreach ($rel in ($toCreate + $toUpdate)) {
     $src = Join-Path $templateRoot ($rel -replace '/', '\')
     $dst = Join-Path $projectRoot ($rel -replace '/', '\')
@@ -333,8 +350,13 @@ foreach ($rel in ($toCreate + $toUpdate)) {
         New-Item -ItemType Directory -Force -Path $dstDir | Out-Null
     }
     if (Test-Path $dst) {
-        $backup = "$dst.backup-$ts"
-        Copy-Item -LiteralPath $dst -Destination $backup -Force
+        # Mirror the relative path inside the backup folder.
+        $backupPath = Join-Path $backupRoot ($rel -replace '/', '\')
+        $backupDir = Split-Path -Parent $backupPath
+        if (-not (Test-Path $backupDir)) {
+            New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
+        }
+        Copy-Item -LiteralPath $dst -Destination $backupPath -Force
         $backedUp++
     }
     Copy-Item -LiteralPath $src -Destination $dst -Force
@@ -345,16 +367,23 @@ Write-Host ""
 Write-Host "DONE" -ForegroundColor Green
 Write-Host "  Created: $created"
 Write-Host "  Updated: $updated"
-Write-Host "  Backups: $backedUp  (suffix: .backup-$ts)"
+if ($backedUp -gt 0) {
+    Write-Host "  Backups: $backedUp files in .mastermind-backups\sync-$ts\" -ForegroundColor DarkGray
+} else {
+    Write-Host "  Backups: 0 (no files were overwritten)" -ForegroundColor DarkGray
+}
 Write-Host ""
 Write-Host "NEXT STEPS:" -ForegroundColor Cyan
-Write-Host "  1. Run: git diff   (review the real changes)"
-Write-Host "  2. If something looks wrong, restore from the .backup-$ts files."
+Write-Host "  1. Run: git diff   (review the real changes; .mastermind-backups/ is gitignored)"
+Write-Host "  2. If something looks wrong, restore from .mastermind-backups\sync-$ts\<same-relative-path>."
+Write-Host "     Example: cp .mastermind-backups\sync-$ts\CLAUDE.md CLAUDE.md"
 Write-Host "  3. Commit: git add . && git commit -m 'chore: sync from MASTERMIND template'"
 Write-Host "  4. Reload Cursor window (Ctrl+Shift+P -> Developer: Reload Window)."
 Write-Host "  5. Restart Claude Desktop / Claude Code fully."
 Write-Host "  6. Sanity check: 'List the active hooks in this repo' -> expect the latest set."
 Write-Host ""
-Write-Host "To clean up backups later when confident:" -ForegroundColor DarkGray
-Write-Host "  Get-ChildItem -Recurse -Filter '*.backup-$ts' | Remove-Item -Force" -ForegroundColor DarkGray
+Write-Host "When confident, clean up this session's backups:" -ForegroundColor DarkGray
+Write-Host "  Remove-Item -Recurse -Force .mastermind-backups\sync-$ts" -ForegroundColor DarkGray
+Write-Host "Or wipe all old backup sessions at once:" -ForegroundColor DarkGray
+Write-Host "  Remove-Item -Recurse -Force .mastermind-backups" -ForegroundColor DarkGray
 exit 0
