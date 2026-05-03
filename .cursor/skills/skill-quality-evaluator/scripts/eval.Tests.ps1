@@ -30,9 +30,10 @@ Describe 'eval.ps1 — frontmatter checks' {
 
     It 'flags EMPTY_DESCRIPTION when description is missing' {
         $tmpDir = Join-Path $env:TEMP "skill-eval-test-$(Get-Random)"
-        New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
-        $tmpSkill = Join-Path $tmpDir 'SKILL.md'
-        @"
+        try {
+            New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+            $tmpSkill = Join-Path $tmpDir 'SKILL.md'
+            @"
 ---
 name: empty-desc
 description:
@@ -41,18 +42,20 @@ description:
 # Empty Desc
 "@ | Set-Content $tmpSkill -Encoding UTF8
 
-        $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
-        $codes = $result.Findings | ForEach-Object { $_.Code }
-        $codes | Should -Contain 'EMPTY_DESCRIPTION'
-
-        Remove-Item -Recurse -Force $tmpDir
+            $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
+            $codes = $result.Findings | ForEach-Object { $_.Code }
+            $codes | Should -Contain 'EMPTY_DESCRIPTION'
+        } finally {
+            Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+        }
     }
 
     It 'flags invalid name (uppercase) as INVALID_NAME' {
         $tmpDir = Join-Path $env:TEMP "skill-eval-test-$(Get-Random)"
-        New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
-        $tmpSkill = Join-Path $tmpDir 'SKILL.md'
-        @"
+        try {
+            New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+            $tmpSkill = Join-Path $tmpDir 'SKILL.md'
+            @"
 ---
 name: BadName
 description: Has valid description but invalid uppercase name. Use when testing the name validator. Trigger keyword test.
@@ -61,28 +64,31 @@ description: Has valid description but invalid uppercase name. Use when testing 
 # Bad Name
 "@ | Set-Content $tmpSkill -Encoding UTF8
 
-        $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
-        $codes = $result.Findings | ForEach-Object { $_.Code }
-        $codes | Should -Contain 'INVALID_NAME'
-
-        Remove-Item -Recurse -Force $tmpDir
+            $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
+            $codes = $result.Findings | ForEach-Object { $_.Code }
+            $codes | Should -Contain 'INVALID_NAME'
+        } finally {
+            Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+        }
     }
 
     It 'flags missing frontmatter as MISSING_FRONTMATTER' {
         $tmpDir = Join-Path $env:TEMP "skill-eval-test-$(Get-Random)"
-        New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
-        $tmpSkill = Join-Path $tmpDir 'SKILL.md'
-        "# No Frontmatter Here" | Set-Content $tmpSkill -Encoding UTF8
+        try {
+            New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+            $tmpSkill = Join-Path $tmpDir 'SKILL.md'
+            "# No Frontmatter Here" | Set-Content $tmpSkill -Encoding UTF8
 
-        $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
-        $codes = $result.Findings | ForEach-Object { $_.Code }
-        $codes | Should -Contain 'MISSING_FRONTMATTER'
-
-        Remove-Item -Recurse -Force $tmpDir
+            $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
+            $codes = $result.Findings | ForEach-Object { $_.Code }
+            $codes | Should -Contain 'MISSING_FRONTMATTER'
+        } finally {
+            Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+        }
     }
 }
 
-Describe 'eval.ps1 — body anti-patterns' {
+Describe 'eval.ps1 - body anti-patterns' {
     BeforeAll {
         $script:BloatedFixture = Join-Path $script:FixturesDir 'bloated-skill.md'
     }
@@ -95,9 +101,10 @@ Describe 'eval.ps1 — body anti-patterns' {
 
     It 'flags MISSING_TRIGGER when description has no use-when/trigger keyword pattern' {
         $tmpDir = Join-Path $env:TEMP "skill-eval-test-$(Get-Random)"
-        New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
-        $tmpSkill = Join-Path $tmpDir 'SKILL.md'
-        @"
+        try {
+            New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+            $tmpSkill = Join-Path $tmpDir 'SKILL.md'
+            @"
 ---
 name: no-trigger
 description: This skill does some useful generic things in the codebase.
@@ -106,18 +113,20 @@ description: This skill does some useful generic things in the codebase.
 # No Trigger
 "@ | Set-Content $tmpSkill -Encoding UTF8
 
-        $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
-        $codes = $result.Findings | ForEach-Object { $_.Code }
-        $codes | Should -Contain 'MISSING_TRIGGER'
-
-        Remove-Item -Recurse -Force $tmpDir
+            $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
+            $codes = $result.Findings | ForEach-Object { $_.Code }
+            $codes | Should -Contain 'MISSING_TRIGGER'
+        } finally {
+            Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+        }
     }
 
     It 'flags MISSING_SECTION when a required H2 section is absent' {
         $tmpDir = Join-Path $env:TEMP "skill-eval-test-$(Get-Random)"
-        New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
-        $tmpSkill = Join-Path $tmpDir 'SKILL.md'
-        @"
+        try {
+            New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
+            $tmpSkill = Join-Path $tmpDir 'SKILL.md'
+            @"
 ---
 name: no-process
 description: Skill missing the Process section. Use when testing the section detector. Trigger test.
@@ -135,11 +144,12 @@ Always: in tests.
 - None.
 "@ | Set-Content $tmpSkill -Encoding UTF8
 
-        $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
-        $codes = $result.Findings | ForEach-Object { $_.Code }
-        $codes | Should -Contain 'MISSING_SECTION'
-
-        Remove-Item -Recurse -Force $tmpDir
+            $result = & pwsh -File $script:EvalScript -Path $tmpSkill -Json | ConvertFrom-Json
+            $codes = $result.Findings | ForEach-Object { $_.Code }
+            $codes | Should -Contain 'MISSING_SECTION'
+        } finally {
+            Remove-Item -Recurse -Force $tmpDir -ErrorAction SilentlyContinue
+        }
     }
 }
 

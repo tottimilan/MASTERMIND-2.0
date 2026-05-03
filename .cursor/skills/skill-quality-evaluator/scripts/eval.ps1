@@ -80,7 +80,7 @@ function Invoke-SkillEval {
         $score -= 50
     } else {
         if (-not (Test-NameValid -Name $frontmatter.name)) {
-            $findings += [pscustomobject]@{ Severity='Critical'; Code='INVALID_NAME'; Message="name must match ^[a-z0-9]+(-[a-z0-9]+)*$, le 64 chars, no 'anthropic'/'claude'. Got: '$($frontmatter.name)'" }
+            $findings += [pscustomobject]@{ Severity='Critical'; Code='INVALID_NAME'; Message="name must match ^[a-z0-9]+(-[a-z0-9]+)*$, max 64 chars, no 'anthropic'/'claude'. Got: '$($frontmatter.name)'" }
             $score -= 25
         }
         if (-not (Test-DescriptionValid -Description $frontmatter.description)) {
@@ -184,13 +184,13 @@ if (-not $Path -and -not $All) {
 }
 
 if ($All) {
-    $skillsDir = Join-Path (Get-Location) '.cursor\skills'
+    $skillsDir = Join-Path (Get-Location) (Join-Path '.cursor' 'skills')
     if (-not (Test-Path $skillsDir)) {
         Write-Error "Cannot find .cursor/skills/ from current directory: $(Get-Location). Run from repo root."
         exit 2
     }
     $allSkillMds = Get-ChildItem -Path $skillsDir -Recurse -Filter 'SKILL.md' -File | Where-Object {
-        $_.FullName -notmatch '\\references\\fixtures\\'
+        $_.FullName -notmatch '[\\/]references[\\/]fixtures[\\/]'
     }
     $results = @()
     foreach ($md in $allSkillMds) {
