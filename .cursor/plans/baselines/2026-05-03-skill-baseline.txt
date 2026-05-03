@@ -1,0 +1,73 @@
+===== Skill Quality Report =====
+Skills evaluated: 22
+Average score: 97.5/100
+
+By skill (lowest first):
+   75/100   1 findings  .cursor\skills\prototype-designer\SKILL.md
+   85/100   1 findings  .cursor\skills\retroactive-documenter\SKILL.md
+   85/100   1 findings  .cursor\skills\phase-gate-reviewer\SKILL.md
+  100/100   0 findings  .cursor\skills\approval-gatekeeper\SKILL.md
+  100/100   0 findings  .cursor\skills\skill-quality-evaluator\SKILL.md
+  100/100   0 findings  .cursor\skills\skill-creator\SKILL.md
+  100/100   0 findings  .cursor\skills\security-review\SKILL.md
+  100/100   0 findings  .cursor\skills\research-first\SKILL.md
+  100/100   0 findings  .cursor\skills\project-deep-audit\SKILL.md
+  100/100   0 findings  .cursor\skills\product-requirements\SKILL.md
+  100/100   0 findings  .cursor\skills\parallel-executor\SKILL.md
+  100/100   0 findings  .cursor\skills\memory-updater\SKILL.md
+  100/100   0 findings  .cursor\skills\implementation-planner\SKILL.md
+  100/100   0 findings  .cursor\skills\flow-analyzer\SKILL.md
+  100/100   0 findings  .cursor\skills\feature-breakdown\SKILL.md
+  100/100   0 findings  .cursor\skills\doubt-surfacer\SKILL.md
+  100/100   0 findings  .cursor\skills\continuous-learner\SKILL.md
+  100/100   0 findings  .cursor\skills\code-reviewer\SKILL.md
+  100/100   0 findings  .cursor\skills\bug-investigator\SKILL.md
+  100/100   0 findings  .cursor\skills\architecture-mapper\SKILL.md
+  100/100   0 findings  .cursor\skills\subagent-dispatcher\SKILL.md
+  100/100   0 findings  .cursor\skills\test-strategist\SKILL.md
+
+===== Notes (manual, post-baseline) =====
+
+Plan B candidates (worst-3 by score, real findings):
+
+1. .cursor/skills/prototype-designer/SKILL.md  (75/100)
+   EMPTY_DESCRIPTION (Critical): description is 1199 chars, exceeds 1024 max.
+   --> Real bug. Description must be trimmed before any further use.
+   Fix priority: HIGH — frontmatter spec violation, blocks agent registration.
+
+2. .cursor/skills/retroactive-documenter/SKILL.md  (85/100)
+   MISSING_TRIGGER (Important): no use-when / trigger keyword in description.
+   --> Possible false positive (heuristic). Description starts with "Seeds memory/ from..."
+       and uses "during" + "for" patterns. Heuristic needs calibration in v1.1.
+   Fix priority: MEDIUM — verify human review whether description needs rewording or
+   the heuristic vocabulary should expand to include "during", "for", "to", etc.
+
+3. .cursor/skills/phase-gate-reviewer/SKILL.md  (85/100)
+   MISSING_TRIGGER (Important): no use-when / trigger keyword in description.
+   --> Confirmed false positive. Description includes "Use at the end of every phase,
+       before starting work...", "when the user asks...", but the heuristic only matches
+       literal "use when" / "use before" / "use after" / "always" / "trigger" / "invoke".
+   Fix priority: LOW — calibrate heuristic in v1.1 to recognize "use at", "use during"
+   and "when the user asks" patterns. Do not modify the skill's description.
+
+===== Heuristic calibration backlog (for v1.1 after 4-8 weeks of observation) =====
+
+- Expand MISSING_TRIGGER trigger_hints to include: 'use at', 'use during', 'use to',
+  'when the user asks', 'when this happens', 'before any', 'after any'.
+- Consider lowering MISSING_TRIGGER penalty from -15 to -10 since false positives are
+  more frequent than EMPTY_DESCRIPTION violations.
+- Consider whether MISSING_TRIGGER should be Suggestion instead of Important when the
+  description has any of: 1+ trigger words AND >= 1 imperative phrase. Many of the
+  false positives have rich descriptions with implicit triggers.
+
+===== Plan B sequencing (preliminary) =====
+
+Recommended order for Plan B (adopt-tob-patterns):
+1. Fix prototype-designer description length first (real bug, isolated change).
+2. Re-baseline. Confirm 21/22 skills at 100, only retroactive-documenter and
+   phase-gate-reviewer flagged.
+3. Then absorb ToB patterns into code-reviewer, project-deep-audit, security-review
+   per Plan B spec. Use the evaluator after each absorption to verify no regression
+   (score must stay >= original).
+4. Re-baseline at end of Plan B. Document delta in memory/07-decisions-log.md.
+

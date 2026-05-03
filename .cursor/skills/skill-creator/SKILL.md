@@ -198,6 +198,7 @@ After updating peer skills, run the sync script again so the mirror reflects all
 - **Invoked by:** user (*"create a new skill"*), the agent itself when it detects a recurring pattern worth formalizing, the maintainer during stocktakes.
 - **Invokes:** `memory-updater` — to log structural changes in `memory/07-decisions-log.md`.
 - **Pairs with:** `code-reviewer` — skills are code-like artifacts; review before merging.
+- **Pairs with:** `skill-quality-evaluator` — runs static analysis on every new or edited skill; reports findings + score before commit. Use as the structural complement to `code-reviewer`'s semantic review.
 
 ## Known skills in this repo (System 1 + System 2)
 

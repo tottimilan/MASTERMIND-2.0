@@ -145,3 +145,33 @@
   - `README.md` "Start here" block now lists both `OPERATING-GUIDE.md` and `COMMANDS.md`.
   - Maintenance contract: when a new command is added under `.claude/commands/`, `COMMANDS.md` must be updated in the same commit. This contract is stated inside `COMMANDS.md §Maintaining this file`.
 - **Files affected:** `COMMANDS.md` (new), `README.md` (link added), `memory/07-decisions-log.md` (this entry).
+
+### 2026-05-03 — Plan `build-skill-quality-evaluator` drafted (awaiting execution option)
+- **Decision:** Approve the implementation plan at `.cursor/plans/2026-05-03-build-skill-quality-evaluator.md` against branch `feat/skill-quality-evaluator`. The plan builds a MASTERMIND-native skill `skill-quality-evaluator` (PluginEval-inspired, static-only v1) in 13 bite-sized TDD tasks covering: scaffold, fixtures, Pester tests, frontmatter validator, BLOATED_SKILL / MISSING_TRIGGER / MISSING_SECTION detectors, batch `-All` mode, canonical SKILL.md, anti-patterns reference, baseline of the 21 existing skills, peer skill update (`skill-creator`), and mirror sync.
+- **Reason:** Closes the longest-standing blind spot in MASTERMIND — the skill library has 21 entries with no automated quality gate. PluginEval was the single component of `wshobson/agents` (research/06-subagent-collections.md) that filled a unique gap. Static-only v1 is deterministic, dependency-free, and survives any future evolution; LLM-judge layer (v2) becomes a clean addition once 4-8 weeks of static output reveal what the heuristics miss.
+- **Alternatives considered:**
+  - Single monolithic plan (PluginEval skill + 4 ToB pattern absorptions in one go) — rejected: 10+ files violates `implementation-planner` "split if > 8 files" rule and prevents using the new evaluator to baseline before/after the absorptions. Approved split into Plan A (this) + Plan B (ToB absorptions, deferred).
+  - Static + LLM-judge in v1 — rejected: introduces non-determinism and API key dependency before the static foundation has been validated. Defer to v2.
+  - Wire evaluator into pre-commit hook in v1 — rejected: hook trust is sacred; never gate with an unvalidated tool. Manual CLI for ≥4 weeks first, calibrate, then PR for hook integration.
+  - Adopt `wshobson/agents` as plugin marketplace — rejected: importing 80 plugins ruins the opinionated 21-skill inventory; cantidad ≠ calidad; only PluginEval added unique value.
+- **Consequences:**
+  - New plan file `.cursor/plans/2026-05-03-build-skill-quality-evaluator.md` (13 tasks, ~10-12h estimated work, 8 files created + 3 modified).
+  - On execution: skill count 21 → 22, baseline of all skills captured, `skill-creator` interaction graph updated, mirror synced.
+  - Plan B (`adopt-tob-patterns`) becomes feasible after baseline: refactor the 3 worst-scoring skills with Trail of Bits patterns (blast radius → `code-reviewer`; First Principles + 5 Whys → `project-deep-audit`; Insecure Defaults + Rationalizations to Reject → `security-review`).
+  - `memory/02-current-state.md` will move "Plan A" to "In progress" once the user picks an execution option (A/C/E).
+- **Files affected:** `.cursor/plans/2026-05-03-build-skill-quality-evaluator.md` (new), `memory/07-decisions-log.md` (this entry).
+
+### 2026-05-03 — Plan `build-skill-quality-evaluator` executed (13/13 tasks complete, 10/10 tests green, self-eval 100/100)
+- **Decision:** Execution of `.cursor/plans/2026-05-03-build-skill-quality-evaluator.md` complete on branch `feat/skill-quality-evaluator`. Skill `skill-quality-evaluator` is operational, scores 100/100 against itself, baseline of 22 skills captured (avg 97.5/100). Two-stage subagent review applied to substantive Tasks 5-8 with verdict APPROVED_WITH_FIXES — 3 fixes applied (cross-platform paths, test cleanup in finally, typo).
+- **Reason:** Closes the longest-standing blind spot in MASTERMIND. The library now has an automated quality measure. First baseline reveals 3 skills with findings: 1 real bug (prototype-designer description >1024 chars) and 2 likely false positives (heuristic for MISSING_TRIGGER does not recognize "use at" / "use during" / "when the user asks" patterns). Calibration backlog for v1.1 documented in baseline notes.
+- **Alternatives considered:**
+  - Apply ToB pattern absorptions in this same plan (Plan B merged in) — rejected per planning-stage decision (see prior log entry). Confirmed correct in retrospect: the evaluator immediately surfaced 3 candidates for Plan B with concrete data, making the absorption sequencing data-driven instead of speculative.
+  - Calibrate heuristic on the spot for the 2 false positives — rejected: violates "do not calibrate before 4 weeks of observation" principle (Plan A anti-patterns section). Tracked in baseline notes for v1.1.
+- **Consequences:**
+  - 13 plan tasks executed across 16 commits on `feat/skill-quality-evaluator` (`be5253a..HEAD`, including planning commit + 13 task commits + 1 post-review fixes commit + 1 final session/testing memory commit).
+  - 8 new files: `.cursor/skills/skill-quality-evaluator/SKILL.md`, `scripts/eval.ps1`, `scripts/eval.Tests.ps1`, `references/anti-patterns.md`, 2 fixtures, `.cursor/plans/baselines/2026-05-03-skill-baseline.txt`, plus `.gitkeep`s.
+  - 3 modified files: `.cursor/skills/skill-creator/SKILL.md` (interaction added), `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry).
+  - Skill count: 21 → 22 (15 System 1 + 7 System 2; `skill-quality-evaluator` joins System 2 as a quality gate).
+  - Pester 5.7.1 installed in CurrentUser scope as test framework. Documented in skill prerequisites.
+  - Plan B (`adopt-tob-patterns`) is now data-driven: prototype-designer needs real fix first, then ToB absorption into the 3 target skills, with the evaluator measuring before/after.
+- **Files affected:** all of the above + `.claude/skills/skill-quality-evaluator/**` mirror created in Task 13 sync, `memory/07-decisions-log.md` (this entry).
