@@ -183,6 +183,22 @@
   - `memory/02-current-state.md` updated: skill-quality-evaluator now "shipped" on main, Plan B is the next planned work.
   - `main` has NOT been pushed to `origin`. The user controls when to push.
 - **Files affected:** `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry).
+
+### 2026-05-03 — Plan B `adopt-tob-patterns` drafted (awaiting execution option)
+- **Decision:** Approve the implementation plan at `.cursor/plans/2026-05-03-adopt-tob-patterns.md` against branch `feat/adopt-tob-patterns`. The plan absorbs 3 cherry-picked patterns from Trail of Bits skills marketplace into 3 existing MASTERMIND skills, plus fixes the 1 real bug surfaced by Plan A's evaluator baseline (`prototype-designer` description >1024 chars). Total: 4 skill edits + memory + sync = 5 tasks, ~1.5-2.5h estimated.
+- **Reason:** First dog-food validation of the new `skill-quality-evaluator` (merged on main as `e012a5e`). The evaluator surfaced 1 Critical finding (real bug) and 2 Important findings (heuristic false positives, deferred to v1.1). Plan B addresses the real bug + executes the cherry-pick strategy from `research/03-trail-of-bits-skills.md` §Veredicto with explicit source attribution per pattern.
+- **Alternatives considered:**
+  - Drop the prototype-designer fix from Plan B (handle as separate one-line PR) — rejected: surgical to bundle since both touch the skills inventory and both validate the evaluator's signal.
+  - Add a 4th absorption (Persona-driven into skill-creator) — rejected per Plan A planning swap (too abstract, low ROI for v1).
+  - Use parallel-executor for Tasks 2-4 (independent skills) — rejected: 30 min gain not worth orchestration overhead; merge order is trivial.
+  - Subagent-driven execution (Option A) — rejected because the plan ships the prose verbatim; dispatching for "paste + verify" is overhead without value.
+- **Consequences:**
+  - New plan file `.cursor/plans/2026-05-03-adopt-tob-patterns.md` (5 tasks, 4 source files modified + 1 baseline created).
+  - On execution: 4 skills updated, baseline delta captured, prototype-designer recovered 75 → 100, no regressions expected.
+  - Trail of Bits credited explicitly in 4 places (one per absorption); `research/03-trail-of-bits-skills.md` referenced as evaluation context.
+  - 2 false-positive findings (retroactive-documenter, phase-gate-reviewer MISSING_TRIGGER) intentionally NOT addressed in Plan B (calibration deferred to v1.1 after observation).
+  - `memory/02-current-state.md` will move "Plan B" to "In progress" once user picks an execution option (C or E).
+- **Files affected:** `.cursor/plans/2026-05-03-adopt-tob-patterns.md` (new), `memory/07-decisions-log.md` (this entry).
   - 8 new files: `.cursor/skills/skill-quality-evaluator/SKILL.md`, `scripts/eval.ps1`, `scripts/eval.Tests.ps1`, `references/anti-patterns.md`, 2 fixtures, `.cursor/plans/baselines/2026-05-03-skill-baseline.txt`, plus `.gitkeep`s.
   - 3 modified files: `.cursor/skills/skill-creator/SKILL.md` (interaction added), `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry).
   - Skill count: 21 → 22 (15 System 1 + 7 System 2; `skill-quality-evaluator` joins System 2 as a quality gate).
