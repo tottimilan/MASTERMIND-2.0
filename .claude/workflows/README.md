@@ -14,6 +14,7 @@ Each workflow is a single markdown file with a consistent structure. They are co
 | 04 | [`04-phase-gate-transition.md`](04-phase-gate-transition.md) | Ceremony to move the project from phase N to phase N+1. Wraps `phase-gate-reviewer`. | 30–60 min (plus remediation) | Idea → Launch |
 | 05 | [`05-weekly-retrospective.md`](05-weekly-retrospective.md) | Weekly review of work, risks, drift, flaky tests, and lessons. Keeps memory alive. | 20–40 min | MVP, Iteration, Launch |
 | 06 | [`06-onboard-existing-project.md`](06-onboard-existing-project.md) | Install MASTERMIND shell into an existing project + retroactive memory seed + strategic audit + phase confirmation. | 45–90 min | Any (matches whatever phase the project is really in) |
+| 07 | [`07-full-app-prototyping.md`](07-full-app-prototyping.md) | Iterative full-app mockup (v1 → vN → freeze) between Definition and MVP. UI projects only; non-UI projects skip the Prototype phase. | 1–3 weeks (iteration-driven) | Prototype |
 
 ## Workflow file format
 

@@ -123,7 +123,7 @@ What makes it safe:
 - **Conflict-as-proposal pattern.** If a file already exists in the target AND differs from the template, the template version is written next to it as `<file>.mastermind-proposal`. The original is NEVER overwritten. You merge manually.
 - **Pre-existing `.cursor/rules/` are relocated**, not deleted, to `.cursor/rules-backup-YYYYMMDD-HHMMSS/`. Use `-KeepExistingRules` to treat them as conflicts instead.
 - **Stack auto-detection** from `package.json` / `pyproject.toml` / `Cargo.toml` pre-fills `02-tech-stack.mdc` if the project does not already have one.
-- **Phase bootstrap.** You specify the initial phase (Idea / Discovery / Definition / MVP / Iteration / Launch); the script writes `memory/02-current-state.md` + a `memory/13-phase-history.md` entry coherently.
+- **Phase bootstrap.** You specify the initial phase (Idea / Discovery / Definition / Prototype / MVP / Iteration / Launch); the script writes `memory/02-current-state.md` + a `memory/13-phase-history.md` entry coherently.
 - **Never touches** `src/`, `app/`, `tests/`, lockfiles, `.git/`, `node_modules/`, `dist/`, `.next/`, `.taskmaster/`, `.env*`, `docs/`, or `.cursor/plans/`.
 
 Recommended flow (full workflow at [`.claude/workflows/06-onboard-existing-project.md`](.claude/workflows/06-onboard-existing-project.md)):
@@ -304,7 +304,7 @@ The same agent behaves differently depending on the active mode. Modes are state
 
 ### Phase gates (Idea → Launch)
 
-Projects advance through six phases: **Idea → Discovery → Definition → MVP → Iteration → Launch**. Each transition is gated:
+Projects advance through seven phases: **Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch**. `Prototype` is the only optional phase (UI projects iterate on a full-app mockup via `mockup-factory`; non-UI projects skip it directly `Definition → MVP` with `--skip-reason "no UI"`). Each transition is gated:
 
 - Canonical phase definitions, entry/exit criteria, and transition log live in [`memory/13-phase-history.md`](memory/13-phase-history.md).
 - The [`phase-gate-reviewer`](.cursor/skills/phase-gate-reviewer/SKILL.md) skill verifies artifacts, risks, open doubts, and emits a verdict (PROCEED / PROCEED WITH CAVEATS / BLOCK).
@@ -507,10 +507,10 @@ Escape hatches: `git commit --no-verify`, `git push --no-verify`, or env vars `M
 |---|---|---|
 | **Kernel** | `CLAUDE.md` + `AGENTS.md` | 2 files |
 | **Rules** | `.cursor/rules/00..07.mdc` | 8 rules, always loaded |
-| **Skills (System 1)** | Analysis, documentation, quality, design & prototyping | 15 skills |
-| **Skills (System 2)** | Execution + orchestration + learning + onboarding | 6 skills |
-| **Workflows** | End-to-end recipes | 6 workflows |
-| **Slash commands** | `/mm-*` shortcuts | 13 commands |
+| **Skills (System 1)** | Analysis, documentation, quality, design & prototyping | 16 skills |
+| **Skills (System 2)** | Execution + orchestration + learning + onboarding + skill QA | 7 skills |
+| **Workflows** | End-to-end recipes | 7 workflows |
+| **Slash commands** | `/mm-*` shortcuts | 14 commands |
 | **Memory bank** | Per-project intelligence (Git-versioned) | 14 files |
 | **Docs folder** | Product, architecture, features, flows, api, testing, security, adr | 8 subfolders |
 | **Cross-project memory** | `~/.mastermind/global/` (outside the repo) | 5 files + README |

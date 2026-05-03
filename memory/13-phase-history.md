@@ -1,6 +1,6 @@
 # Phase History — [PROJECT NAME]
 
-> **Append-only log of phase transitions.** Every time the project moves from one phase to another (Idea → Discovery → Definition → MVP → Iteration → Launch), add a new entry at the top of the *Transitions* section.
+> **Append-only log of phase transitions.** Every time the project moves from one phase to another (Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch), add a new entry at the top of the *Transitions* section.
 >
 > This file is the timeline of the project's strategic posture. Consumed by `phase-gate-reviewer` to verify entry/exit criteria and by `project-deep-audit` to understand where the project has been.
 >
@@ -10,7 +10,7 @@
 
 ## Current phase
 
-**Phase:** Idea | Discovery | Definition | MVP | Iteration | Launch
+**Phase:** Idea | Discovery | Definition | Prototype | MVP | Iteration | Launch
 **Since:** YYYY-MM-DD
 **Confidence:** Low | Medium | High
 **Next expected phase:** _TBD_
@@ -24,11 +24,14 @@
 | **Idea** | The thing is a sentence or a paragraph | `memory/00-project-brief.md` skeleton |
 | **Discovery** | Validate problem + user + market | `docs/product/executive-summary.md`, `docs/product/personas.md`, `docs/product/competitive-analysis.md`, `memory/08-known-risks.md` |
 | **Definition** | Lock the MVP scope | `docs/product/prd.md`, `docs/features/<epic>.md`, `docs/architecture/system-map.md`, first ADRs |
+| **Prototype** *(UI projects only)* | Iterative full-app design before committing to MVP build. v1 → feedback → v2 → … → freeze. Validates experience with stakeholders/users on a navigable artifact. | `docs/design/mockups/v1-…/`, `v2-…/`, `final/`, updated `memory/14-design-system.md` (tokens, patterns, installed components frozen) |
 | **MVP** | Build and ship the MVP | Code in `main`, `docs/flows/*.md`, `docs/testing/strategy.md`, feature-map MVP rows all `Shipped` |
 | **Iteration** | Learn from users, improve | Updated `memory/08-known-risks.md` with real-world risks, pivots logged in `memory/07-decisions-log.md`, new slices shipped |
 | **Launch** | Public release, scale | SLA/SLO docs, `docs/security/*` hardened, observability deployed, `docs/adr/` coverage complete |
 
 Transitions between phases require explicit approval via `phase-gate-reviewer`. Skipping phases is possible but must be logged as a decision.
+
+**Prototype is the only optional canonical phase.** UI-heavy projects are strongly recommended to go through it; non-UI projects (backend-only services, CLIs, libraries, SDKs) may skip directly `Definition → MVP` with a mandatory `--skip-reason "no UI"` justification recorded in this file.
 
 ---
 
@@ -57,7 +60,26 @@ Transitions between phases require explicit approval via `phase-gate-reviewer`. 
 
 ### Entries
 
-_No transitions yet. The project starts at `Idea` by default when the template is cloned. The first transition (`Idea → Discovery`) is logged when the user kicks off `doubt-surfacer` + `project-deep-audit` for the first time._
+### 2026-05-03 — Template taxonomy change: canonical phases 6 → 7 (added `Prototype`)
+- **Decided by:** Template author
+- **Trigger:** Recognized that iterative full-app design (v1 → v2 → … → freeze) is a first-class activity for UI-heavy projects that was previously hidden inside Definition. Making it explicit gives it a gate, trackable duration, and stakeholder-friendly signal.
+- **Entry criteria met:**
+  - [x] User interview confirmed: "I always iterate 2–5 times on design before starting MVP build."
+  - [x] Option 1 (formal phase) chosen over Option 3 (sub-step of Definition) because iteration duration measured in days/weeks merits its own phase.
+- **Artifacts promoted:**
+  - `.cursor/skills/mockup-factory/SKILL.md` — new skill with 3 modes (create / iterate / freeze)
+  - `.claude/commands/mm-mockup.md` — new slash command
+  - `.claude/workflows/07-full-app-prototyping.md` — new workflow
+  - `phase-gate-reviewer` — updated for Definition→Prototype and Prototype→MVP transitions + skip rule for non-UI projects
+- **Blockers waived:** none.
+- **Confidence at entry:** High.
+- **Expected duration in new phase (typical project):** 1–3 weeks.
+- **Success metric for this phase:** stakeholder-approved mockup + frozen tokens/components in memory/14 before MVP build starts.
+- **Link to gate review:** `memory/07-decisions-log.md#2026-05-03-added-prototype-phase`
+
+_(This entry is the taxonomy change itself. Normal per-project transitions begin below.)_
+
+_No per-project transitions yet. The project starts at `Idea` by default when the template is cloned. The first transition (`Idea → Discovery`) is logged when the user kicks off `doubt-surfacer` + `project-deep-audit` for the first time._
 
 ---
 

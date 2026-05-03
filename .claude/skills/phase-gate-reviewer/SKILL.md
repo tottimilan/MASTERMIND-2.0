@@ -1,6 +1,6 @@
 ---
 name: phase-gate-reviewer
-description: Validates whether a project is ready to transition from its current phase (Idea / Discovery / Definition / MVP / Iteration / Launch) to the next. Use at the end of every phase, before starting work that belongs to the next phase, when the user asks "are we ready to advance", "phase gate", "can we move to MVP / Launch / Iteration", or when memory/02-current-state.md shows all expected artifacts of a phase are produced. Reads the entry/exit criteria canonical table from memory/13-phase-history.md, verifies artifacts exist and are not stale, checks risks/open doubts/decisions, emits a BLOCK / PROCEED verdict with a gap list and recommended remediations, updates memory/13 and memory/02 only after user confirmation, and never advances the phase silently.
+description: Validates whether a project is ready to transition from its current phase (Idea / Discovery / Definition / Prototype / MVP / Iteration / Launch) to the next. Use at the end of every phase, before starting work that belongs to the next phase, when the user asks "are we ready to advance", "phase gate", "can we move to Prototype / MVP / Launch / Iteration", or when memory/02-current-state.md shows all expected artifacts of a phase are produced. Reads the entry/exit criteria canonical table from memory/13-phase-history.md, verifies artifacts exist and are not stale, checks risks/open doubts/decisions, emits a BLOCK / PROCEED verdict with a gap list and recommended remediations, updates memory/13 and memory/02 only after user confirmation, and never advances the phase silently. Prototype is the only optional canonical phase — non-UI projects may skip Definition→MVP directly with `--skip-reason "no UI"`.
 ---
 
 # Phase Gate Reviewer
@@ -93,7 +93,10 @@ Emit per artifact:
 
 For the next phase, verify the preconditions stated in `memory/13-phase-history.md §Phase definitions`. Examples:
 
-- **Definition → MVP:** PRD approved, MVP boundary set with one persona + one JTBD + one metric, architecture ADRs accepted, feature-map updated, testing strategy drafted.
+- **Definition → Prototype:** (UI projects) PRD approved, MVP boundary set, `memory/14 §Platform` set to web/mobile/cross, `memory/14` identity + tokens sections filled, `memory/05-user-flows.md` populated, `memory/06-feature-map.md` with MVP slices identified, design system installed (`components.json` present), Claude Design access available.
+- **Definition → MVP (direct skip):** For **non-UI projects only** (backend services, CLIs, libraries, SDKs). Invoke with `--skip-reason "no UI"` or equivalent justification. Record the skip in `memory/13-phase-history.md` and `memory/07-decisions-log.md`. Entry criteria otherwise same as Definition → MVP below.
+- **Prototype → MVP:** `docs/design/mockups/final/` exists; `memory/14 §Changelog` has a recent "Design frozen at vN" entry (< 30 days old); stakeholder sign-off recorded in the frozen iteration's `feedback.md`; memory/14 has no open decisions on tokens / components / patterns; no open blockers in `memory/08-known-risks.md` that depend on design resolution.
+- **Definition → MVP (direct skip) or Prototype → MVP:** PRD approved, MVP boundary set with one persona + one JTBD + one metric, architecture ADRs accepted, feature-map updated, testing strategy drafted.
 - **MVP → Iteration:** All P0 features shipped, first user sessions logged, zero Critical/High security findings open, observability in place.
 - **Iteration → Launch:** SLA/SLO defined, incident runbook exists, rollback tested, legal/compliance review passed for scope.
 
@@ -155,6 +158,16 @@ Based on the new phase, emit a **HIGH** Command Recommendation with a per-phase 
 **Go ahead:** type `go` and I'll start with `product-requirements` on the first epic.
 **Skip if:** you want to re-run `/mm-audit` with a specific angle before defining.
 ```
+
+**Entered Prototype** (UI projects) → HIGH on `/mm-mockup create`:
+```markdown
+**Next recommended command:** `/mm-mockup create`.
+**Why:** Prototype phase's working skill is `mockup-factory`; v1 is the starting point for the iterate-until-freeze loop. See workflow `07-full-app-prototyping.md`.
+**Go ahead:** type `go` and I'll compose the first mockup prompt using memory/05 + memory/06 + memory/14.
+**Skip if:** you want to do stakeholder scope alignment first (update memory/05 / memory/06) before kicking off v1.
+```
+
+**Skipped Prototype** (non-UI projects, Definition → MVP direct) → log the skip justification in memory/13 + memory/07, then HIGH on `/mm-ship` (see below).
 
 **Entered MVP** → HIGH on `/mm-ship`:
 ```markdown

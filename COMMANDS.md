@@ -1,6 +1,6 @@
 # COMMANDS.md — Quick reference for `/mm-*`
 
-> **What this is.** A fast, operational reference for the **13 slash commands** in this project. Designed to stay open and answer the question *"which command do I run now?"* in 5 seconds.
+> **What this is.** A fast, operational reference for the **14 slash commands** in this project. Designed to stay open and answer the question *"which command do I run now?"* in 5 seconds.
 >
 > **What this is NOT.** This is not the deep system documentation — for that, open [`OPERATING-GUIDE.md`](OPERATING-GUIDE.md). This is not the skill catalog — those live in `.cursor/skills/` and `.claude/skills/`.
 
@@ -42,7 +42,8 @@ The agent reads the file and follows the script. Same end result.
 | [`/mm-retro`](.claude/commands/mm-retro.md)         | 20–40 min weekly retrospective                             | Once a week during MVP/Iteration/Launch                          | Period (optional)               |
 | [`/mm-learn`](.claude/commands/mm-learn.md)         | Promote lessons to the cross-project global memory         | End of phase, notable post-mortem, weekly retro                  | Time window (optional)          |
 | [`/mm-onboard`](.claude/commands/mm-onboard.md)     | Integrate an existing project (not born from MASTERMIND) into the system | After `scripts/onboard-existing-project` installs the shell      | Hints like `audit-focus:monetization` (optional) |
-| [`/mm-design`](.claude/commands/mm-design.md)       | Prototype a feature via Claude Design on top of shadcn/ui                | Between `product-requirements`/`flow-analyzer` and `implementation-planner` | Feature + optional `fidelity:wireframe\|hi-fi`, `audience:stakeholder\|user-test\|handoff` |
+| [`/mm-design`](.claude/commands/mm-design.md)       | Prototype a SINGLE feature via Claude Design (during MVP / Iteration)    | Between `product-requirements`/`flow-analyzer` and `implementation-planner` | Feature + optional `fidelity:wireframe\|hi-fi`, `audience:stakeholder\|user-test\|handoff` |
+| [`/mm-mockup`](.claude/commands/mm-mockup.md)       | FULL-APP iterative mockup (v1 → vN → freeze), Prototype phase            | After Definition exit, before MVP entry                          | Mode: `create` \| `iterate --feedback "..."` \| `freeze` \| `status` |
 
 > **Pattern:** all share the `mm-` prefix (MASTERMIND) to group them visually and avoid clashes with Claude's native commands.
 
@@ -133,6 +134,16 @@ The agent reads the file and follows the script. Same end result.
 - **Does:** week in review (sessions, decisions, commits) → risk posture → drift check (skills sync, phase-gate, feature-map vs PRs, architecture vs code) → flaky tests and stuck PRs → lesson promotion → **Top 3 priorities for next week** (not 5, not 7, **three**).
 - **Discipline:** 20–40 minutes. If it runs longer, the project is doing too many things at once.
 - **Argument:** `period:<YYYY-MM-DD..YYYY-MM-DD>` (optional; default = last 7 days).
+
+### 14. `/mm-mockup` — Full-app iterative mockup during Prototype phase
+
+- **Wraps:** skill [`mockup-factory`](.cursor/skills/mockup-factory/SKILL.md) + workflow [`07-full-app-prototyping`](.claude/workflows/07-full-app-prototyping.md).
+- **When:** in the dedicated Prototype phase (after Definition exit, before MVP). UI-heavy projects only; non-UI projects skip Prototype at the phase gate with `--skip-reason "no UI"`.
+- **Prerequisites:** `memory/14 §Platform` set; `memory/14` identity + tokens filled; `memory/05-user-flows` populated; `memory/06-feature-map` has MVP slices; design system installed via `scripts/install-shadcn-mcp.ps1`; project phase is `Prototype` (run `/mm-gate Prototype` first if still in Definition).
+- **Modes:** `create` (v1), `iterate --feedback "..."` (v2 / v3 / ... from stakeholder notes), `freeze` (declare final, consolidate memory/14, recommend `/mm-gate MVP`), `status` (report current state).
+- **Output per iteration:** `docs/design/mockups/v<N>-<date>/` with prompt, Claude Design URL, handoff bundle, screenshots, feedback. On freeze: `docs/design/mockups/final/` + consolidated memory/14 + decision entry in memory/07.
+- **Platform-aware:** web prompt uses shadcn/ui + Tailwind + browser preview; mobile prompt uses RNR + NativeWind + Expo + Expo Go on-device preview.
+- **Different from `/mm-design`:** mm-design = single feature during build; mm-mockup = entire product before build.
 
 ### 13. `/mm-design` — Prototype a feature via Claude Design + shadcn
 

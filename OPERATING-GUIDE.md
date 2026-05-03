@@ -2,7 +2,7 @@
 
 > **Who this is for.** Anyone cloning the template to drive a SaaS or app project end-to-end: the author, collaborators, future-you, and AI agents (Cursor, Claude Code, Claude Desktop) reading this repo.
 >
-> **What this is.** The operational manual for the template. It explains how the 19 skills, 5 workflows, 11 slash commands, 8 rules, 13 memory files, hooks, scripts, and MCPs coordinate across the five project phases (Idea → Discovery → Definition → MVP → Iteration → Launch). It shows which component runs when, why, and what to do when the plan no longer fits reality.
+> **What this is.** The operational manual for the template. It explains how the 23 skills, 7 workflows, 14 slash commands, 9 rules, 14 memory files, hooks, scripts, and MCPs coordinate across the seven project phases (Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch; Prototype is optional for non-UI projects). It shows which component runs when, why, and what to do when the plan no longer fits reality.
 >
 > **How to read this.** Linearly for the first read. By section afterwards (the TOC is organized by operational need, not by layer).
 
@@ -239,7 +239,7 @@ The 19 skills, grouped by role along the project lifecycle.
 
 | Skill | Role |
 |---|---|
-| `phase-gate-reviewer` | Validate phase transitions (Idea → Discovery → Definition → MVP → Iteration → Launch). Verdict: PROCEED / PROCEED WITH CAVEATS / BLOCK. |
+| `phase-gate-reviewer` | Validate phase transitions (Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch). Verdict: PROCEED / PROCEED WITH CAVEATS / BLOCK. Prototype is optional; non-UI projects may skip Definition→MVP directly with justification. |
 | `approval-gatekeeper` | Human-in-the-Loop enforcer: classify action (Trivial / Routine / Moderate / Sensitive / High-impact / Forbidden) and return AUTO_APPROVE / REQUIRE_HUMAN_APPROVAL / BLOCK. |
 
 **Orchestration (2).** Multi-agent execution.
@@ -880,7 +880,7 @@ When `subagent-dispatcher` spawns a fresh subagent, it **never** passes the orch
 
 ## 8. Going back — when System 2 bounces you to System 1
 
-The happy path is Idea → Discovery → Definition → MVP → Iteration → Launch. Reality is not always happy. Mid-execution, you sometimes discover that the PRD was wrong, the architecture doesn't support a requirement, or a risk that was flagged "accepted" just materialized.
+The happy path is Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch (or Definition → MVP directly for non-UI projects). Reality is not always happy. Mid-execution, you sometimes discover that the PRD was wrong, the architecture doesn't support a requirement, or a risk that was flagged "accepted" just materialized.
 
 MASTERMIND is designed to **pull you back** when that happens, not forward through a bad plan.
 
@@ -1937,7 +1937,8 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.cursor/skills/retroactive-documenter/SKILL.md`
 
 **System 1 — Design & prototyping**
-- `.cursor/skills/prototype-designer/SKILL.md`
+- `.cursor/skills/prototype-designer/SKILL.md` — single-feature prototyping (during MVP / Iteration)
+- `.cursor/skills/mockup-factory/SKILL.md` — full-app iterative prototyping (dedicated Prototype phase)
 
 ### 15.2 Rules (8)
 
@@ -1959,6 +1960,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.claude/workflows/04-phase-gate-transition.md`
 - `.claude/workflows/05-weekly-retrospective.md`
 - `.claude/workflows/06-onboard-existing-project.md`
+- `.claude/workflows/07-full-app-prototyping.md`
 - `.claude/workflows/README.md` (index)
 
 ### 15.4 Commands (11)
@@ -1976,6 +1978,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.claude/commands/mm-learn.md`
 - `.claude/commands/mm-onboard.md`
 - `.claude/commands/mm-design.md`
+- `.claude/commands/mm-mockup.md`
 - `.claude/commands/README.md` (index)
 
 ### 15.5 Memory files (14)

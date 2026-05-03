@@ -212,17 +212,18 @@ These 19 skills form the canonical set. A new skill must not overlap > 60% with 
 - Quality: `bug-investigator`, `code-reviewer`, `security-review`
 
 **System 2 — Execution (6):**
-- `phase-gate-reviewer` — validates Idea → Discovery → Definition → MVP → Iteration → Launch transitions.
+- `phase-gate-reviewer` — validates Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch transitions (Prototype optional for non-UI projects).
 - `approval-gatekeeper` — enforces Human-in-the-Loop for sensitive actions.
 - `subagent-dispatcher` — drives plan execution task-by-task within one workspace, fresh subagent per task, two-stage review (spec then code quality).
 - `parallel-executor` — coordinates parallel execution across Git worktrees, independence analysis, runtime isolation decisions, merge order planning.
 - `continuous-learner` — promotes qualifying lessons to `~/.mastermind/global/` (lessons / patterns / pitfalls / stacks / vendors); applies the 3-part test; per-entry user approval.
 - `retroactive-documenter` — seeds `memory/` from an existing codebase (code + git log + README + lockfiles). Used during onboarding of projects not born from MASTERMIND. Per-file approval.
 
-**System 1 — Design & prototyping (1):**
-- `prototype-designer` — bridges MASTERMIND memory (flows, features, design tokens) to Claude Design for interactive prototyping on top of the project's shadcn/ui install. Consumes memory/05, memory/06, memory/14; produces a prompt, guides the Claude Design session, captures the handoff bundle under docs/design/prototypes/, extracts decisions back into memory/14. Precedes `implementation-planner`.
+**System 1 — Design & prototyping (2):**
+- `prototype-designer` — bridges MASTERMIND memory (flows, features, design tokens) to Claude Design for interactive prototyping on top of the project's design system install. Platform-aware (web: shadcn/ui; mobile: RNR). Single-feature scope. Precedes `implementation-planner` within MVP / Iteration phases.
+- `mockup-factory` — full-app iterative prototyping. 3 modes: `create v1` / `iterate vN+1 from feedback` / `freeze into final`. Platform-aware (web + Vercel preview; mobile + Expo Go). Invoked during the dedicated **Prototype phase** (between Definition and MVP). Outputs to `docs/design/mockups/` with per-iteration folders + `final/`; consolidates decisions into memory/14 on freeze; recommends `/mm-gate MVP`. Different from `prototype-designer`: that's single-feature during build; this is whole-product before build.
 
-Total: **21 skills** (15 System 1 + 6 System 2). System 2 is feature-complete.
+Total: **23 skills** (16 System 1 + 7 System 2 including `skill-quality-evaluator`). System 2 is feature-complete.
 
 Propose a new skill only if its purpose is not covered by the above list. Overlap > 60% with an existing skill = refactor the existing, do not duplicate.
 

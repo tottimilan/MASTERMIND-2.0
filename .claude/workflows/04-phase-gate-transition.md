@@ -1,9 +1,9 @@
 ---
 name: phase-gate-transition
-description: Move the project from its current phase to the next (Idea → Discovery → Definition → MVP → Iteration → Launch) with proper validation, explicit approval, and memory promotion. Wraps phase-gate-reviewer in a ceremony that ensures no silent transitions and that every gate leaves the project in a stronger state than before.
-triggers: ["phase gate", "advance phase", "ready for MVP", "ready for launch", "gate review", "mm-gate"]
+description: Move the project from its current phase to the next (Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch) with proper validation, explicit approval, and memory promotion. Wraps phase-gate-reviewer in a ceremony that ensures no silent transitions and that every gate leaves the project in a stronger state than before. Prototype is optional — UI-heavy projects go through it via workflow 07; non-UI projects skip Definition→MVP directly with justification.
+triggers: ["phase gate", "advance phase", "ready for prototype", "ready for MVP", "ready for launch", "gate review", "mm-gate"]
 estimated_duration: "30-60 minutes for the review itself; remediation may take longer"
-applicable_phases: [Idea, Discovery, Definition, MVP, Iteration]
+applicable_phases: [Idea, Discovery, Definition, Prototype, MVP, Iteration]
 ---
 
 # Workflow 04 — Phase Gate Transition
@@ -88,7 +88,8 @@ Based on the new phase:
 
 - → **Discovery:** handoff to `doubt-surfacer` → `project-deep-audit`. (If the project already completed these during Phase 2 remediation, it may be immediately ready for Definition.)
 - → **Definition:** handoff to `product-requirements` → `architecture-mapper`.
-- → **MVP:** handoff to `02-feature-lifecycle` per epic. Possibly activate `task-master-ai` via `scripts/install-taskmaster.ps1` if plans will have ≥ 10 tasks.
+- → **Prototype:** (UI projects) handoff to workflow `07-full-app-prototyping` → `/mm-mockup create`. Non-UI projects skip Prototype and go straight to MVP with `--skip-reason "no UI"`.
+- → **MVP:** handoff to `02-feature-lifecycle` per epic. If coming from Prototype, `implementation-planner` reads `docs/design/mockups/final/` + memory/14. Possibly activate `task-master-ai` via `scripts/install-taskmaster.ps1` if plans will have ≥ 10 tasks.
 - → **Iteration:** handoff to ongoing `02-feature-lifecycle` cycles; `05-weekly-retrospective` is now relevant.
 - → **Launch:** handoff to `security-review` for a final pass; incident runbook check; `05-weekly-retrospective` frequency increases.
 
