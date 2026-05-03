@@ -10,8 +10,9 @@
 - Baseline of skill quality at `.cursor/plans/baselines/2026-05-03-skill-baseline.txt` (avg 97.5/100 across 22 skills; 3 skills with findings: prototype-designer real bug, retroactive-documenter + phase-gate-reviewer likely heuristic false positives).
 
 ## What is in progress
-- **Plan B — `adopt-tob-patterns`**: ✅ executed on branch `feat/adopt-tob-patterns`, awaiting merge to `main`. 4 skills updated, 0 regressions, avg 97.5 → 98.6 (+1.1).
-- **Plan A — `build-skill-quality-evaluator`**: ✅ MERGED to `main` 2026-05-03 (commit `e012a5e`). Branch `feat/skill-quality-evaluator` deletable now that Plan B baseline matches.
+- **Plan B — `adopt-tob-patterns`**: ✅ MERGED to `main` 2026-05-03 (commit `4a8f4c4`, --no-ff). 4 skills updated, 3 ToB patterns absorbed, avg 97.5 → 98.6 (+1.1).
+- **Plan A — `build-skill-quality-evaluator`**: ✅ MERGED to `main` 2026-05-03 (commit `e012a5e`).
+- Both feature branches retained locally; deletable with `git branch -d feat/skill-quality-evaluator feat/adopt-tob-patterns`.
 
 ## What is blocked
 _TBD_

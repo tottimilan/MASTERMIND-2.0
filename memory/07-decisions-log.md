@@ -212,6 +212,17 @@
   - Trail of Bits credited explicitly in 4 places (footer per absorption + research file reference).
   - **Incident discovered**: Cursor IDE silently reverted modified-and-committed files in working tree (post-commit cache write-back). Mitigation: `git restore` from HEAD; lesson logged in baseline notes for cross-project promotion candidacy.
 - **Files affected:** `.cursor/skills/prototype-designer/SKILL.md`, `.cursor/skills/code-reviewer/SKILL.md`, `.cursor/skills/project-deep-audit/SKILL.md`, `.cursor/skills/security-review/SKILL.md`, `.cursor/plans/baselines/2026-05-03-skill-baseline-after-tob.txt`, `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry). Plus `.claude/skills/**` mirror via `scripts/sync-skills.ps1`.
+
+### 2026-05-03 — Plan B merged to `main` (--no-ff)
+- **Decision:** Merge `feat/adopt-tob-patterns` into `main` via `git merge --no-ff` (merge commit `4a8f4c4`). Same strategy as Plan A: preserves the 5-commit per-skill atomic history.
+- **Reason:** Same as Plan A merge — `/mm-ship` aborts by preconditions, but the practical equivalent of Phase 7 (merge + memory-updater) is the right shape for meta-template work.
+- **Alternatives considered:** `--squash` (rejected: per-skill atomic commits are valuable for tracing each ToB attribution); PR-based (rejected: no remote review path established for solo template work).
+- **Consequences:**
+  - `main` advances by 1 merge commit (`4a8f4c4`). `main` now +20 commits ahead of `origin/main`.
+  - Branch `feat/adopt-tob-patterns` retained until next plan starts.
+  - Post-merge verification on `main`: sync drift 0, Pester 10/10 green, evaluator average 98.6/100.
+  - 4 skills now incorporate Trail of Bits patterns with explicit attribution; the cherry-pick strategy from `research/03-trail-of-bits-skills.md` validated.
+- **Files affected:** `memory/07-decisions-log.md` (this entry).
   - 8 new files: `.cursor/skills/skill-quality-evaluator/SKILL.md`, `scripts/eval.ps1`, `scripts/eval.Tests.ps1`, `references/anti-patterns.md`, 2 fixtures, `.cursor/plans/baselines/2026-05-03-skill-baseline.txt`, plus `.gitkeep`s.
   - 3 modified files: `.cursor/skills/skill-creator/SKILL.md` (interaction added), `memory/02-current-state.md`, `memory/07-decisions-log.md` (this entry).
   - Skill count: 21 → 22 (15 System 1 + 7 System 2; `skill-quality-evaluator` joins System 2 as a quality gate).
