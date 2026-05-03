@@ -153,11 +153,27 @@ function Test-Blacklisted {
 }
 
 # --- Enumerate whitelisted files in template -----------------------------------
+function Expand-Glob {
+    param([string]$Root, [string]$Glob)
+    $normGlob = $Glob -replace '/', '\'
+    if ($normGlob -match '\\\*\*(\\|$)') {
+        # Recursive pattern: everything before '**' is the base dir; recurse.
+        # PowerShell's Get-ChildItem does NOT support '**' as a globstar; we expand manually.
+        $baseDir = ($normGlob -split '\\\*\*', 2)[0].TrimEnd('\')
+        $fullBase = Join-Path $Root $baseDir
+        if (Test-Path -LiteralPath $fullBase -PathType Container) {
+            return Get-ChildItem -LiteralPath $fullBase -File -Recurse -ErrorAction SilentlyContinue
+        }
+        return @()
+    }
+    $fullGlob = Join-Path $Root $normGlob
+    return Get-ChildItem -Path $fullGlob -File -ErrorAction SilentlyContinue
+}
+
 function Get-TemplateFiles {
     $list = New-Object System.Collections.Generic.List[string]
     foreach ($g in $whitelistGlobs) {
-        $full = Join-Path $templateRoot ($g -replace '/','\')
-        $items = Get-ChildItem -Path $full -File -Recurse -ErrorAction SilentlyContinue
+        $items = Expand-Glob -Root $templateRoot -Glob $g
         foreach ($i in $items) {
             $rel = $i.FullName.Substring($templateRoot.Length).TrimStart('\','/') -replace '\\','/'
             if (-not (Test-Blacklisted -RelPath $rel)) { [void]$list.Add($rel) }

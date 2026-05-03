@@ -191,13 +191,30 @@ function Test-Blacklisted {
 }
 
 # Enumerate files in the template that match any whitelist glob
+# Handles recursive '**' globs correctly (PowerShell's Get-ChildItem does NOT support
+# '**' as a bash-style globstar; it has to be expanded manually).
+function Expand-Glob {
+    param([string]$Root, [string]$Glob)
+    $normGlob = $Glob -replace '/', '\'
+    if ($normGlob -match '\\\*\*(\\|$)') {
+        # Recursive pattern: everything before the first '**' is the base dir; recurse.
+        $baseDir = ($normGlob -split '\\\*\*', 2)[0].TrimEnd('\')
+        $fullBase = Join-Path $Root $baseDir
+        if (Test-Path -LiteralPath $fullBase -PathType Container) {
+            return Get-ChildItem -LiteralPath $fullBase -File -Recurse -ErrorAction SilentlyContinue
+        }
+        return @()
+    }
+    # Non-recursive: pass through to Get-ChildItem, which supports single '*' wildcards.
+    $fullGlob = Join-Path $Root $normGlob
+    return Get-ChildItem -Path $fullGlob -File -ErrorAction SilentlyContinue
+}
+
 function Get-TemplateWhitelistedFiles {
     $results = New-Object System.Collections.Generic.List[string]
     foreach ($glob in $whitelistGlobs) {
-        $normGlob = $glob -replace '/', '\'
-        $fullGlob = Join-Path $templateRoot $normGlob
-        $matches = Get-ChildItem -Path $fullGlob -File -Recurse -ErrorAction SilentlyContinue
-        foreach ($m in $matches) {
+        $items = Expand-Glob -Root $templateRoot -Glob $glob
+        foreach ($m in $items) {
             $rel = $m.FullName.Substring($templateRoot.Length).TrimStart('\', '/') -replace '\\', '/'
             $isMemoryOptIn = $IncludeNewMemoryFiles -and ($rel -match '^memory/[^/]+\.md$')
             if ($isMemoryOptIn -or (-not (Test-Blacklisted -RelPath $rel))) {
