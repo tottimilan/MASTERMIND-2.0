@@ -198,15 +198,31 @@ function Detect-Stack {
             $deps = @{}
             if ($json.dependencies) { $json.dependencies.PSObject.Properties | ForEach-Object { $deps[$_.Name] = $_.Value } }
             if ($json.devDependencies) { $json.devDependencies.PSObject.Properties | ForEach-Object { $deps[$_.Name] = $_.Value } }
-            if ($deps.ContainsKey('next')) { $stack.framework = "Next.js $($deps['next'])" }
-            elseif ($deps.ContainsKey('react')) { $stack.framework = "React $($deps['react'])" }
+            # Framework detection priority: Expo > Next.js > Remix > Astro > Vite > React Native (sin Expo) > React > Vue > Svelte
+            if ($deps.ContainsKey('expo')) { $stack.framework = "Expo SDK $($deps['expo']) + React Native (mobile)" }
+            elseif ($deps.ContainsKey('next')) { $stack.framework = "Next.js $($deps['next'])" }
+            elseif ($deps.ContainsKey('@remix-run/react') -or $deps.ContainsKey('@remix-run/node')) { $stack.framework = "Remix" }
+            elseif ($deps.ContainsKey('astro')) { $stack.framework = "Astro $($deps['astro'])" }
+            elseif ($deps.ContainsKey('vite')) { $stack.framework = "Vite $($deps['vite'])" }
+            elseif ($deps.ContainsKey('react-native')) { $stack.framework = "React Native $($deps['react-native']) (sin Expo)" }
+            elseif ($deps.ContainsKey('react')) { $stack.framework = "React $($deps['react']) (sin metaframework)" }
             elseif ($deps.ContainsKey('vue')) { $stack.framework = "Vue $($deps['vue'])" }
+            elseif ($deps.ContainsKey('svelte')) { $stack.framework = "Svelte $($deps['svelte'])" }
             if ($deps.ContainsKey('typescript')) { $stack.language = "TypeScript $($deps['typescript']) (strict mode)" } else { $stack.language = "JavaScript" }
             if ($deps.ContainsKey('@supabase/supabase-js')) { $stack.db = "Supabase / Postgres" }
             elseif ($deps.ContainsKey('@prisma/client')) { $stack.db = "Postgres + Prisma" }
             elseif ($deps.ContainsKey('drizzle-orm')) { $stack.db = "Postgres + Drizzle" }
-            if ($deps.ContainsKey('stripe') -or $deps.ContainsKey('@stripe/stripe-js')) { $stack.payments = "Stripe" }
+            elseif ($deps.ContainsKey('mongoose') -or $deps.ContainsKey('mongodb')) { $stack.db = "MongoDB" }
+            # Payments detection: RevenueCat (mobile IAP) takes priority over Stripe in mobile contexts
+            if ($deps.ContainsKey('react-native-purchases')) { $stack.payments = "RevenueCat (Apple IAP + Google Play Billing)" }
+            elseif ($deps.ContainsKey('stripe') -or $deps.ContainsKey('@stripe/stripe-js')) { $stack.payments = "Stripe" }
+            elseif ($deps.ContainsKey('@paddle/paddle-js')) { $stack.payments = "Paddle" }
             if (Test-Path (Join-Path $projectRoot 'vercel.json')) { $stack.hosting = "Vercel" }
+            elseif (Test-Path (Join-Path $projectRoot 'eas.json')) { $stack.hosting = "EAS Build + App Store + Google Play" }
+            elseif (Test-Path (Join-Path $projectRoot 'netlify.toml')) { $stack.hosting = "Netlify" }
+            elseif (Test-Path (Join-Path $projectRoot 'wrangler.toml')) { $stack.hosting = "Cloudflare Workers/Pages" }
+            elseif (Test-Path (Join-Path $projectRoot 'fly.toml')) { $stack.hosting = "Fly.io" }
+            elseif (Test-Path (Join-Path $projectRoot 'railway.json')) { $stack.hosting = "Railway" }
         } catch {}
     }
     if (-not $stack.framework -and (Test-Path (Join-Path $projectRoot 'pyproject.toml'))) { $stack.framework = "Python (pyproject.toml detected)"; $stack.language = "Python" }
@@ -223,12 +239,12 @@ function Render-TechStack {
     $lang = if ($Stack.language)   { $Stack.language }   else { '_TBD_' }
     $db   = if ($Stack.db)         { $Stack.db }          else { '_TBD_' }
     $pay  = if ($Stack.payments)   { $Stack.payments }    else { '_TBD_' }
-    $host = if ($Stack.hosting)    { $Stack.hosting }     else { '_TBD_' }
+    $hostingVal = if ($Stack.hosting) { $Stack.hosting } else { '_TBD_' }
     $out = $raw -replace '(?m)^- \*\*Framework:\*\* _TBD_', "- **Framework:** $fw"
     $out = $out -replace '(?m)^- \*\*Language:\*\* _TBD_', "- **Language:** $lang"
     $out = $out -replace '(?m)^- \*\*Database:\*\* _TBD_', "- **Database:** $db"
     $out = $out -replace '(?m)^- \*\*Payments:\*\* _TBD_', "- **Payments:** $pay"
-    $out = $out -replace '(?m)^- \*\*Hosting:\*\* _TBD_', "- **Hosting:** $host"
+    $out = $out -replace '(?m)^- \*\*Hosting:\*\* _TBD_', "- **Hosting:** $hostingVal"
     $out += "`r`n`r`n<!-- Auto-detected on $ts by onboard-existing-project. Review and adjust. -->`r`n"
     return $out
 }

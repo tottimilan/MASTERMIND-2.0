@@ -156,15 +156,31 @@ detect_stack() {
   local fw="" lang="" db="" pay="" host=""
   if [[ -f "$pkg" ]]; then
     local content; content="$(cat "$pkg")"
-    if echo "$content" | grep -q '"next"'; then fw="Next.js"; fi
-    if [[ -z "$fw" ]] && echo "$content" | grep -q '"react"'; then fw="React"; fi
-    if [[ -z "$fw" ]] && echo "$content" | grep -q '"vue"'; then fw="Vue"; fi
+    # Framework detection priority: Expo > Next > Remix > Astro > Vite > React Native (sin Expo) > React > Vue > Svelte
+    if echo "$content" | grep -q '"expo"'; then fw="Expo + React Native (mobile)"
+    elif echo "$content" | grep -q '"next"'; then fw="Next.js"
+    elif echo "$content" | grep -q '"@remix-run/react"\|"@remix-run/node"'; then fw="Remix"
+    elif echo "$content" | grep -q '"astro"'; then fw="Astro"
+    elif echo "$content" | grep -q '"vite"'; then fw="Vite"
+    elif echo "$content" | grep -q '"react-native"'; then fw="React Native (sin Expo)"
+    elif echo "$content" | grep -q '"react"'; then fw="React (sin metaframework)"
+    elif echo "$content" | grep -q '"vue"'; then fw="Vue"
+    elif echo "$content" | grep -q '"svelte"'; then fw="Svelte"; fi
     if echo "$content" | grep -q '"typescript"'; then lang="TypeScript (strict mode)"; else lang="JavaScript"; fi
-    if echo "$content" | grep -q '"@supabase/supabase-js"'; then db="Supabase / Postgres";
-    elif echo "$content" | grep -q '"@prisma/client"'; then db="Postgres + Prisma";
-    elif echo "$content" | grep -q '"drizzle-orm"'; then db="Postgres + Drizzle"; fi
-    if echo "$content" | grep -q '"stripe"\|"@stripe/stripe-js"'; then pay="Stripe"; fi
-    if [[ -f "$PROJECT_ROOT/vercel.json" ]]; then host="Vercel"; fi
+    if echo "$content" | grep -q '"@supabase/supabase-js"'; then db="Supabase / Postgres"
+    elif echo "$content" | grep -q '"@prisma/client"'; then db="Postgres + Prisma"
+    elif echo "$content" | grep -q '"drizzle-orm"'; then db="Postgres + Drizzle"
+    elif echo "$content" | grep -q '"mongoose"\|"mongodb"'; then db="MongoDB"; fi
+    # Payments: RevenueCat (mobile IAP) takes priority over Stripe in mobile contexts
+    if echo "$content" | grep -q '"react-native-purchases"'; then pay="RevenueCat (Apple IAP + Google Play Billing)"
+    elif echo "$content" | grep -q '"stripe"\|"@stripe/stripe-js"'; then pay="Stripe"
+    elif echo "$content" | grep -q '"@paddle/paddle-js"'; then pay="Paddle"; fi
+    if [[ -f "$PROJECT_ROOT/vercel.json" ]]; then host="Vercel"
+    elif [[ -f "$PROJECT_ROOT/eas.json" ]]; then host="EAS Build + App Store + Google Play"
+    elif [[ -f "$PROJECT_ROOT/netlify.toml" ]]; then host="Netlify"
+    elif [[ -f "$PROJECT_ROOT/wrangler.toml" ]]; then host="Cloudflare Workers/Pages"
+    elif [[ -f "$PROJECT_ROOT/fly.toml" ]]; then host="Fly.io"
+    elif [[ -f "$PROJECT_ROOT/railway.json" ]]; then host="Railway"; fi
   fi
   [[ -z "$fw" && -f "$PROJECT_ROOT/pyproject.toml" ]] && { fw="Python (pyproject.toml)"; lang="Python"; }
   [[ -z "$fw" && -f "$PROJECT_ROOT/Cargo.toml" ]] && { fw="Rust"; lang="Rust"; }
