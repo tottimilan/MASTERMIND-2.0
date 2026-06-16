@@ -19,6 +19,9 @@
 
 ## Phase definitions (canonical — do not edit per project)
 
+> The table below is **generated** from `phase-criteria.json` (the single source of truth) by `scripts/render-phase-criteria.ps1` / `.sh`. Do not edit the rows by hand — edit `phase-criteria.json` and re-render. Entry/exit criteria for each phase also live in `phase-criteria.json` and are consumed by the `phase-gate-reviewer` skill and `scripts/phase-gate-check`.
+
+<!-- BEGIN generated:phase-definitions (source: phase-criteria.json — do not edit by hand) -->
 | Phase | Purpose | Typical artifacts produced |
 |---|---|---|
 | **Idea** | The thing is a sentence or a paragraph | `memory/00-project-brief.md` skeleton |
@@ -28,6 +31,7 @@
 | **MVP** | Build and ship the MVP | Code in `main`, `docs/flows/*.md`, `docs/testing/strategy.md`, feature-map MVP rows all `Shipped` |
 | **Iteration** | Learn from users, improve | Updated `memory/08-known-risks.md` with real-world risks, pivots logged in `memory/07-decisions-log.md`, new slices shipped |
 | **Launch** | Public release, scale | SLA/SLO docs, `docs/security/*` hardened, observability deployed, `docs/adr/` coverage complete |
+<!-- END generated:phase-definitions -->
 
 Transitions between phases require explicit approval via `phase-gate-reviewer`. Skipping phases is possible but must be logged as a decision.
 

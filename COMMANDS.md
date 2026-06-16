@@ -1,6 +1,6 @@
 # COMMANDS.md — Quick reference for `/mm-*`
 
-> **What this is.** A fast, operational reference for the **14 slash commands** in this project. Designed to stay open and answer the question *"which command do I run now?"* in 5 seconds.
+> **What this is.** A fast, operational reference for the **17 slash commands** in this project. Designed to stay open and answer the question *"which command do I run now?"* in 5 seconds.
 >
 > **What this is NOT.** This is not the deep system documentation — for that, open [`OPERATING-GUIDE.md`](OPERATING-GUIDE.md). This is not the skill catalog — those live in `.cursor/skills/` and `.claude/skills/`.
 
@@ -26,7 +26,7 @@ The agent reads the file and follows the script. Same end result.
 
 ---
 
-## Summary table (all 11 at a glance)
+## Summary table (all 17 at a glance)
 
 | Command                                            | What it does                                               | When to use                                                      | Typical argument                |
 | -------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------- |
@@ -44,6 +44,9 @@ The agent reads the file and follows the script. Same end result.
 | [`/mm-onboard`](.claude/commands/mm-onboard.md)     | Integrate an existing project (not born from MASTERMIND) into the system | After `scripts/onboard-existing-project` installs the shell      | Hints like `audit-focus:monetization` (optional) |
 | [`/mm-design`](.claude/commands/mm-design.md)       | Prototype a SINGLE feature via Claude Design (during MVP / Iteration)    | Between `product-requirements`/`flow-analyzer` and `implementation-planner` | Feature + optional `fidelity:wireframe\|hi-fi`, `audience:stakeholder\|user-test\|handoff` |
 | [`/mm-mockup`](.claude/commands/mm-mockup.md)       | FULL-APP iterative mockup (v1 → vN → freeze), Prototype phase            | After Definition exit, before MVP entry                          | Mode: `create` \| `iterate --feedback "..."` \| `freeze` \| `status` |
+| [`/mm-premortem`](.claude/commands/mm-premortem.md) | Klein/Kahneman premortem: "this already failed — narrate why"           | Before high-cost / irreversible decisions (launch, pricing, vendor lock-in, pivot, destructive migration) | Decision / plan to stress-test |
+| [`/mm-template-audit`](.claude/commands/mm-template-audit.md) | Meta-audit: template counts/criteria/mirror/visibility match reality | Before a release, in CI, after adding/removing a component, during `/mm-retro` | `deep` (optional) |
+| [`/mm-qa`](.claude/commands/mm-qa.md) | Holistic system QA: size, overlap, cruft, gaps, harness re-audit (composes template-audit + skill lint) | Before a release, periodically / in `/mm-retro`, "is the system healthy & right-sized?" | `deep` (optional) |
 
 > **Pattern:** all share the `mm-` prefix (MASTERMIND) to group them visually and avoid clashes with Claude's native commands.
 
@@ -135,7 +138,7 @@ The agent reads the file and follows the script. Same end result.
 - **Discipline:** 20–40 minutes. If it runs longer, the project is doing too many things at once.
 - **Argument:** `period:<YYYY-MM-DD..YYYY-MM-DD>` (optional; default = last 7 days).
 
-### 14. `/mm-mockup` — Full-app iterative mockup during Prototype phase
+### 11. `/mm-mockup` — Full-app iterative mockup during Prototype phase
 
 - **Wraps:** skill [`mockup-factory`](.cursor/skills/mockup-factory/SKILL.md) + workflow [`07-full-app-prototyping`](.claude/workflows/07-full-app-prototyping.md).
 - **When:** in the dedicated Prototype phase (after Definition exit, before MVP). UI-heavy projects only; non-UI projects skip Prototype at the phase gate with `--skip-reason "no UI"`.
@@ -145,7 +148,7 @@ The agent reads the file and follows the script. Same end result.
 - **Platform-aware:** web prompt uses shadcn/ui + Tailwind + browser preview; mobile prompt uses RNR + NativeWind + Expo + Expo Go on-device preview.
 - **Different from `/mm-design`:** mm-design = single feature during build; mm-mockup = entire product before build.
 
-### 13. `/mm-design` — Prototype a feature via Claude Design + shadcn
+### 12. `/mm-design` — Prototype a feature via Claude Design + shadcn
 
 - **Wraps:** skill [`prototype-designer`](.cursor/skills/prototype-designer/SKILL.md).
 - **When:** between spec (`product-requirements` / `flow-analyzer`) and implementation (`implementation-planner`). Especially for UI-heavy features; skip for pure backend / data pipelines.
@@ -154,7 +157,7 @@ The agent reads the file and follows the script. Same end result.
 - **Does:** reads `memory/05-user-flows`, `memory/06-feature-map`, `memory/14-design-system`. Composes a platform-tuned prompt. Guides you to open `claude.ai/design`, link the repo, iterate. Captures the handoff bundle under `docs/design/prototypes/<feature>/`. Extracts decisions back into memory/14 with per-entry approval. Closes with a HIGH recommendation pointing to `/mm-plan`.
 - **Arguments:** feature name (or picks from `memory/06-feature-map.md`). Optional hints: `fidelity:wireframe|hi-fi`, `audience:stakeholder|user-test|handoff`, `skip-memory-update` (not recommended).
 
-### 12. `/mm-onboard` — Bring an existing project into MASTERMIND
+### 13. `/mm-onboard` — Bring an existing project into MASTERMIND
 
 - **Wraps:** workflow [`06-onboard-existing-project`](.claude/workflows/06-onboard-existing-project.md) + skill [`retroactive-documenter`](.claude/skills/retroactive-documenter/SKILL.md).
 - **When:** you have a project that was NOT born from this template (may have code, commits, README, maybe prior `.cursor/rules/`) and you want to bring it into the MASTERMIND system.
@@ -164,14 +167,41 @@ The agent reads the file and follows the script. Same end result.
 - **Flags what it cannot infer:** strategy, personas, monetization — those come from the audit, not from the code.
 - **Argument:** optional hints like `audit-focus:monetization` or `skip-retro`.
 
-### 11. `/mm-learn` — Promote lessons to global memory
+### 14. `/mm-learn` — Promote lessons to global memory
 
 - **Wraps:** skill [`continuous-learner`](.claude/skills/continuous-learner/SKILL.md).
 - **When:** end of a phase, weekly retro, after a post-mortem worth generalizing.
 - **Does:** scans `memory/11-session-summary.md`, `memory/07-decisions-log.md`, `memory/08-known-risks.md`, and `docs/bugs/` within the requested window → classifies candidates by target file (`lessons.md` / `patterns.md` / `pitfalls.md` / `stacks.md` / `vendors.md`) → applies the **3-part test** (project-agnostic + evidence-backed + actionable) → presents each candidate one by one for `approve`/`edit`/`skip` → writes to `~/.mastermind/global/` with commits of the form `lesson:`, `pattern:`, `pitfall:`, `stack:`, `vendor:`.
 - **Privacy:** strips client names, domain specifics, tokens. Nothing sensitive ever reaches global memory.
-- **Prerequisite:** `~/.mastermind/global/` must exist (see `.cursor/rules/05-claude-mcp-integration.mdc §Cross-project Memory Protocol`).
+- **Prerequisite:** `~/.mastermind/global/` must exist (see `.cursor/rules/05-claude-mcp-integration.mdc §Cross-project Memory Protocol`). Bootstrap it with `scripts/init-global-memory.ps1` (or `.sh`).
 - **Argument:** time window (optional, e.g. `last 30 days`, `since 2026-04-01`, `since last gate`).
+
+### 15. `/mm-premortem` — Stress-test a high-cost decision before committing
+
+- **Wraps:** skill [`premortem`](.claude/skills/premortem/SKILL.md).
+- **When:** before a high-cost or irreversible decision — public launch, pricing change already communicated, vendor lock-in, partnership, pivot, destructive data migration, strategic hire. Also wired into `02-feature-lifecycle` (Phase 3.5) and `04-phase-gate-transition` (Definition→MVP, MVP→Launch).
+- **Does:** imposes the prospective-hindsight frame ("it's 6 months later and this failed — narrate why"), fans out 5–7 parallel sub-agents (one per failure reason), and synthesizes **Most Likely Failure / Most Dangerous Failure / Hidden Assumption / Revised Plan / Pre-Launch Checklist** into `docs/premortems/<date>-<slug>.md`. Updates `memory/07`, `memory/08`, `memory/12`.
+- **Different from `/mm-doubt`:** doubt-surfacer asks "what don't we know?"; premortem assumes failure already happened and reverse-engineers the cause (~30% better at surfacing failure modes per Klein/Kahneman).
+- **Do NOT use for:** exploratory brainstorming (use `/mm-doubt`) or decisions that are already irreversible.
+- **Argument:** the decision or plan to stress-test.
+
+### 16. `/mm-template-audit` — Keep the template honest about itself
+
+- **Wraps:** `scripts/template-audit.ps1` / `.sh` (no skill; it is template-maintenance tooling).
+- **When:** before a release / version bump, in CI, after adding or removing any rule / skill / workflow / command / memory file, and as part of `/mm-retro`.
+- **Does:** generates a component manifest (real counts) and checks four things — (1) declared counts in `OPERATING-GUIDE §15` match reality, (2) `memory/13 §Phase definitions` is in sync with `phase-criteria.json`, (3) `.cursor/skills` ↔ `.claude/skills` mirror parity, (4) every command/skill is documented (no invisible capabilities). Exits non-zero on any Critical finding.
+- **Fix paths it points to:** `scripts/sync-skills` (mirror), `scripts/render-phase-criteria` (criteria), or a doc edit (counts/visibility).
+- **It does NOT auto-fix.** It reports; you (or a follow-up edit) fix.
+- **Argument:** `deep` to also compare every `SKILL.md` byte-for-byte against its mirror.
+
+### 17. `/mm-qa` — Holistic system health check (right-size, no cruft, no gaps)
+
+- **Wraps:** composition (no new logic) of `scripts/template-audit` + `skill-quality-evaluator` (`eval --all`) + a light overlap/placeholder/always-on-budget sweep + the harness re-audit reflection.
+- **When:** before a release/version bump, periodically (monthly or inside `/mm-retro`), after adding/removing any component, or when you ask "is MASTERMIND still healthy, the right size, and free of morraña?".
+- **Does:** runs the structural meta-audit; lints every skill for size/triggers; flags >60% overlaps (e.g. `mockup-factory`↔`prototype-designer`), empty placeholder dirs, and always-on context growth; then applies the "does the current base model already do this?" prune lens — never touching safety, the Question & Doubt Protocol, or evaluators.
+- **Different from `/mm-template-audit`:** template-audit is the machine gate (counts/criteria/mirror, CI exit code); `/mm-qa` is the human-facing holistic review that wraps it and adds size/overlap/cruft judgment.
+- **It does NOT auto-fix.** It reports findings by severity with remediation paths.
+- **Argument:** `deep` to also run the deep mirror content compare.
 
 ---
 
@@ -216,6 +246,9 @@ It's Friday / end of week?
 
 Just closed a phase or a notable post-mortem?
 └── Yes → /mm-learn
+
+About to make a high-cost or irreversible decision (launch, pricing, vendor, pivot, destructive migration)?
+└── Yes → /mm-premortem
 ```
 
 ---
@@ -231,7 +264,7 @@ Just closed a phase or a notable post-mortem?
 | **Iteration**        | `/mm-ship` for new slices · `/mm-retro` weekly · `/mm-learn` occasionally · `/mm-gate Iteration`                        |
 | **Launch**           | Same as Iteration + `/mm-review` with a stricter security pass                                                         |
 
-> **Cross-phase shortcuts** (any phase): `/mm-doubt`, `/mm-audit`, `/mm-bug`, `/mm-next`.
+> **Cross-phase shortcuts** (any phase): `/mm-doubt`, `/mm-audit`, `/mm-bug`, `/mm-next`, `/mm-premortem` (before any high-cost/irreversible decision).
 
 ---
 

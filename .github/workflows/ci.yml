@@ -1,0 +1,80 @@
+# MASTERMIND 2.0 — starter CI.
+#
+# Ships with the template as a sensible default. It enforces the harness invariants
+# that the local git hooks check (so they cannot be bypassed with --no-verify) and
+# runs your project's tests. Customize the "Project tests" step for your stack.
+#
+# Philosophy: hard-fail on things that are deterministically wrong (skill mirror drift,
+# leaked secrets, template self-inconsistency). Soft-warn on phase-gate gaps — those are
+# a planning signal, not a build error.
+
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  harness:
+    name: Harness invariants
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skill mirror in sync (.cursor/skills ↔ .claude/skills)
+        run: bash scripts/sync-skills.sh --check
+
+      - name: Secret scan (tracked files)
+        run: |
+          set -euo pipefail
+          # High-signal patterns that must never land in the repo. Conservative by design.
+          PATTERNS=(
+            'AKIA[0-9A-Z]{16}'
+            'aws_secret_access_key[[:space:]]*=[[:space:]]*[A-Za-z0-9/+=]{40}'
+            'sk-(live|test)-[A-Za-z0-9]{20,}'
+            'whsec_[A-Za-z0-9]{20,}'
+            'AIzaSy[A-Za-z0-9_-]{33}'
+            'ghp_[A-Za-z0-9]{36,}'
+            'github_pat_[A-Za-z0-9_]{22,255}'
+            'xox[abposr]-[0-9A-Za-z-]{10,}'
+            '-----BEGIN ([A-Z ]+)PRIVATE KEY-----'
+          )
+          # Exclude files that legitimately contain the patterns themselves.
+          FILES=$(git ls-files | grep -Ev '(^\.github/|^scripts/git-hooks/|\.example$|\.sample$)' || true)
+          FOUND=0
+          for p in "${PATTERNS[@]}"; do
+            if echo "$FILES" | xargs -r grep -EnI "$p" 2>/dev/null; then
+              echo "BLOCK: possible secret matching /$p/ above."
+              FOUND=1
+            fi
+          done
+          # Reject committed .env* files (except examples).
+          if echo "$FILES" | grep -E '(^|/)\.env(\..+)?$' | grep -Ev '\.(example|sample)$'; then
+            echo "BLOCK: .env* file is tracked — those are local-only."
+            FOUND=1
+          fi
+          [ "$FOUND" -eq 0 ] && echo "No secrets detected."
+          exit "$FOUND"
+
+      - name: Template self-audit (counts / criteria / mirror / visibility)
+        run: bash scripts/template-audit.sh --check
+
+      - name: Phase-gate (soft-warn — never fails the build)
+        run: bash scripts/phase-gate-check.sh || echo "::warning::phase-gate-check reported gaps (non-blocking)."
+
+  test:
+    name: Project tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # TODO (per clone): replace this step with your project's test command, e.g.
+      #   - uses: actions/setup-node@v4 ... && run: npm ci && npm test
+      #   - uses: actions/setup-python@v5 ... && run: pip install -r requirements.txt && pytest
+      - name: Run tests
+        run: |
+          echo "No project test command configured yet."
+          echo "Edit .github/workflows/ci.yml → job 'test' to run your suite."

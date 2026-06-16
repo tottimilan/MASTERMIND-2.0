@@ -75,6 +75,9 @@ logs/
 claude-side/.runtime/
 claude-side/*.local.json
 
+# --- MASTERMIND runtime (dispatch log + ephemeral observability; never committed) ---
+.mastermind/runtime/
+
 # --- Test artifacts ---
 playwright-report/
 test-results/

@@ -116,47 +116,25 @@ Full rule including when the agent should auto-downgrade HIGH → MEDIUM lives a
 - Use **Context7** automatically whenever code uses an external library or API.
 - Use **Playwright MCP** only for real browser verification of critical flows, with a very specific prompt.
 - Never commit secrets. `.env*` files are gitignored by default.
-- For the skill interaction map (who calls whom), see `README.md §Skill Interaction Graph`.
+- For the skill interaction map (who calls whom), see `OPERATING-GUIDE.md §7.2` (the canonical coordination graph).
 
 ---
 
-## Memory Architecture
+## Memory Architecture (the brain — full map in `OPERATING-GUIDE.md`)
 
-- `CLAUDE.md` (this file) → **kernel / system brain**.
-- `memory/` → **long-term project intelligence**, versioned in Git.
-- `docs/` → **source of truth** for product, architecture, features, flows, API, testing, security, ADRs.
-- `.cursor/rules/*.mdc` → **permanent instructions** always loaded by Cursor. Key rules for execution discipline: `00-project-operating-system` · `01-karpathy-principles` · `04-safety-and-git` · `06-execution-modes` (Coach/Executor/Auditor) · `07-subagent-orchestration` (subagents + parallel worktrees).
-- `.cursor/skills/*/SKILL.md` → **reusable playbooks**, loaded on demand to save context. **This is the canonical source** for skills. 24 skills total: 17 System 1 (analysis & documentation, incl. `prototype-designer` for single-feature prototyping, `mockup-factory` for full-app prototyping during the Prototype phase, and `premortem` for Klein-method failure-narrative on high-cost or irreversible decisions) + 7 System 2 (execution: `phase-gate-reviewer`, `approval-gatekeeper`, `subagent-dispatcher`, `parallel-executor`, `continuous-learner`, `retroactive-documenter`, `skill-quality-evaluator`).
-- `.claude/skills/` → **generated mirror** of `.cursor/skills/` for Claude Code / Claude Desktop. Do not edit directly; run `scripts/sync-skills.ps1` (or `.sh`) after editing the source.
-- `memory/` → 13 canonical files. Notably `memory/13-phase-history.md` tracks phase transitions; `memory/11-session-summary.md` is append-mode.
-- `.claude/` → mirror for Claude Desktop (kernel reference + memory + skills + agents + workflows + commands + hooks).
-- `.claude/workflows/*.md` → **ordered recipes** that chain skills into end-to-end operations (new-project-bootstrap, feature-lifecycle, bug-triage, phase-gate-transition, weekly-retrospective). See `.claude/workflows/README.md`.
-- `.claude/commands/mm-*.md` → **slash commands** for Claude Code that wrap skills or workflows (`/mm-ship`, `/mm-bug`, `/mm-audit`, `/mm-plan`, `/mm-doubt`, `/mm-next`, `/mm-review`, `/mm-gate`, `/mm-retro`, `/mm-bootstrap`). See `.claude/commands/README.md`.
-- `claude-side/mcp-config.json` → MCP servers the project relies on.
-- `.template-meta/` → **gitignored**. Local-only working dir of the MASTERMIND template author (live current-state, decisions log, session summaries, in-progress plans about the template itself). Does not exist on fresh clones. See `.template-meta/README.md` for the convention. **If you cloned MASTERMIND to start a project, ignore this entry.**
-- `scripts/` → automation:
-  - `sync-skills` — canonical ↔ mirror sync for skills.
-  - `phase-gate-check` — dry-run verifier against phase artifacts.
-  - `worktree-spawn` / `worktree-cleanup` — parallel execution helpers.
-  - `install-taskmaster` — per-project activation of `task-master-ai` MCP.
-  - `install-git-hooks` + `git-hooks/` — pre-commit (sync + secret scan) and pre-push (no direct main push + soft phase warning) client-side hooks.
-  - `sync-from-template` — pull updates from an up-to-date MASTERMIND template into a project cloned from an older version, safely (whitelist + blacklist + per-file backup + dry-run by default).
-  - `onboard-existing-project` — install the MASTERMIND shell into a project NOT born from the template, with stack auto-detection, phase bootstrap, conflict-as-proposal pattern, and pre-existing rules relocated to a timestamped backup. Complements workflow `06-onboard-existing-project` and the `/mm-onboard` command.
-  - `install-shadcn-mcp` — platform-aware: auto-detects Expo (mobile) vs Next.js/Vite (web) and adapts. In a target project, runs `npx shadcn@latest init` (CLI detects Expo and uses RNR registry automatically on mobile) + registers the shadcn MCP server in `.cursor/mcp.json` + `.mcp.json` + runs `npx skills add shadcn/ui` + installs NativeWind / safe-area / Reanimated / Gesture Handler on mobile + optionally seeds `.cursor/templates/CLAUDE.md.mobile.md` into `CLAUDE.md`. One command wires the whole ecosystem so `prototype-designer` and `/mm-design` work end-to-end regardless of platform.
-  - `export-design-md` — exports `memory/14-design-system.md` into a portable `DESIGN.md` at the project root. DESIGN.md is the cross-tool standard format (9 sections) that Claude Design, Google Stitch, Cursor, v0, and Claude Code all read. memory/14 remains canonical; DESIGN.md is regenerated on demand.
-- `.cursor/hooks/` and `.claude/hooks/` → **agent-level behavioral hooks** (instruction files): `pre-task.doubt-surfacer`, `post-task.memory-updater`, `post-merge.docs-refresh`. Kill-switches via `MM_HOOK_*` env vars.
-- Optional local `CLAUDE.md` files can be placed in risky modules (e.g. `src/auth/CLAUDE.md`) to override the kernel for that subtree.
+- `CLAUDE.md` (this file) → **kernel**. `memory/` → long-term project intelligence (15 files `00`–`14`; `11` append-mode, `13` phase history). `docs/` → source of truth (product, architecture, flows, testing, security, ADRs).
+- `.cursor/rules/*.mdc` → instructions. Always-on: `00`, `01`, `04` (safety), `06` (modes). The rest (`02`, `03`, `05`, `07`, `08`) load on demand via `globs`/`description`.
+- `.cursor/skills/*/SKILL.md` → **canonical** reusable playbooks (26: 17 System 1 + 9 System 2), loaded on demand. `.claude/skills/` is a generated mirror — never edit directly; run `scripts/sync-skills` after editing source.
+- `.claude/workflows/*.md` (7 recipes) · `.claude/commands/mm-*.md` (17 slash commands) → ergonomics. See their `README.md`.
+- `.template-meta/` → **gitignored** author-only working dir (template's own memory/plans). Ignore if you cloned MASTERMIND for a project.
+- `scripts/` → automation (sync-skills, phase-gate-check, render-phase-criteria, worktree-spawn/cleanup, log-dispatch, template-audit, init-global-memory, install-*, sync-from-template, onboard-existing-project, export-design-md). Each is self-documented in its header; the operator cheatsheet lives in `OPERATING-GUIDE.md`.
+- `.cursor/hooks/` + `.claude/hooks/` → behavioral hook instruction files (kill-switches via `MM_HOOK_*`). Optional local `CLAUDE.md` in risky modules overrides this kernel for that subtree.
 
 ---
 
 ## Model Routing
 
-| Task type | Preferred |
-|---|---|
-| Deep analysis, strategy, multi-angle thinking, risks, long-form docs | **Claude Opus** (Claude Desktop or MCP bridge) |
-| Daily coding, refactoring, small features, bug fixing | **Cursor** (GPT-5.5 Max or Claude Sonnet/Opus depending on task) |
-| Library/API usage verification | Any model + **Context7 MCP** |
-| UI behavior verification | Any model + **Playwright MCP** |
+Use the cheapest model that fits: **Opus-class** for deep analysis/strategy/long-form; **daily coding** on a fast capable model (GPT-5.5 / Sonnet/Opus by task); **Context7 MCP** for library/API verification; **Playwright MCP** for UI verification. Per-role routing for subagents: `.cursor/rules/07-subagent-orchestration.mdc`.
 
 ---
 
