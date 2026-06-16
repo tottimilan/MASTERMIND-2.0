@@ -1,6 +1,5 @@
 ---
-description: Claude Opus + MCP integration rules — when and how to use external tools and the Claude bridge
-alwaysApply: true
+description: Claude Opus + MCP integration — when to delegate to Opus, which MCP servers to use (Context7, Playwright, Memory Graph), and the cross-project memory protocol. Load when configuring MCP, delegating deep analysis, or promoting cross-project lessons. The task-master-ai activation contract lives in references/task-master.md.
 ---
 
 # Claude + MCP Integration
@@ -37,48 +36,7 @@ Typical defaults:
 
 ### Activation-on-demand — `task-master-ai`
 
-- **`task-master-ai` (eyaltoledano/claude-task-master)** — AI-driven task management MCP. Parses a PRD (e.g. `memory/00-project-brief.md` + `docs/product/`) into dependency-aware tasks, then drives the execution loop (`next_task`, `get_task`, `set_task_status`, `expand_task`, `update_subtask`, `parse_prd`).
-
-**When to activate it in a project** (not one-time; per-project):
-1. The project is leaving Definition and entering **MVP execution**.
-2. The approved `implementation-planner` plan has **≥ 10 tasks** (or the plan explicitly declares fan-out to many slices).
-3. `subagent-dispatcher` is about to take over plan execution and benefits from dependency-aware task state management.
-
-Before those three conditions: not worth the extra ~5–21k tokens and extra moving part. Plan Mode + `subagent-dispatcher` walking the plan file directly is enough.
-
-**How to install it for a project** (installer script handles everything):
-
-```powershell
-pwsh -File scripts/install-taskmaster.ps1                   # mode=core (7 tools, ~5k tokens)
-pwsh -File scripts/install-taskmaster.ps1 -Mode standard    # 15 tools, ~10k tokens
-pwsh -File scripts/install-taskmaster.ps1 -ClaudeCodeAuth   # no API key, uses Claude Code OAuth
-```
-
-```bash
-bash scripts/install-taskmaster.sh
-bash scripts/install-taskmaster.sh --mode standard
-bash scripts/install-taskmaster.sh --claude-code-auth
-```
-
-The installer:
-- Adds the `task-master-ai` entry to `.cursor/mcp.json` (idempotent — leaves existing entries alone).
-- Creates `.taskmaster/docs/prd.md` with a template PRD if none exists.
-- Appends `.taskmaster/runtime/` to `.gitignore`.
-- Prints exact next-step commands.
-
-**Integration contract with other skills:**
-- `implementation-planner` emits a PRD-shaped document compatible with `parse-prd`.
-- `subagent-dispatcher` uses `next_task` / `set_task_status` when task-master is active; otherwise walks the plan file.
-- `feature-breakdown` slices can be parsed with `--append` to add tasks to an existing tasks.json.
-
-**Tool loading modes:**
-| Mode | Tools | Context cost | When |
-|---|---|---|---|
-| `core` | 7 | ~5k tokens | **Default**. Day-to-day dispatch loop. |
-| `standard` | 15 | ~10k tokens | Complex projects that benefit from expansion/analysis tools. |
-| `all` | 36 | ~21k tokens | Rare. Only when research and tags are used heavily. |
-
-**Scope of `.taskmaster/` folder:** lives alongside `memory/` and `docs/`, not inside them. PRD and `tasks.json` are committed. `runtime/` and caches are gitignored.
+Optional dependency-aware task-management MCP. **Activate per-project only** when leaving Definition for MVP execution, when an approved plan has **≥ 10 tasks**, and `subagent-dispatcher` will drive execution. Before that, Plan Mode + `subagent-dispatcher` walking the plan file is enough. Full install steps, modes, token costs and integration contract: [`references/task-master.md`](references/task-master.md).
 
 ## Rules
 
@@ -86,6 +44,14 @@ The installer:
 - Never use Playwright MCP for scraping or bulk browsing. Only for verification.
 - When Claude Opus produces a deliverable, save it to `memory/` or `docs/` and run the `memory-updater` skill.
 - Secrets for MCP servers live in environment variables, never in committed files.
+
+## Markdown is the source of truth (indexes are disposable)
+
+**Plain Markdown in `memory/`, `docs/`, and `~/.mastermind/global/` is the canonical brain.** Any semantic index, vector store, or Memory-Graph MCP (Zep / Cognee / Basic Memory) is an **OPTIONAL, disposable, fully reconstructible accelerator over that Markdown — never the default and never authoritative.**
+
+- The system must remain 100% functional with the index deleted. If losing the index loses information, the index has become a second source of truth — that is a bug.
+- Reach for a semantic index **only** when a concrete need appears that grep + structured Markdown cannot serve: **multi-writer** concurrency, **temporal**/recency-decayed retrieval, **selective retrieval** across a corpus too large to load, or **governance/audit** of who-knew-what-when. Absent one of these, grep over Markdown wins (zero deps, zero drift, reviewable in Git).
+- When an index is installed, it **mirrors** Markdown one-way (Markdown → index). Never write a fact to the index that does not also live in Markdown.
 
 ---
 
@@ -108,7 +74,7 @@ Recommended structure:
 └── vendors.md         # Third-party providers used, with verdicts
 ```
 
-Files are **plain Markdown** and are the source of truth. When the **Memory Graph MCP** (Zep / Cognee / Basic Memory) is installed, these files may be mirrored into it; the Markdown remains authoritative.
+Files are **plain Markdown** and are the source of truth (see §"Markdown is the source of truth" above for the full norm). When the **Memory Graph MCP** (Zep / Cognee / Basic Memory) is installed, these files may be mirrored into it; the Markdown remains authoritative.
 
 ### Promotion criteria
 

@@ -1,6 +1,6 @@
 ---
-description: Testing policy — when to test, what to test, how to test
-alwaysApply: true
+description: Testing policy — when to test, what to test, how to test. Mandatory coverage for auth, payments, irreversible data mutations, public APIs, and critical flows.
+globs: ["**/*.test.*", "**/*.spec.*", "**/*.e2e.*", "**/tests/**", "**/__tests__/**"]
 ---
 
 # Testing Policy

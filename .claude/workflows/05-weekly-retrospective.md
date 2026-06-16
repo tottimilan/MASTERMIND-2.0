@@ -1,6 +1,6 @@
 ---
 name: weekly-retrospective
-description: Weekly discipline to review what was done, what was learned, which risks moved, and which lessons should be promoted to cross-project memory. Keeps the project's memory alive and the cross-project Memory Graph fed. Recommended weekly during Iteration and Launch; optional during earlier phases.
+description: Weekly discipline to review what was done, what was learned, which risks moved, and which lessons should be promoted to cross-project memory. Keeps the project's memory alive and the cross-project memory files (`~/.mastermind/global/`) fed via `continuous-learner`. Recommended weekly during Iteration and Launch; optional during earlier phases.
 triggers: ["weekly retro", "retrospective", "week in review", "what did I learn this week", "mm-retro"]
 estimated_duration: "20-40 minutes"
 applicable_phases: [MVP, Iteration, Launch]
@@ -14,7 +14,7 @@ Projects that do not review themselves drift. This workflow is a **light, regula
 
 1. Summarizes the week's work and decisions.
 2. Updates the risk posture.
-3. Captures lessons as candidates for the global Memory Graph.
+3. Captures lessons as candidates for the cross-project global memory (`~/.mastermind/global/`; the Memory Graph MCP, when configured, is an optional mirror).
 4. Identifies broken patterns (flaky tests, stuck PRs, drift between memory and code).
 5. Surfaces the next priorities.
 
@@ -59,6 +59,19 @@ It is intentionally short. If a retrospective takes more than 40 minutes, the pr
   4. Cross-check `memory/03-architecture.md` against real code (new services? removed?).
 - **Exit criterion:** any drift fixed in-place or logged as a follow-up task.
 
+### Phase 3.5 — Harness re-audit (Coach) — only when the base model changed
+
+- **Skill:** _(reading + judgment)_
+- **Mode:** Coach
+- **Trigger:** run this phase **only** if the project's default/base model changed since the last retrospective (e.g. a new Opus/GPT/Sonnet generation). Skip otherwise.
+- **Rationale:** much of a harness (rules, skills, scaffolding) exists to compensate for what the previous model did *not* do reliably. A stronger base model can make some of that scaffolding redundant overhead — pure context tax with no benefit. The harness should shrink as the model grows.
+- **Steps:**
+  1. List the always-on rules and the most-loaded skills. For each, ask: *does the new base model already do this reliably without the instruction?* (e.g. it now writes tests by default, or no longer hallucinates APIs for common libs).
+  2. Propose pruning **only** the redundant guidance — demote an always-on rule to on-demand, or trim a skill's hand-holding steps.
+  3. **NEVER prune evaluators, safety, or the Question & Doubt Protocol.** Verifiers and guardrails stay regardless of model strength — a stronger model does not make a safety check redundant, it makes it cheaper to satisfy.
+  4. Anything pruned is logged in `memory/07-decisions-log.md` with the model change as the reason, and is reversible.
+- **Exit criterion:** redundant scaffolding identified and either pruned (with a decision-log entry) or consciously kept; evaluators/safety untouched.
+
 ### Phase 4 — Flaky tests and stuck things (Executor)
 
 - **Skill:** _(scripts + `bug-investigator` if needed)_
@@ -71,10 +84,10 @@ It is intentionally short. If a retrospective takes more than 40 minutes, the pr
 
 ### Phase 5 — Lessons candidate promotion (Coach)
 
-- **Skill:** _(future `continuous-learner`; manual for now)_
+- **Skill:** `continuous-learner` (invoke via `/mm-learn`).
 - **Mode:** Coach
 - **Steps:**
-  1. List all "Lessons learned (candidates for cross-project Memory Graph)" entries from the week's session summaries.
+  1. List all "Lessons learned (candidates for cross-project memory)" entries from the week's session summaries.
   2. For each candidate, apply the three-part test from `.cursor/rules/05-claude-mcp-integration.mdc §Cross-project Memory Protocol`:
      - Is it **project-agnostic** (strip specific nouns)?
      - Is it **evidence-backed** (a concrete post-mortem or decision)?

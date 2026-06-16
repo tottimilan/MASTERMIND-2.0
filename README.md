@@ -40,52 +40,35 @@ MASTERMIND-2.0/
 ├── .gitignore
 │
 ├── .cursor/
-│   ├── rules/                         # Always-on instructions for Cursor
+│   ├── rules/                         # Always-on instructions for Cursor (9 rules: 00..08)
 │   │   ├── 00-project-operating-system.mdc   # CANONICAL
 │   │   ├── 01-karpathy-principles.mdc        # CANONICAL (Karpathy, verbatim)
 │   │   ├── 02-tech-stack.mdc                 # Filled per project
-│   │   ├── 03-testing-policy.mdc             # Filled per project
-│   │   ├── 04-safety-and-git.mdc             # Filled per project
-│   │   └── 05-claude-mcp-integration.mdc     # Filled per project
-│   ├── skills/                        # Reusable playbooks (SKILL.md each) — CANONICAL SOURCE
-│   │   ├── project-deep-audit/
-│   │   ├── doubt-surfacer/
-│   │   ├── product-requirements/
-│   │   ├── architecture-mapper/
-│   │   ├── feature-breakdown/
-│   │   ├── flow-analyzer/
-│   │   ├── implementation-planner/
-│   │   ├── test-strategist/
-│   │   ├── security-review/
-│   │   ├── bug-investigator/
-│   │   ├── code-reviewer/
-│   │   ├── research-first/
-│   │   ├── skill-creator/
-│   │   └── memory-updater/
+│   │   ├── …                                 # 03-testing-policy … 07-subagent-orchestration
+│   │   └── 08-design-system.mdc              # Platform-aware (web / mobile / cross)
+│   ├── skills/                        # 26 reusable playbooks (SKILL.md each) — CANONICAL SOURCE
+│   │   └── …                          # full inventory in OPERATING-GUIDE.md §15.1
+│   ├── hooks/                         # Agent behavioral hooks (instruction files) + HOOKS.md
 │   └── plans/                         # Approved Plan Mode plans
 │
 ├── .claude/                           # Mirror for Claude Code / Claude Desktop
 │   ├── CLAUDE.md                      # Reference to root CLAUDE.md (no duplication)
 │   ├── skills/                        # GENERATED — mirror of .cursor/skills/ (see scripts/)
+│   ├── commands/                      # 17 /mm-* slash commands
+│   ├── workflows/                     # 7 end-to-end recipes
 │   ├── hooks/                         # Claude-side hooks (extension point)
 │   ├── agents/
-│   ├── memory/
-│   └── workflows/
+│   └── memory/
 │
-├── memory/                            # Long-term project intelligence (Git-versioned)
+├── memory/                            # Long-term project intelligence (Git-versioned, 15 files)
 │   ├── 00-project-brief.md
 │   ├── 01-product-vision.md
-│   ├── 02-current-state.md
-│   ├── 03-architecture.md
-│   ├── 04-data-model.md
-│   ├── 05-user-flows.md
-│   ├── 06-feature-map.md
-│   ├── 07-decisions-log.md
-│   ├── 08-known-risks.md
-│   ├── 09-testing-status.md
-│   ├── 10-open-questions.md
-│   ├── 11-session-summary.md
-│   └── 12-open-doubts-and-questions.md   # CANONICAL template
+│   ├── …                              # 02-current-state … 11-session-summary
+│   ├── 12-open-doubts-and-questions.md   # CANONICAL template
+│   ├── 13-phase-history.md
+│   └── 14-design-system.md
+│
+├── phase-criteria.json                # Single source of truth for phase entry/exit criteria
 │
 ├── docs/                              # Human-readable source of truth
 │   ├── product/
@@ -183,49 +166,9 @@ Entry points:
 - **Command:** [`/mm-design`](.claude/commands/mm-design.md).
 - **Script (install):** [`scripts/install-shadcn-mcp.ps1`](scripts/install-shadcn-mcp.ps1) (`.sh`) — platform-aware installer, auto-detects Expo vs Next.js.
 - **Script (export):** [`scripts/export-design-md.ps1`](scripts/export-design-md.ps1) (`.sh`) — memory/14 → DESIGN.md.
-- **Template:** [`.cursor/templates/CLAUDE.md.mobile.md`](.cursor/templates/CLAUDE.md.mobile.md) — mobile CLAUDE.md seed for new Expo projects (Expo Router + NativeWind + Platform.OS minimization + SafeAreaView wrap + Reanimated 3 + touch target policies + expo-secure-store + etc.).
+- **Template:** [`.cursor/templates/CLAUDE.md.mobile.md`](.cursor/templates/CLAUDE.md.mobile.md) — mobile CLAUDE.md seed for new Expo projects (Expo Router + NativeWind + SafeAreaView + Reanimated 3 + touch-target/secure-store policies).
 
-Entry points:
-
-- **Rule:** [`.cursor/rules/08-design-system.mdc`](.cursor/rules/08-design-system.mdc) — conventions and non-negotiables.
-- **Memory file:** [`memory/14-design-system.md`](memory/14-design-system.md) — per-project source of truth for tokens, installed components, likes, anti-patterns, patterns, references.
-- **Skill:** [`.cursor/skills/prototype-designer/SKILL.md`](.cursor/skills/prototype-designer/SKILL.md) — bridges memory + Claude Design + shadcn.
-- **Command:** [`/mm-design`](.claude/commands/mm-design.md) — wraps the skill for single-command invocation.
-- **Script:** [`scripts/install-shadcn-mcp.ps1`](scripts/install-shadcn-mcp.ps1) (`.sh`) — one-shot install in a target project: CLI init + MCP registration + Skill install.
-
-Typical flow in a new MASTERMIND project (both tracks):
-
-```powershell
-# After /mm-bootstrap completes Phases 1-5 and you have memory/00 filled:
-
-# First, set Platform in memory/14. Open the file and set:
-#   - **Platform:** web    (or mobile, or cross)
-# This drives everything below.
-
-# Install platform-aware in one shot (auto-detects Expo vs Next.js from package.json):
-pwsh -File scripts/install-shadcn-mcp.ps1 -Apply -Defaults
-
-# For web: installs shadcn/ui + Tailwind + MCP + Skill.
-# For mobile: installs shadcn/ui with Expo integration (RNR registry) + NativeWind + safe-area-context + Reanimated + Gesture Handler + MCP + Skill + optionally seeds CLAUDE.md.mobile template.
-
-# Reload Cursor / restart Claude Code. Sanity: shadcn MCP green dot.
-
-# Fill the visual identity in memory/14-design-system.md (Platform, name, 3-5 personality adjectives, primary color, fonts, radius, likes, anti-patterns, and for mobile also safe-area strategy + orientation + tab bar pattern).
-
-# Optional: export portable DESIGN.md for external tools.
-pwsh -File scripts/export-design-md.ps1 -Apply
-
-# Install baseline components via MCP:
-# Web: in chat "Add button, card, input, dialog, badge from shadcn."
-# Mobile: "Add button, card, input, dialog, tabs, badge from shadcn (this is an Expo project)."
-
-# Later, when prototyping a feature:
-/mm-design notification-center fidelity:hi-fi audience:stakeholder
-# -> prototype-designer reads memory/14 §Platform, composes a platform-tuned prompt
-#    (web prompt OR mobile prompt), guides the Claude Design session, captures the
-#    handoff bundle, extracts decisions back into memory/14. For mobile, the next
-#    step is previewing on device via Expo Go. Then /mm-plan.
-```
+**Typical flow:** set `§Platform` in `memory/14` → run `scripts/install-shadcn-mcp.ps1 -Apply` (auto-detects Expo vs Next.js, wires MCP + Skill + the platform stack) → fill the visual identity in `memory/14` → install baseline components via the shadcn MCP → later, `/mm-design <feature>` composes a platform-tuned Claude Design prompt and extracts decisions back into `memory/14`. Step-by-step commands live in rule 08 and the `install-shadcn-mcp` script header.
 
 **Empty `memory/14` produces generic IA-flavored prototypes.** Fill even the minimum (Platform, primary color, 3 personality adjectives, 2 likes, 2 anti-patterns, plus for mobile: safe-area + orientation + tab bar) and every prototype from then on is on-brand AND platform-correct. That's the whole trick.
 
@@ -271,199 +214,44 @@ Exit codes: `0` = in sync, `1` = drift detected (dry-run) or user aborted, `2` =
 
 ## Execution in System 2
 
-System 1 produces clarity, plans, and quality gates (docs, memory, 14 skills). System 2 is the **execution layer**: how the project is driven from idea to launch, which behavior the agent uses in each moment, and how parallel work is orchestrated.
+System 1 produces clarity, plans, and quality gates (docs, memory, 17 skills). System 2 is the **execution layer**: how the project is driven from idea to launch, which behavior the agent uses in each moment, and how parallel work is orchestrated.
 
 ### Three execution modes (Coach / Executor / Auditor)
 
-The same agent behaves differently depending on the active mode. Modes are states, not separate agents; transitions between modes happen with explicit handoffs. Full definition in [`.cursor/rules/06-execution-modes.mdc`](.cursor/rules/06-execution-modes.mdc).
-
-| Mode | Purpose | Writes code? |
-|---|---|---|
-| **Coach** | Think with the user. Explore, decide, refine. Socratic questions + options with trade-offs. Runs the Question & Doubt Protocol. | No |
-| **Executor** | Execute an approved plan. Surgical changes, TDD, commit at every green. | Yes |
-| **Auditor** | Review what was done. Findings by severity. Issue verdict (Ready / With fixes / Not ready). | No |
-
-**Mode selection** follows this priority order:
-
-1. **Workflow dictates** (if a predefined workflow is active, its sequence is enforced).
-2. **User override** (`"Coach mode: ..."` at the start of a message).
-3. **Orchestrator deduces** from keywords and context.
-
-**Typical sequences by task type:**
-
-| Task | Sequence |
-|---|---|
-| New feature from raw idea | Coach → Executor → Auditor |
-| Bug with clear repro | Executor → Auditor |
-| Code review only | Auditor |
-| Strategic brainstorm | Coach |
-| Pivot / major decision | Coach → Coach |
-| Technical refactor | Executor → Auditor |
-| Plan without implementing yet | Coach → Executor (planner only) |
-| Phase gate transition | Auditor → Coach → proceed or block |
+The same agent behaves differently depending on the active mode (states, not separate agents; transitions via explicit handoffs): **Coach** (think with you — explore/decide, runs the Question & Doubt Protocol, no code), **Executor** (run an approved plan — surgical TDD, commits at green), **Auditor** (review — findings by severity + verdict). Mode is chosen by: active workflow > your override (`"Coach mode: …"`) > orchestrator deduction. Full definition + the task→sequence matrix in [`.cursor/rules/06-execution-modes.mdc`](.cursor/rules/06-execution-modes.mdc).
 
 ### Phase gates (Idea → Launch)
 
-Projects advance through seven phases: **Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch**. `Prototype` is the only optional phase (UI projects iterate on a full-app mockup via `mockup-factory`; non-UI projects skip it directly `Definition → MVP` with `--skip-reason "no UI"`). Each transition is gated:
-
-- Canonical phase definitions, entry/exit criteria, and transition log live in [`memory/13-phase-history.md`](memory/13-phase-history.md).
-- The [`phase-gate-reviewer`](.cursor/skills/phase-gate-reviewer/SKILL.md) skill verifies artifacts, risks, open doubts, and emits a verdict (PROCEED / PROCEED WITH CAVEATS / BLOCK).
-- Dry-run: `pwsh -File scripts/phase-gate-check.ps1 -NextPhase MVP` (exits 1 if gaps exist).
-- Gate decisions are logged in `memory/07-decisions-log.md` and `memory/13-phase-history.md`.
+Seven phases — **Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch** (`Prototype` is the only optional one: UI projects mock up a full app via `mockup-factory`; non-UI projects skip `Definition → MVP` with `--skip-reason "no UI"`). Criteria are single-sourced in [`phase-criteria.json`](phase-criteria.json) (rendered into [`memory/13-phase-history.md`](memory/13-phase-history.md)). Each transition runs [`phase-gate-reviewer`](.cursor/skills/phase-gate-reviewer/SKILL.md) (verdict PROCEED / WITH CAVEATS / BLOCK), dry-runnable via `scripts/phase-gate-check.ps1 -NextPhase <phase>`, and is logged to `memory/07` + `memory/13`.
 
 ### Human-in-the-Loop (approval-gatekeeper)
 
-Sensitive actions — auth, payments, schema, production deploys, new dependencies, destructive commands, tasks > 4h — pass through [`approval-gatekeeper`](.cursor/skills/approval-gatekeeper/SKILL.md). The skill classifies the action (Trivial / Routine / Moderate / Sensitive / High-impact / Forbidden), applies the policy from [`.cursor/rules/04-safety-and-git.mdc`](.cursor/rules/04-safety-and-git.mdc), and returns `AUTO_APPROVE`, `REQUIRE_HUMAN_APPROVAL`, or `BLOCK`. Every decision is logged.
+Sensitive actions (auth, payments, schema, prod deploys, new deps, destructive commands, tasks > 4h) pass through [`approval-gatekeeper`](.cursor/skills/approval-gatekeeper/SKILL.md), which classifies the action, applies [`.cursor/rules/04-safety-and-git.mdc`](.cursor/rules/04-safety-and-git.mdc), and returns `AUTO_APPROVE` / `REQUIRE_HUMAN_APPROVAL` / `BLOCK`. Every decision is logged.
 
 ### Subagents and parallel execution
 
-Rules in [`.cursor/rules/07-subagent-orchestration.mdc`](.cursor/rules/07-subagent-orchestration.mdc). Two operational skills turn the rule into action:
-
-| Skill | Scope | When |
-|---|---|---|
-| [`subagent-dispatcher`](.cursor/skills/subagent-dispatcher/SKILL.md) | Within **one workspace**. Drives an approved plan task-by-task with fresh subagent + two-stage review. | Plans with ≥3 tasks, tasks coupled enough that splitting workspaces would add more coordination than it saves. |
-| [`parallel-executor`](.cursor/skills/parallel-executor/SKILL.md) | Across **multiple workspaces** (worktrees). Independence analysis → spawn worktrees → dispatch per workspace → merge in planned order → cleanup. | Plans with ≥2 tasks that are genuinely independent (no shared files / state). |
-
-Core patterns (validated against Anthropic Agent SDK docs and Superpowers canon):
-
-- **Orchestrator + narrow specialists** (2–4 agents max). Orchestrator strategic; specialists narrow.
-- **Message-passing, not shared state.** The orchestrator curates exactly the context each subagent needs.
-- **Two-stage review per task** — spec compliance **first**, then code quality.
-- **Model selection by role** — cheap for mechanical tasks, standard for integration, most capable for architecture/review.
-- **Implementer status codes** — DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED. Never silently re-dispatch a BLOCKED subagent.
-
-**Parallel execution via Git worktrees** (helper scripts):
-
-```powershell
-# Spawn a new worktree with naming convention + port offset
-pwsh -File scripts/worktree-spawn.ps1 -Slug auth-refactor -Type feat -InstallDeps
-
-# Clean merged worktrees (safe default)
-pwsh -File scripts/worktree-cleanup.ps1
-
-# Remove a specific one, even with uncommitted work
-pwsh -File scripts/worktree-cleanup.ps1 -Slug auth-refactor -Force
-```
-
-```bash
-bash scripts/worktree-spawn.sh auth-refactor --type feat --install-deps
-bash scripts/worktree-cleanup.sh                # sweep merged
-bash scripts/worktree-cleanup.sh --slug auth-refactor --force
-```
-
-Conventions (enforced by the scripts):
-- Worktrees live at `../<repo>-worktrees/<slug>/`.
-- Branches are named after the feature (`feat/<slug>`), never the agent.
-- Max 3–4 concurrent local worktrees.
-- Every worktree gets a deterministic port offset (hash of slug → 10000–19999) in `.worktree-env`.
-- Lifecycle ≤ 1 working day; longer means the task is too big — split.
-
-**Docker is NOT required by default.** Worktrees isolate code, not runtime. Introduce Docker Compose project-per-worktree only when a concrete runtime conflict appears (same port, shared DB, shared cache, per-worktree `.env` needed). See rule 07 for the full policy.
+Policy in [`.cursor/rules/07-subagent-orchestration.mdc`](.cursor/rules/07-subagent-orchestration.mdc) (orchestrator + 2–4 narrow specialists, message-passing not shared state, two-stage review spec-then-quality, model-by-role, status codes). Two skills operationalize it: [`subagent-dispatcher`](.cursor/skills/subagent-dispatcher/SKILL.md) (within one workspace, ≥3 coupled tasks) and [`parallel-executor`](.cursor/skills/parallel-executor/SKILL.md) (across Git worktrees for ≥2 genuinely independent tasks). Worktree helpers: `scripts/worktree-spawn` / `worktree-cleanup` (feature-named branches, ≤3–4 concurrent, deterministic port offset; Docker only on a real runtime conflict).
 
 ### Task Master AI — activation-on-demand (per project)
 
-[`task-master-ai`](https://github.com/eyaltoledano/claude-task-master) is an MCP that parses a PRD into dependency-aware tasks and drives execution via `next_task` / `set_task_status` / `expand_task`. In MASTERMIND 2.0 it is **not always on** — activate per project when:
+[`task-master-ai`](https://github.com/eyaltoledano/claude-task-master) (PRD → dependency-aware tasks) is **not always on** — activate per project when entering MVP with a ≥10-task plan that `subagent-dispatcher` will drive: `scripts/install-taskmaster.ps1` (`-ClaudeCodeAuth` for no API key). Full contract in [`.cursor/rules/references/task-master.md`](.cursor/rules/references/task-master.md).
 
-1. The project is leaving Definition and entering MVP execution.
-2. The approved implementation plan has **≥ 10 tasks** (or explicit fan-out).
-3. `subagent-dispatcher` will drive the execution.
-
-Install (idempotent; adds MCP entry, scaffolds `.taskmaster/docs/prd.md`, updates `.gitignore`):
-
-```powershell
-pwsh -File scripts/install-taskmaster.ps1                   # mode=core (7 tools, ~5k tokens)
-pwsh -File scripts/install-taskmaster.ps1 -Mode standard    # 15 tools, ~10k tokens
-pwsh -File scripts/install-taskmaster.ps1 -ClaudeCodeAuth   # Claude Code OAuth, no API key
-```
-
-```bash
-bash scripts/install-taskmaster.sh
-bash scripts/install-taskmaster.sh --mode standard
-bash scripts/install-taskmaster.sh --claude-code-auth
-```
-
-Full integration contract in [`.cursor/rules/05-claude-mcp-integration.mdc`](.cursor/rules/05-claude-mcp-integration.mdc) §Activation-on-demand.
-
-### Skill Interaction Graph updated for System 2 Sub-phase 2.2
-
-```
-implementation-planner
-   ├── hands off to   subagent-dispatcher  (single workspace)
-   ├── hands off to   parallel-executor    (across worktrees)
-   └── with task-master-ai installed: emits PRD → parse_prd → tasks.json driver
-
-subagent-dispatcher
-   ├── dispatches     implementer subagent (fresh per task)
-   ├── dispatches     spec reviewer        (first)
-   ├── dispatches     code quality reviewer (second)
-   └── invokes        code-reviewer + security-review at final roll-up
-
-parallel-executor
-   ├── uses scripts   worktree-spawn, worktree-cleanup
-   ├── runs inside    subagent-dispatcher per worktree
-   └── merges         via code-reviewer + security-review per PR
-```
-
-### Workflows & slash commands (Sub-phase 2.3 — 2.4)
+### Workflows & slash commands
 
 Workflows are ordered recipes that chain skills into end-to-end operations. Slash commands (`/mm-*`) are one-line shortcuts that wrap a workflow or a skill with curated context loading.
 
-**Workflows** ([`.claude/workflows/`](.claude/workflows/)):
+- **7 workflows** — see [`.claude/workflows/README.md`](.claude/workflows/) for the index (bootstrap, feature-lifecycle, bug-triage, phase-gate-transition, weekly-retrospective, onboard-existing-project, full-app-prototyping).
+- **17 slash commands** — see [`COMMANDS.md`](COMMANDS.md) for the full reference and the decision tree of which to run when.
 
-| # | File | Purpose |
-|---|---|---|
-| 01 | `new-project-bootstrap` | Empty clone → Discovery-complete (brief + doubts + audit + transition) |
-| 02 | `feature-lifecycle` | Approved epic → merged, tested, reviewed feature |
-| 03 | `bug-triage` | Bug report → reproduced → surgical fix + regression test → merge + post-mortem |
-| 04 | `phase-gate-transition` | Advance project phase with validation + approval + memory promotion |
-| 05 | `weekly-retrospective` | Weekly review of work + risks + drift + lessons + Top 3 next |
-
-**Slash commands** ([`.claude/commands/`](.claude/commands/)):
-
-| Command | Wraps | Use when |
-|---|---|---|
-| `/mm-bootstrap <idea>` | Workflow 01 | Just cloned the template |
-| `/mm-audit [focus]` | `project-deep-audit` | Multi-angle audit with Hard Truth |
-| `/mm-plan <slice>` | `implementation-planner` | Need a bite-sized TDD plan |
-| `/mm-ship <epic>` | Workflow 02 | Ship an approved epic end-to-end |
-| `/mm-bug <description>` | Workflow 03 | A bug arrives |
-| `/mm-doubt [topic]` | `doubt-surfacer` | Force the Question Protocol right now |
-| `/mm-next [details]` | task-master / plan | Start of session, "what do I work on?" |
-| `/mm-review [branch]` | `code-reviewer` + `security-review` | Review current branch or PR |
-| `/mm-gate <phase>` | Workflow 04 | Transition to the next phase |
-| `/mm-retro [period]` | Workflow 05 | Weekly retrospective |
-| `/mm-learn [window]` | `continuous-learner` | Promote qualifying lessons to cross-project memory |
+> The authoritative, always-current counts and inventory are produced by `/mm-template-audit`; this README intentionally points to the canonical lists instead of duplicating them (so they can't drift).
 
 In Cursor (which does not natively interpret `/`-prefixed commands the same way Claude Code does), invoke them by reference: *"Run `.claude/commands/mm-ship.md` with `auth-mvp`"*.
 
 ### Command Recommendation Protocol (active on every turn)
 
-The agent actively **recommends the next `/mm-*` command** at the end of any non-trivial turn, with an explicit **confidence level** so you always know the operational next step.
+The agent closes every non-trivial turn by recommending the next `/mm-*` command with a confidence level — **HIGH** (one command clearly applies; type `go` to proceed), **MEDIUM** (pick `a`/`b`/`c`), or **LOW** (no recommendation forced). It never auto-executes without your consent, and sensitive actions still route through `approval-gatekeeper`. Full contract in [`CLAUDE.md §5`](CLAUDE.md) and [`.cursor/hooks/post-output.suggest-command.md`](.cursor/hooks/post-output.suggest-command.md) (kill-switch `MM_HOOK_SUGGEST_COMMAND=off`); user-facing reference in [`COMMANDS.md`](COMMANDS.md).
 
-| Level | When it fires | Format the agent uses |
-|---|---|---|
-| **HIGH** | One command clearly applies | `Next recommended command: /mm-X [args]` + `Why:` + `Go ahead: type` `go` `to proceed` + `Skip if: …` |
-| **MEDIUM** | Two or more commands plausible | `Possible next commands (pick one): a) /mm-X / b) /mm-Y / c) Nothing yet` — you reply `a`, `b`, or `c` |
-| **LOW** | No command fits (pure exploration) | Explicit "no recommendation"; the agent does **not** force one |
-
-**What "integrated" means in practice:**
-
-- **Consistent output:** every non-trivial turn closes with one of these blocks. No more guessing "what's the next step?".
-- **One-keystroke confirmation:** for HIGH, you type `go` and the agent proceeds as if you ran the command. For MEDIUM you pick the letter. For LOW you take the lead.
-- **Never auto-executes without consent:** the agent always waits for your `go` (HIGH), your pick (MEDIUM), or your direction (LOW). Running the command yourself by typing `/mm-X` works identically.
-- **Safety preserved:** even after `go`, sensitive actions (auth, payments, schema, production) still route through `approval-gatekeeper`. This protocol never bypasses safety rules.
-- **Auto-downgrade built-in:** if a HIGH has a plausible alternative, the agent self-downgrades to MEDIUM. Protects against false confidence.
-- **Never spam:** trivial replies, clarifying Q&A, or turns already inside `doubt-surfacer` get no recommendation block.
-
-**Where it lives:**
-
-- Contract: [`CLAUDE.md §5`](CLAUDE.md).
-- Hook: [`.cursor/hooks/post-output.suggest-command.md`](.cursor/hooks/post-output.suggest-command.md) with activation conditions, templates, and auto-downgrade rule.
-- Skill closings updated: the `Closing` step of 14 skills (project-deep-audit, product-requirements, architecture-mapper, feature-breakdown, flow-analyzer, implementation-planner, test-strategist, code-reviewer, security-review, phase-gate-reviewer, research-first, subagent-dispatcher, parallel-executor, bug-investigator) uses the three-level format.
-- Quick reference for users: [`COMMANDS.md §Command Recommendation Protocol`](COMMANDS.md).
-- Kill-switch: `MM_HOOK_SUGGEST_COMMAND=off`.
-
-### Hooks (Sub-phase 2.4)
+### Hooks
 
 Two classes of hooks, both in place:
 
@@ -499,51 +287,23 @@ Escape hatches: `git commit --no-verify`, `git push --no-verify`, or env vars `M
 
 ---
 
-## System 1 + System 2 — complete map
-
-**Status:** MASTERMIND 2.0 v1.0 — System 1 + System 2 (Sub-phases 2.1–2.4) complete.
+## Component map (at a glance)
 
 | Layer | What it is | Count |
 |---|---|---|
 | **Kernel** | `CLAUDE.md` + `AGENTS.md` | 2 files |
-| **Rules** | `.cursor/rules/00..07.mdc` | 8 rules, always loaded |
-| **Skills (System 1)** | Analysis, documentation, quality, design & prototyping | 16 skills |
-| **Skills (System 2)** | Execution + orchestration + learning + onboarding + skill QA | 7 skills |
+| **Rules** | `.cursor/rules/00..08.mdc` | 9 rules (4 always-on, 5 on-demand) |
+| **Skills (System 1)** | Analysis, documentation, quality, design & prototyping | 17 skills |
+| **Skills (System 2)** | Execution + orchestration + learning + onboarding + skill QA + evals + context discipline | 9 skills |
 | **Workflows** | End-to-end recipes | 7 workflows |
-| **Slash commands** | `/mm-*` shortcuts | 14 commands |
-| **Memory bank** | Per-project intelligence (Git-versioned) | 14 files |
+| **Slash commands** | `/mm-*` shortcuts | 17 commands |
+| **Memory bank** | Per-project intelligence (Git-versioned) | 15 files |
 | **Docs folder** | Product, architecture, features, flows, api, testing, security, adr | 8 subfolders |
 | **Cross-project memory** | `~/.mastermind/global/` (outside the repo) | 5 files + README |
-| **Hooks — agent** | Behavioral instruction files | 4 active + HOOKS.md |
-| **Hooks — git** | Client-side shell scripts (installable) | pre-commit + pre-push |
-| **Scripts** | Automation helpers | 10 helpers (PowerShell + bash variants) + 2 git hooks (bash) |
+| **Hooks** | Agent behavioral (`.cursor/hooks/`) + git client-side (`scripts/git-hooks/`) | 4 + 2 |
+| **Scripts** | Automation helpers (PowerShell + bash parity) | see `scripts/` |
 
-**Canonical source vs mirror:**
-- Skills: canonical `.cursor/skills/`, mirror `.claude/skills/` (sync via `scripts/sync-skills`).
-- Hooks (agent): canonical `.cursor/hooks/`, `.claude/hooks/HOOKS.md` references them.
-- Workflows & commands: canonical `.claude/workflows/` and `.claude/commands/` (Cursor reads them by path).
-
-**MCPs:**
-- `context7`, `memory-graph`, `github` — active in `.cursor/mcp.json`.
-- `task-master-ai` — reserved, installable per-project via `scripts/install-taskmaster.ps1`.
-- `playwright` — reserved, activate only for real browser verification of critical flows.
-
-### Skill Interaction Graph updated for System 2
-
-All System 1 skills keep their interactions (see original graph above). System 2 adds:
-
-```
-phase-gate-reviewer
-   ├── reads   memory/13-phase-history.md + memory/02-current-state.md + docs/
-   ├── invokes memory-updater on PROCEED
-   └── pairs with approval-gatekeeper (gates are approvals)
-
-approval-gatekeeper
-   ├── invoked by implementation-planner, bug-investigator, architecture-mapper,
-   │             phase-gate-reviewer
-   ├── invokes  memory-updater (log the decision)
-   └── pairs with security-review (on high-impact actions)
-```
+Skills are canonical in `.cursor/skills/` and mirrored to `.claude/skills/` via `scripts/sync-skills`. The full **skill interaction graph (System 1 + System 2)** lives in [`OPERATING-GUIDE.md §7`](OPERATING-GUIDE.md). MCPs (`context7`, `memory-graph`, `github`; `task-master-ai`/`playwright` on-demand) are configured in `.cursor/mcp.json`.
 
 ---
 
@@ -571,107 +331,9 @@ These are defaults, not constraints. Every new project must justify its stack in
 
 ## Skill Interaction Graph
 
-The 19 skills in `.cursor/skills/` are designed to compose. Each skill declares `Invoked by` / `Invokes` / `Pairs with` in its own `SKILL.md`. The diagram below is the System-1 spine; the System-2 additions (phase-gate-reviewer, approval-gatekeeper, subagent-dispatcher, parallel-executor, continuous-learner) extend it and are diagrammed in the sections above.
+The 26 skills compose along the project lifecycle (Foundation → Discovery → Design → Execution → Quality → System 2), with `doubt-surfacer` running first, `memory-updater` closing every skill, and `continuous-learner` promoting lessons to `~/.mastermind/global/`. Each `SKILL.md` declares its own `Invoked by` / `Invokes` / `Pairs with`.
 
-```
-                          ┌─────────────────┐
-                          │  doubt-surfacer │  (Question Protocol — runs first)
-                          └────────┬────────┘
-                                   │ runs before every Discovery/Design skill
-                                   ▼
-               ┌───────────────────────────────────────┐
-               │         project-deep-audit            │
-               │  (12 angles + Hard Truth, Discovery)  │
-               └──────────┬────────────┬───────────────┘
-                          │            │
-                          ▼            ▼
-              ┌────────────────┐  ┌─────────────────────┐
-              │ research-first │  │ product-requirements│
-              │  (Context7 +   │  │   (PRD + RICE,      │
-              │   web, dated)  │  │   Definition)       │
-              └───────┬────────┘  └──────┬──────────────┘
-                      │                   │
-                      │                   ▼
-                      │       ┌──────────────────────┐
-                      │       │    flow-analyzer     │
-                      │       │  (flows, errors,     │
-                      │       │   edge cases)        │
-                      │       └──────────┬───────────┘
-                      │                  │
-                      ▼                  ▼
-              ┌────────────────────────────────────┐
-              │       architecture-mapper          │
-              │  (system map, ADRs, NFRs, Design)  │
-              └──────────┬─────────────────────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ feature-breakdown│
-                │ (slices, deps)   │
-                └────────┬─────────┘
-                         │
-                         ▼
-              ┌──────────────────────┐
-              │ implementation-planner│
-              │ (TDD plan, Execution) │
-              └────────┬──────────────┘
-                       │
-                       ▼
-            ┌─────────────────────────┐
-            │      test-strategist    │
-            │  (pyramid + gaps)       │
-            └──────────┬──────────────┘
-                       │
-                       ▼
-           ┌─────────────────────────────┐
-           │ bug-investigator            │
-           │ (4-phase: reproduce→isolate │
-           │  →diagnose→surgical fix)    │
-           └──────────┬──────────────────┘
-                      │
-                      ▼
-        ┌──────────────────────────────────┐
-        │     code-reviewer   +   security-review           │
-        │    (quality / scope)   (threat model / OWASP)     │
-        └──────────────────┬───────────────────────────────┘
-                           │ Both run on sensitive changes
-                           ▼
-                  ┌────────────────────┐
-                  │   memory-updater   │◄── Finishing step of ALL skills
-                  │  (append-mode SS,  │      (flags lesson candidates;
-                  │  decisions, risks) │       never writes to global)
-                  └─────────┬──────────┘
-                            │
-                            │ flagged candidates picked up by
-                            ▼
-                ┌────────────────────────────┐
-                │   continuous-learner       │
-                │ (3-part test + per-entry   │
-                │  user approval, then       │
-                │  writes to global memory)  │
-                └──────────────┬─────────────┘
-                               │ promotes to
-                               ▼
-                ┌────────────────────────────┐
-                │ ~/.mastermind/global/      │
-                │ lessons · patterns         │
-                │ pitfalls · stacks · vendors│
-                └────────────────────────────┘
-                           ▲
-                           │ Consumed at start by
-            project-deep-audit · research-first · architecture-mapper · skill-creator
-
-  skill-creator (meta) ◄─── invoked when adding / refactoring / auditing any skill
-```
-
-**Reading the graph:**
-- **Vertical** = typical project lifecycle (Foundation → Discovery → Design → Execution → Quality).
-- **`memory-updater`** closes every skill. It is the sink that keeps `memory/` alive.
-- **`research-first`** is invoked on demand from multiple skills whenever an external dependency surfaces.
-- **Cross-project memory** (`~/.mastermind/global/`) is populated by `memory-updater` (promotions) and consumed by the Discovery/Design skills.
-- **Hooks** (`.cursor/hooks/`) are an extension point: they can automate invocation of the skills above when triggers repeat.
-
-See each skill's own `SKILL.md` §Interactions for exact caller/callee relationships.
+The full **coordination graph** (all four layers, System 1 + System 2, plus the memory/global writes) lives in [`OPERATING-GUIDE.md §7.2`](OPERATING-GUIDE.md) — kept in one place to avoid drift.
 
 ---
 
@@ -727,12 +389,7 @@ This is the single rule that most differentiates MASTERMIND 2.0 from a chat-styl
 
 ## Model routing
 
-| Task | Preferred model |
-|---|---|
-| Deep analysis, strategy, long-form docs | Claude Opus (Claude Desktop or MCP) |
-| Daily coding and refactoring | Cursor (GPT-5.5 Max or Claude Sonnet/Opus) |
-| Library/API usage | Any model + Context7 MCP |
-| UI flow verification | Any model + Playwright MCP |
+Use the cheapest model that fits the task: Opus-class for deep analysis/strategy/long-form, a fast capable model for daily coding, Context7 MCP for library/API verification, Playwright MCP for UI flows. Full table in [`CLAUDE.md §Model Routing`](CLAUDE.md); per-role subagent routing in [`.cursor/rules/07-subagent-orchestration.mdc`](.cursor/rules/07-subagent-orchestration.mdc).
 
 ---
 

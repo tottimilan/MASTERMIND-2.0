@@ -1,11 +1,22 @@
 ---
-description: Subagent Orchestration — when to spawn subagents, model selection, parallel execution with Git worktrees, 2-stage review per task, verification at handoffs, runtime isolation (Docker caveats). Lives alongside 06-execution-modes but focuses on multi-agent and parallel work.
-alwaysApply: true
+description: Subagent Orchestration — when to spawn subagents (only for parallelism or context isolation), orchestrator+specialists pattern, 2-stage review per task, verification at handoffs, model selection by role. Load when orchestrating multi-agent or parallel work. Worktree conventions, Docker policy, model tables and observability detail live in references/orchestration.md.
 ---
 
 # Subagent Orchestration
 
 Rule 06 defines **how one agent behaves** in different modes. This rule defines **how multiple agents cooperate** — subagents, parallel worktrees, model selection, and verification. The Anthropic-canonical pattern is **orchestrator + narrow specialists**. The rest of this file makes that practical for MASTERMIND 2.0.
+
+---
+
+## Command vs skill vs subagent — shape of work, not size
+
+These three are **not** a small/medium/large ladder. They are different *shapes* of work; pick by shape, not by how big the task feels.
+
+- **Command** (`/mm-*`) — a *named entry point* a human invokes to start a known procedure. Choose it when the user needs a repeatable, discoverable trigger.
+- **Skill** — *reusable knowledge* loaded on demand into the **current** agent's context. Choose it when the agent needs a playbook but the work stays in one context window and one line of reasoning.
+- **Subagent** — *isolated execution* in a **separate** context. Choose it only for genuine parallelism or context isolation (see below), never merely because a task is "large". A large task usually wants a skill + a plan, not a subagent.
+
+A big task run by one agent with a good skill is normal. A tiny task can still warrant a subagent if it must run in parallel or in a clean context. Match the shape.
 
 ---
 
@@ -40,6 +51,7 @@ The canonical 2026 architecture (Anthropic + industry consensus):
 - **Orchestrator agent** — broad, strategic, keeps the global context. Never codes directly; decides who codes what.
 - **Specialist subagents** — narrow, reliable, isolated context. Implementer, spec-reviewer, code-quality-reviewer, research fetcher, etc.
 - **Message-passing, not shared state.** The orchestrator constructs exactly the context each subagent needs and passes it in the prompt. Subagents do **not** see the orchestrator's session history.
+- **A subagent returns a summary + a pointer to its artifacts, never its full trace.** The orchestrator receives a short result (status + key decisions + paths to files/commits/notes the subagent wrote), not the subagent's raw tool calls and reasoning. Piping a subagent's whole transcript back into the orchestrator defeats the entire point of context isolation and re-pollutes the global context.
 - **2–4 agents total is the sweet spot.** > 5 usually means the task is poorly decomposed.
 
 ### Model selection per role
@@ -85,82 +97,11 @@ A spawned implementer subagent reports one of four statuses when it returns:
 
 ---
 
-## Parallel execution with Git worktrees
+## Parallel execution & runtime isolation
 
-Parallelize **branches**, not the same branch. Git enforces this; do not fight it.
+Parallelize **branches**, not the same branch (git enforces this). Core rules: worktrees in a sibling `../<repo>-worktrees/<slug>` folder; **feature-based branch names** (never `agent-3-tuesday`); same base commit; lifecycle ≤ 1 day; **max 3–4 concurrent local worktrees**; assign by feature slice, not by file type; clean up with `scripts/worktree-cleanup`. Runtime isolation (Docker per worktree, port offsets, per-worktree `.env`) is **only** introduced when a concrete conflict appears (shared port/DB/services) — never "just in case". Beyond 4 concurrent agents, move to Cursor Cloud Agents / Claude Code SDK in CI.
 
-### Mandatory conventions
-
-1. **Location.** All worktrees in a sibling folder of the repo, not inside it:
-   ```
-   ../<repo>-worktrees/<slug>
-   ```
-   Add the folder to the global `.gitignore` if it would ever end up inside the repo.
-
-2. **Branch naming.** Feature-based, never agent-based:
-   - `feat/<slug>` · `fix/<slug>` · `chore/<slug>` · `refactor/<slug>` · `exp/<slug>`
-   - `agent-3-session-tuesday` is forbidden.
-
-3. **Base commit.** All parallel worktrees created from the same `main` commit. Reduces merge conflicts.
-
-4. **Lifecycle ≤ 1 working day.** If a worktree survives longer, the task was too big — split.
-
-5. **Max 3–4 concurrent local worktrees.** Disk and laptop CPU cannot usually sustain more.
-
-6. **Task assignment by domain, not by file type.** Do not dispatch "Agent-backend + Agent-frontend + Agent-tests" in parallel for the same feature — they all need to touch related code. Better: dispatch by feature slice (Agent-auth, Agent-billing, Agent-notifications), each delivering end-to-end.
-
-7. **Cleanup discipline.**
-   - Prefer `git worktree remove <path>` over `rm -rf`.
-   - Always run `git worktree prune` after a `rm -rf`.
-   - Delete merged branches: `git branch -D feat/<slug>`.
-   - Use `scripts/worktree-cleanup.ps1` (or `.sh`) to automate.
-
-### Helper scripts (in this repo)
-
-- `scripts/worktree-spawn.ps1` / `.sh` — create a worktree with naming convention + install deps + assign port offset by hash of slug.
-- `scripts/worktree-cleanup.ps1` / `.sh` — remove merged worktrees and prune metadata.
-
-### Editor integrations to know
-
-- **Cursor 3.x:** `/worktree <slug>` command. `/best-of-n` runs multiple models in parallel worktrees.
-- **Claude Code:** `claude --worktree <name>` flag. Subagents can declare `isolation: worktree` in their frontmatter to auto-provision a worktree.
-
----
-
-## Runtime isolation — Docker policy
-
-Git worktrees isolate **code**. They do not isolate **runtime** (ports, databases, caches, `.env`, Docker daemons, browser profiles).
-
-### When runtime isolation is NOT needed (default)
-
-- Pure code work: refactors, docs, unit tests without side effects, library-only features.
-- Single-agent sessions.
-- Worktrees that do not spin up local services.
-
-No Docker. Worktrees alone are sufficient.
-
-### When runtime isolation IS needed
-
-- Two agents would both bind to the same port (e.g. Next.js on `localhost:3000`).
-- Agents run migrations against the same local DB.
-- Agents spin up Redis, queues, S3 emulators.
-- Agents need different `.env` values (different feature flags, different API keys).
-
-### Recommended pattern (only when needed)
-
-- **Per-worktree port offsets** via `scripts/worktree-spawn.ps1` (hash-derived).
-- **Docker Compose project per worktree**: `docker compose -p <worktree-slug> up`. Networks, volumes, and service names namespaced automatically.
-- **Per-worktree `.env.<slug>`** (kept local, never committed; `.gitignore` covers `.env.*`).
-
-Do NOT introduce Docker by default. Introduce it only when the concrete runtime problem appears.
-
-### Beyond laptop scale
-
-When > 4 concurrent agents are needed, move to:
-- **Cursor Cloud Agents** (self-hosted or Cursor-hosted).
-- **Claude Code SDK** running in CI (ephemeral VMs, fresh state).
-
-Document the shift in `memory/07-decisions-log.md`.
+Full conventions, helper scripts, editor integrations, and the Docker policy: [`references/orchestration.md`](references/orchestration.md).
 
 ---
 
@@ -186,17 +127,7 @@ This is how the system gets **better between projects**, not just within each on
 
 ## Observability
 
-Every subagent dispatch must be loggable. Minimum fields:
-
-- `dispatcher` — who called it
-- `role` — implementer / spec-reviewer / code-quality-reviewer / research / other
-- `model` — exact model name used
-- `input_hash` — hash of the input prompt
-- `output_status` — DONE / DONE_WITH_CONCERNS / NEEDS_CONTEXT / BLOCKED
-- `wall_time_ms`
-- `token_cost_estimate`
-
-When Claude Agent SDK hooks (`PreToolUse`, `PostToolUse`) are available, wire them into `.cursor/hooks/` or `.claude/hooks/` to emit these logs automatically.
+Every subagent dispatch must be logged with these fields (+ `timestamp`): `dispatcher`, `role`, `model`, `input_hash`, `output_status`, `wall_time_ms`, `token_cost_estimate`. Use `scripts/log-dispatch.ps1`/`.sh` (best-effort; appends to the gitignored `.mastermind/runtime/dispatch-log.jsonl`; never blocks work). `subagent-dispatcher` emits one record per task; `parallel-executor` one per worktree dispatch. Usage examples + the `eval-harness` trace→eval consumer: [`references/orchestration.md`](references/orchestration.md).
 
 ---
 
@@ -205,6 +136,7 @@ When Claude Agent SDK hooks (`PreToolUse`, `PostToolUse`) are available, wire th
 - **NEVER:** Dispatch > 4 concurrent local worktrees without a plan for merge order.
 - **NEVER:** Let two parallel agents work on the same files (git worktrees prevent this at branch level, but agents can still collide on shared resources like DB/port — solve with runtime isolation, not by ignoring).
 - **NEVER:** Pass the orchestrator's full history to a subagent. Curate context.
+- **NEVER:** Return a subagent's full trace to the orchestrator. Return a summary + artifact pointers; the raw transcript stays in the subagent.
 - **NEVER:** Use the most capable model for every role. It's 10× the cost and sometimes slower.
 - **NEVER:** Skip spec compliance review because code quality looks fine. Wrong order, wrong conclusions.
 - **NEVER:** Use Docker "just in case". Introduce it only when a concrete runtime conflict appears.

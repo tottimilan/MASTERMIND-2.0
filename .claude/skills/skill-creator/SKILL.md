@@ -202,28 +202,31 @@ After updating peer skills, run the sync script again so the mirror reflects all
 
 ## Known skills in this repo (System 1 + System 2)
 
-These 19 skills form the canonical set. A new skill must not overlap > 60% with any of them (see anti-patterns):
+These 26 skills form the canonical set. A new skill must not overlap > 60% with any of them (see anti-patterns):
 
-**System 1 — Analysis & Documentation (14):**
+**System 1 — Analysis & Documentation (15):**
 - Foundation: `doubt-surfacer`, `memory-updater`, `skill-creator` (this one)
 - Discovery: `project-deep-audit`, `product-requirements`, `flow-analyzer`, `research-first`
 - Design: `architecture-mapper`, `feature-breakdown`
 - Execution: `implementation-planner`, `test-strategist`
-- Quality: `bug-investigator`, `code-reviewer`, `security-review`
+- Quality: `bug-investigator`, `code-reviewer`, `security-review`, `premortem`
 
-**System 2 — Execution (6):**
+**System 2 — Execution (9):**
 - `phase-gate-reviewer` — validates Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch transitions (Prototype optional for non-UI projects).
 - `approval-gatekeeper` — enforces Human-in-the-Loop for sensitive actions.
 - `subagent-dispatcher` — drives plan execution task-by-task within one workspace, fresh subagent per task, two-stage review (spec then code quality).
 - `parallel-executor` — coordinates parallel execution across Git worktrees, independence analysis, runtime isolation decisions, merge order planning.
 - `continuous-learner` — promotes qualifying lessons to `~/.mastermind/global/` (lessons / patterns / pitfalls / stacks / vendors); applies the 3-part test; per-entry user approval.
 - `retroactive-documenter` — seeds `memory/` from an existing codebase (code + git log + README + lockfiles). Used during onboarding of projects not born from MASTERMIND. Per-file approval.
+- `skill-quality-evaluator` — static-analysis lint for SKILL.md files (frontmatter, 9-section template, line budget, anti-patterns); produces a per-skill score + findings.
+- `eval-harness` — converts confirmed `bug-investigator` post-mortems into deterministic regression cases and reads `dispatch-log.jsonl` for a lightweight dispatch eval (success/blocked rates, cost/latency by role and model). Zero new runtime deps.
+- `context-budget` — active management of the agent's own context window (persist to `memory/` first, compact at ~70%, clear stale tool results, keep guardrails resident). Markdown on disk stays canonical.
 
 **System 1 — Design & prototyping (2):**
 - `prototype-designer` — bridges MASTERMIND memory (flows, features, design tokens) to Claude Design for interactive prototyping on top of the project's design system install. Platform-aware (web: shadcn/ui; mobile: RNR). Single-feature scope. Precedes `implementation-planner` within MVP / Iteration phases.
 - `mockup-factory` — full-app iterative prototyping. 3 modes: `create v1` / `iterate vN+1 from feedback` / `freeze into final`. Platform-aware (web + Vercel preview; mobile + Expo Go). Invoked during the dedicated **Prototype phase** (between Definition and MVP). Outputs to `docs/design/mockups/` with per-iteration folders + `final/`; consolidates decisions into memory/14 on freeze; recommends `/mm-gate MVP`. Different from `prototype-designer`: that's single-feature during build; this is whole-product before build.
 
-Total: **23 skills** (16 System 1 + 7 System 2 including `skill-quality-evaluator`). System 2 is feature-complete.
+Total: **26 skills** (17 System 1 + 9 System 2). System 2 covers execution, orchestration, learning, onboarding, skill QA, evals, and context discipline.
 
 Propose a new skill only if its purpose is not covered by the above list. Overlap > 60% with an existing skill = refactor the existing, do not duplicate.
 

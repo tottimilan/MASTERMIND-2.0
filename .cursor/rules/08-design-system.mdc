@@ -1,7 +1,6 @@
 ---
 description: Design system policy and conventions for MASTERMIND projects, platform-aware. Branches on memory/14-design-system.md §Platform. Web track uses shadcn/ui + Tailwind + Claude Design. Mobile track uses react-native-reusables (RNR) + NativeWind + Expo + Reanimated + Claude Design mobile mode. memory/14 is the per-project source of truth; DESIGN.md is the portable cross-tool export.
-globs: ["**/components.json", "**/src/components/ui/**", "**/memory/14-design-system.md", "**/.cursor/mcp.json", "**/DESIGN.md", "**/tailwind.config.*", "**/nativewind-env.d.ts"]
-alwaysApply: true
+globs: ["**/components.json", "**/src/components/**", "**/app/**/*.tsx", "**/*.tsx", "**/*.jsx", "**/memory/14-design-system.md", "**/.cursor/mcp.json", "**/DESIGN.md", "**/tailwind.config.*", "**/nativewind-env.d.ts"]
 ---
 
 # 08 — Design system (platform-aware)

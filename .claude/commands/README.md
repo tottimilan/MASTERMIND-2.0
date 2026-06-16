@@ -22,6 +22,8 @@ Custom slash commands for Claude Code (`.claude/commands/`). Each file is a shor
 | [`/mm-onboard`](mm-onboard.md) | Workflow `06-onboard-existing-project` + skill `retroactive-documenter` | Integrate an existing project into MASTERMIND |
 | [`/mm-design`](mm-design.md) | Skill `prototype-designer` | Prototype a single feature via Claude Design + shadcn/ui (during MVP / Iteration) |
 | [`/mm-mockup`](mm-mockup.md) | Skill `mockup-factory` + workflow `07-full-app-prototyping` | Full-app iterative mockup (v1 → vN → freeze) during Prototype phase. Modes: create, iterate, feedback, freeze, status |
+| [`/mm-template-audit`](mm-template-audit.md) | Script `template-audit` | Meta-audit: template counts/criteria/mirror/visibility match reality |
+| [`/mm-qa`](mm-qa.md) | Composition (template-audit + skill lint + sweep) | Holistic system QA: size, overlap, cruft, gaps, harness re-audit |
 
 All commands share the `mm-` prefix to group them visually and avoid collisions with upstream Claude commands.
 

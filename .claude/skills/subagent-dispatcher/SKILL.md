@@ -109,6 +109,13 @@ Possible outcomes:
 ### Step 6 — Advance to the next task
 
 - Mark the TodoWrite entry complete.
+- **Log the dispatch (observability, rule 07 §Observability).** Emit one record per implementer dispatch via the helper — best-effort, never blocks:
+  ```bash
+  bash scripts/log-dispatch.sh --dispatcher subagent-dispatcher --role implementer \
+       --model <model> --status <DONE|DONE_WITH_CONCERNS|NEEDS_CONTEXT|BLOCKED> \
+       --wall-ms <ms> --tokens <estimate> --input-text "<curated prompt>"
+  ```
+  (PowerShell: `scripts/log-dispatch.ps1`.) Also log the spec-reviewer and code-quality-reviewer dispatches with the matching `--role`.
 - Verify no dependency of the next task was invalidated (rare but it happens).
 - Return to Step 2 for the next task.
 
@@ -263,6 +270,7 @@ The handoff is explicit: if `task-master-ai` is available and the plan was parse
 - [ ] Every task passed spec compliance review before code quality review.
 - [ ] Every review loop closed before advancing to the next task.
 - [ ] No BLOCKED status silently re-dispatched.
+- [ ] Each dispatch logged via `scripts/log-dispatch` (rule 07 §Observability).
 - [ ] Final code review over the full branch completed.
 - [ ] `memory-updater` ran.
 - [ ] Handoff block emitted.

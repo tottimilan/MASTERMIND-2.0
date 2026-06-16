@@ -2,7 +2,7 @@
 
 > **Who this is for.** Anyone cloning the template to drive a SaaS or app project end-to-end: the author, collaborators, future-you, and AI agents (Cursor, Claude Code, Claude Desktop) reading this repo.
 >
-> **What this is.** The operational manual for the template. It explains how the 23 skills, 7 workflows, 14 slash commands, 9 rules, 14 memory files, hooks, scripts, and MCPs coordinate across the seven project phases (Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch; Prototype is optional for non-UI projects). It shows which component runs when, why, and what to do when the plan no longer fits reality.
+> **What this is.** The operational manual for the template. It explains how the 26 skills, 7 workflows, 17 slash commands, 9 rules, 15 memory files, hooks, scripts, and MCPs coordinate across the seven project phases (Idea → Discovery → Definition → Prototype → MVP → Iteration → Launch; Prototype is optional for non-UI projects). It shows which component runs when, why, and what to do when the plan no longer fits reality.
 >
 > **How to read this.** Linearly for the first read. By section afterwards (the TOC is organized by operational need, not by layer).
 
@@ -57,21 +57,24 @@ MASTERMIND 2.0 is **a Project Operating System** that makes AI-assisted developm
                                        │  composes
                                        ▼
           ┌───────────────────────────────────────────────────────┐
-          │  SKILLS  (.cursor/skills/, 23 total)                  │
-          │  System 1 — doubt-surfacer · project-deep-audit ·     │
+          │  SKILLS  (.cursor/skills/, 26 total)                  │
+          │  System 1 (17) — doubt-surfacer · project-deep-audit ·│
           │  product-requirements · architecture-mapper ·         │
           │  feature-breakdown · flow-analyzer · research-first · │
           │  implementation-planner · test-strategist ·           │
           │  bug-investigator · code-reviewer · security-review · │
-          │  memory-updater · skill-creator                       │
-          │  System 2 — phase-gate-reviewer · approval-gatekeeper │
-          │  · subagent-dispatcher · parallel-executor ·          │
-          │  continuous-learner                                   │
+          │  memory-updater · skill-creator · prototype-designer ·│
+          │  mockup-factory · premortem                           │
+          │  System 2 (9) — phase-gate-reviewer ·                 │
+          │  approval-gatekeeper · subagent-dispatcher ·          │
+          │  parallel-executor · continuous-learner ·             │
+          │  retroactive-documenter · skill-quality-evaluator ·   │
+          │  eval-harness · context-budget                        │
           └───────────────────────────────────────────────────────┘
                                        │  governed by
                                        ▼
           ┌───────────────────────────────────────────────────────┐
-          │  RULES  (.cursor/rules/00..07.mdc, always loaded)     │
+          │  RULES  (.cursor/rules/00..08.mdc, always loaded)     │
           │  00 OS · 01 Karpathy · 02 stack · 03 testing ·        │
           │  04 safety+git · 05 MCP · 06 modes · 07 subagents     │
           └───────────────────────────────────────────────────────┘
@@ -122,7 +125,7 @@ The template has four layers, in increasing order of abstraction. Every artifact
                    ▼
 ┌────────────────────────────────────────────────────────────┐
 │  L2  RULES                    (the "what is always true?") │
-│       .cursor/rules/00..07.mdc + CLAUDE.md kernel          │
+│       .cursor/rules/00..08.mdc + CLAUDE.md kernel          │
 └────────────────────────────────────────────────────────────┘
                    │ produces & consumes
                    ▼
@@ -178,21 +181,21 @@ Plus the kernel `CLAUDE.md` at the root and `AGENTS.md` for non-Cursor agents.
 
 **Purpose.** Reusable, composable procedures for specific tasks. Each skill has a single responsibility.
 
-23 skills, organized in the next section.
+26 skills, organized in the next section.
 
 ### L4 — Commands + Workflows (the ergonomics)
 
 **Purpose.** Turn "remember to run skill X, then Y, then Z, then log to `memory/07`" into a single invocation.
 
-7 workflows + 14 slash commands. Workflows are the sequences; commands are shortcuts to workflows or skills with curated context loading.
+7 workflows + 17 slash commands. Workflows are the sequences; commands are shortcuts to workflows or skills with curated context loading.
 
 ---
 
 ## 3. Skill inventory map
 
-The 23 skills, grouped by role along the project lifecycle.
+The 26 skills, grouped by role along the project lifecycle.
 
-### System 1 — Analysis & Documentation (16 skills)
+### System 1 — Analysis & Documentation (17 skills)
 
 **Foundation (3).** The cross-cutting skills every other one depends on.
 
@@ -225,15 +228,23 @@ The 23 skills, grouped by role along the project lifecycle.
 | `implementation-planner` | Turn a slice into a bite-sized TDD plan under `.cursor/plans/` with complete code + verification per step. |
 | `test-strategist` | Decide pyramid ratio per phase, mock strategy, coverage gap analysis. Feeds CI. |
 
-**Quality (3).** Prevent and fix defects.
+**Quality (4).** Prevent and fix defects; stress-test high-cost decisions.
 
 | Skill | Role |
 |---|---|
 | `bug-investigator` | 4-phase debugging: reproduce → isolate → diagnose root cause → surgical fix with regression test. |
 | `code-reviewer` | 11-category review (plan compliance, scope, correctness, tests, architecture, quality, performance, readability, simplicity, docs, git hygiene). Verdict by severity. |
 | `security-review` | Threat model + OWASP-contextual review for auth, payments, schema, public API, etc. |
+| `premortem` | Klein/Kahneman prospective-hindsight ("this already failed — narrate why") for high-cost / irreversible decisions. Fans out 5–7 sub-agents; synthesizes failure modes + revised plan. |
 
-### System 2 — Execution & Orchestration (7 skills)
+**Design & prototyping (2).** Validate the experience before building.
+
+| Skill | Role |
+|---|---|
+| `prototype-designer` | Bridge memory (flows, features, tokens) to Claude Design for SINGLE-feature prototyping during MVP / Iteration. Platform-aware (web: shadcn/ui; mobile: RNR). |
+| `mockup-factory` | FULL-APP iterative prototyping in the dedicated Prototype phase: `create v1` → `iterate vN` → `freeze`. Outputs to `docs/design/mockups/`; consolidates memory/14 on freeze. |
+
+### System 2 — Execution & Orchestration (9 skills)
 
 **Execution foundation (2).** When and who intervenes.
 
@@ -254,6 +265,30 @@ The 23 skills, grouped by role along the project lifecycle.
 | Skill | Role |
 |---|---|
 | `continuous-learner` | Promote qualifying lessons from the project to `~/.mastermind/global/`. Applies the 3-part test (project-agnostic, evidence-backed, actionable). Requires per-entry user approval. |
+
+**Onboarding (1).** Seed the system from existing code.
+
+| Skill | Role |
+|---|---|
+| `retroactive-documenter` | Seed `memory/` from an existing codebase (code + git log + README + lockfiles) when onboarding a project not born from MASTERMIND. Per-file approval. |
+
+**Quality gate (1).** Keep the skill library healthy.
+
+| Skill | Role |
+|---|---|
+| `skill-quality-evaluator` | Static-analysis lint for `SKILL.md` files (frontmatter, 9-section template, line budget, anti-patterns). Per-skill score + findings. |
+
+**Evals (1).** Close the trace → eval → improve loop.
+
+| Skill | Role |
+|---|---|
+| `eval-harness` | Converts confirmed `bug-investigator` post-mortems into permanent deterministic regression cases, and reads `.mastermind/runtime/dispatch-log.jsonl` for a lightweight dispatch eval (success/blocked rates, cost/latency by role and model). Zero new runtime deps. |
+
+**Context discipline (1).** Keep the agent effective in long sessions.
+
+| Skill | Role |
+|---|---|
+| `context-budget` | Active management of the agent's own context window: persist to `memory/` first, compact at ~70% of the usable window, clear stale tool results, keep guardrails resident. Markdown on disk stays canonical; live context is a disposable working set. |
 
 ### Shape of a skill
 
@@ -311,6 +346,8 @@ flowchart TD
 
 ### 4.2 Phase summary table
 
+> **Authoritative criteria live in `phase-criteria.json`** (rendered into `memory/13 §Phase definitions` by `scripts/render-phase-criteria`, consumed by `phase-gate-reviewer` and `phase-gate-check`). The tables/prose in §4.2 and §5 are an operational narrative; if they ever disagree with `phase-criteria.json`, the JSON wins. (The optional 7th phase, **Prototype**, sits between Definition and MVP for UI projects — see `phase-criteria.json`.)
+
 | # | Phase | Purpose | Duration (typical) | Canonical workflow |
 |---|---|---|---|---|
 | 1 | **Idea** | A sentence-to-paragraph description exists | Hours to a day | `/mm-bootstrap` starts the transition |
@@ -332,6 +369,8 @@ flowchart TD
 ## 5. Phase by phase (operational playbook)
 
 Each phase section has the same shape: purpose, entry criteria, what happens inside, artifacts produced, exit criteria, and the transition out.
+
+> **Source of truth:** the entry/exit criteria and expected artifacts below are a human-readable narrative. The authoritative, machine-checked version is `phase-criteria.json` (verified by `/mm-template-audit`). Edit criteria there, not here — this section explains *how to work* each phase, not what gates it.
 
 ### 5.1 Phase — Idea
 
@@ -750,7 +789,7 @@ This section answers: "who calls whom, and when?". It is the **operational graph
 flowchart TD
     subgraph L4["L4 — Commands + Workflows"]
         CMD[slash commands /mm-*]
-        WF[workflows 01..05]
+        WF[workflows 01..07]
     end
 
     subgraph L3["L3 — Skills"]
@@ -777,6 +816,11 @@ flowchart TD
             BI[bug-investigator]
             CR[code-reviewer]
             SR[security-review]
+            PM[premortem]
+        end
+        subgraph DSP["Design & prototyping"]
+            PD[prototype-designer]
+            MF[mockup-factory]
         end
         subgraph SYS2["System 2"]
             PGR[phase-gate-reviewer]
@@ -784,11 +828,13 @@ flowchart TD
             SD[subagent-dispatcher]
             PE[parallel-executor]
             CL[continuous-learner]
+            RD[retroactive-documenter]
+            SQE[skill-quality-evaluator]
         end
     end
 
     subgraph L1["L1 — Memory + Global"]
-        MEM[(memory/ 14 files)]
+        MEM[(memory/ 15 files)]
         DOCS[(docs/ 8 folders)]
         GLOBAL[(~/.mastermind/global/)]
     end
@@ -835,6 +881,15 @@ flowchart TD
     CL --> MU
     CR --> MU
     SR --> MU
+    CMD --> PD
+    CMD --> MF
+    WF --> RD
+    WF --> PM
+    SC --> SQE
+    PM --> MU
+    PD --> MU
+    MF --> MU
+    RD --> MU
     MU --> CL
     MU -->|writes| MEM
     MU -->|writes| DOCS
@@ -935,84 +990,12 @@ Step 5 — RESUME with the corrected frame.
 
 ### 8.3 Reverse flows — common concrete cases
 
-**Case A — PRD gap in MVP.**
+Each follows the Step 1–5 mechanism above; the rollback *level* is what differs.
 
-```
-Current state: MVP phase, /mm-ship auth in Phase 4 (subagent-dispatcher running).
-Trigger: dispatcher reports DONE_WITH_CONCERNS — implementer found the spec misses SSO.
-
-Response:
-  1. Halt dispatcher.
-  2. /mm-doubt "auth spec may be incomplete for enterprise users"
-  3. Decide level: (b) re-run product-requirements only for the auth epic.
-  4. product-requirements adds the SSO user stories + RICE + updates docs/product/prd.md.
-  5. feature-breakdown updates the breakdown (new slice: SSO integration).
-  6. implementation-planner regenerates the plan for the affected slice.
-  7. Resume dispatcher with the updated plan.
-
-Result: stayed in MVP, but the spec is now correct.
-Memory trace: memory/07 gains a decision entry; docs/product/prd.md has a change-log row.
-```
-
-**Case B — Architecture reveal in MVP.**
-
-```
-Current state: MVP, implementing the checkout slice.
-Trigger: the slice needs a queue; docs/architecture/system-map.md doesn't include one.
-
-Response:
-  1. Halt the executor.
-  2. /mm-doubt "checkout implementation implies architectural change"
-  3. Decide level: (b) run architecture-mapper focused on the affected path.
-  4. architecture-mapper adds a queue container, updates data-flow.md, writes a new ADR.
-  5. If the change is material, run approval-gatekeeper on the ADR (classified Moderate→Sensitive).
-  6. Re-run implementation-planner for the affected slice.
-  7. Resume execution.
-
-Result: MVP continues; architecture caught up with reality.
-Memory trace: new docs/adr/NNNN-add-queue.md; memory/03-architecture.md updated; memory/07 logs the decision.
-```
-
-**Case C — Accepted risk materializes in Iteration.**
-
-```
-Current state: Iteration phase.
-Trigger: the "single-region DB" risk becomes a production incident (2h downtime).
-
-Response:
-  1. /mm-bug "DB regional failure incident YYYY-MM-DD"
-     → workflow 03-bug-triage
-     → bug-investigator reproduces, isolates, diagnoses. Tag: Dependency + Config.
-  2. Post-mortem at docs/bugs/YYYY-MM-DD-db-failure.md.
-  3. The risk was "Accepted" in memory/08-known-risks.md. Status moves to "Open" and a mitigation (multi-region replica) is proposed.
-  4. /mm-plan new-mitigation for the multi-region slice.
-  5. implementation-planner produces the plan.
-  6. /mm-ship the mitigation.
-  7. At the next /mm-retro, /mm-learn promotes the lesson "do not accept single-region risk past MVP" to ~/.mastermind/global/pitfalls.md.
-
-Result: stayed in Iteration, but the risk posture is hardened and the lesson propagates to future projects.
-```
-
-**Case D — Pivot.**
-
-```
-Current state: MVP phase, 6 weeks in, monetization metric flat.
-Trigger: the Hard Truth from docs/product/executive-summary.md is reality: nobody is paying.
-
-Response:
-  1. Halt all feature-lifecycle workflows.
-  2. /mm-doubt "MVP metrics suggest monetization assumption failed"
-  3. Decide level: (d) pivot. Back to Discovery.
-  4. /mm-gate Discovery (this is unusual — moving BACKWARD through the gate).
-     phase-gate-reviewer verdict: PROCEED WITH CAVEATS (the caveat is: we are reverting intentionally).
-     Transition entry in memory/13 notes "reverted from MVP to Discovery on YYYY-MM-DD".
-  5. Run project-deep-audit fresh, emphasizing the monetization angle.
-  6. New Hard Truth, new PRD if needed.
-  7. Normal flow resumes from Discovery.
-
-Result: the project pivoted cleanly. No code was thrown away that didn't need to be. Memory contains the full trail.
-Memory trace: memory/13 gains a "reverted" entry. memory/07 logs the pivot decision with rationale. The old PRD is marked Superseded in place.
-```
+- **PRD gap in MVP** (dispatcher returns `DONE_WITH_CONCERNS` — spec misses SSO). Level (b): re-run `product-requirements` for that epic → `feature-breakdown` adds a slice → `implementation-planner` regenerates → resume. Stays in MVP. Trace: `memory/07` + a PRD change-log row.
+- **Architecture reveal in MVP** (a slice needs a queue not in the system map). Level (b): `architecture-mapper` on the affected path adds the container + a new ADR (+ `approval-gatekeeper` if material) → re-plan → resume. Trace: new `docs/adr/NNNN-*.md`, `memory/03`, `memory/07`.
+- **Accepted risk materializes in Iteration** (single-region DB incident). `/mm-bug` (workflow 03) → post-mortem; flip the risk in `memory/08` from Accepted → Open + propose mitigation → `/mm-plan` → `/mm-ship` → `/mm-learn` promotes the pitfall. Stays in Iteration; risk posture hardened.
+- **Pivot** (monetization flat, Hard Truth confirmed). Level (d): halt → `/mm-doubt` → `/mm-gate Discovery` **backward** (reviewer: PROCEED WITH CAVEATS; `memory/13` logs "reverted from MVP to Discovery") → fresh `project-deep-audit` on monetization → new Hard Truth/PRD. Old PRD marked Superseded in place; full trail preserved.
 
 ### 8.4 Non-negotiable principles when going back
 
@@ -1046,332 +1029,9 @@ flowchart LR
 
 ## 9. End-to-end worked example: "Notas-AI"
 
-A fictional project used as a hilo conductor. Everything below is realistic but illustrative — do not copy-paste paths and content literally, adapt to your real context.
+A full, realistic walkthrough of one fictional project (a note-taking SaaS) through the entire arc — Idea → Discovery → Definition → MVP execution (with a reverse-flow moment, parallel worktrees, a bug, a weekly retro) → Launch — showing exactly which skill/command/workflow fires at each step and what lands in `memory/`.
 
-### 9.1 The idea
-
-**Notas-AI.** A note-taking SaaS for freelancers that auto-categorizes notes using an LLM and surfaces the three notes most relevant to the current calendar block. Monetization: 12 €/month per user, freemium with 100 notes cap.
-
-### 9.2 Day 0 — Clone + bootstrap
-
-Clone the template:
-
-```powershell
-git clone https://github.com/<you>/MASTERMIND-2.0 notas-ai
-cd notas-ai
-Remove-Item -Recurse -Force .git
-git init
-git add .
-git commit -m "chore: bootstrap from MASTERMIND 2.0"
-```
-
-Fill basic stack choice later. First, run the bootstrap workflow:
-
-```
-You → /mm-bootstrap "A note-taking SaaS for freelancers that auto-categorizes
-                     notes with an LLM and surfaces the 3 most relevant notes
-                     for the current calendar block. 12 €/month, freemium."
-```
-
-Agent enters workflow 01. Coach mode. Reads rules, checks `~/.mastermind/global/` (empty for your first project, skipped silently).
-
-Agent fills `memory/00-project-brief.md` draft. Commits.
-
-Agent runs `doubt-surfacer`. Surfaces, for example:
-
-- *"Is 'freelancer' a primary persona or a secondary? Freelancer-as-designer behaves very differently from freelancer-as-writer."*
-- *"Is the calendar integration blocking the MVP or a follow-up? MVP-without-calendar is 3 weeks, MVP-with-calendar is 8 weeks."*
-- *"How are LLM costs absorbed at 100 notes free tier? Rough napkin math?"*
-- *"What platform first — web, iOS, or both? Splitting effort hurts speed."*
-- … (8–20 total)
-
-You answer:
-- Primary persona: **solo freelancer writers / consultants**. Not designers.
-- Calendar is **MVP-blocking** because "3 relevant notes for this calendar block" is the differentiator.
-- LLM costs: budget 2 €/user/month for OpenAI in freemium; cap aggressively.
-- Platform: **web first**, no mobile for MVP.
-- Name: **Notas-AI** (mixed language is fine for this user).
-
-Agent runs `project-deep-audit`. 12 angles. Generates docs/product/*.md. Top 10 risks identified. Hard Truth:
-
-> *"The value proposition depends on the 'relevant notes for this calendar block' feature being accurate enough to be useful. That accuracy depends on a semantic search + LLM pipeline that has not been prototyped. If the pipeline is <70% user-perceived-useful, the whole differentiator collapses. The first slice to build should be a throwaway prototype of this pipeline, not authentication."*
-
-That Hard Truth changes the MVP shape. Noted.
-
-Agent runs `phase-gate-reviewer Discovery`. You approve. `memory/13-phase-history.md` gains the `Idea → Discovery` entry on today's date.
-
-### 9.3 Day 1–5 — Discovery iteration
-
-You use `/mm-audit risks` and `/mm-doubt` multiple times to sharpen specific angles:
-
-- Deep dive on the calendar integration space (Google Calendar + Apple iCloud via CalDAV + Outlook).
-- Validation interviews with 5 freelancer writers (external to the tool; you summarize in `memory/11-session-summary.md`).
-- Research note on semantic search approaches (pgvector, Pinecone, Upstash Vector). Written to `docs/architecture/research/vector-search-2026-05.md`.
-
-At end of week 1:
-
-```
-You → /mm-gate Definition
-```
-
-Agent runs `phase-gate-check`: PASS. Runs `phase-gate-reviewer Definition`. Verdict: PROCEED. You approve. Phase transitions to `Definition`.
-
-### 9.4 Day 6–12 — Definition
-
-```
-You → Use product-requirements to turn the Discovery findings into a PRD.
-```
-
-Agent produces `docs/product/prd.md`:
-
-- **Primary persona:** solo freelancer writer, 1–10 years experience, uses 2+ tools for notes/calendar today.
-- **MVP JTBD:** *"When I sit down for a 45-min focus block to work on Client X, surface my 3 most relevant prior notes so I don't waste 5 min remembering context."*
-- **Success metric (North Star input):** % of focus blocks where the user clicked ≥1 of the 3 surfaced notes within 2 min. Target: > 40% after 2 weeks of use.
-- **Non-goals:** no mobile, no team collaboration, no export to third parties, no custom LLM fine-tuning.
-- **Epics:**
-  1. `auth-mvp` — email + password + session + password reset. ~4 days.
-  2. `notes-crud` — create / edit / list / delete notes. Markdown. No attachments. ~3 days.
-  3. `semantic-search-spike` — **first thing** (Hard Truth dictated this). Build the vector search + LLM pipeline, evaluate accuracy with 50 real notes from the founder. ~5 days.
-  4. `calendar-integration` — Google Calendar only for MVP; read-only; 15-min polling. ~4 days.
-  5. `relevant-notes-surface` — the differentiator. Combines `semantic-search` output + current calendar block context. ~4 days.
-  6. `freemium-billing` — Stripe checkout, 100-note limit, paywall. ~3 days.
-
-You approve. RICE sorts the list the way Hard Truth demanded: `semantic-search-spike` first.
-
-Agent runs `architecture-mapper`:
-
-- Stack picked: **Next.js 15 + TypeScript strict + Supabase (Auth + Postgres with pgvector) + OpenAI API + Stripe + Vercel.** All five dependencies have `research-first` notes.
-- System map diagram. Data flow for the critical flow (focus block → surface 3 notes).
-- NFRs: p95 < 800ms for note retrieval; < 200ms for calendar block lookup; SLA 99% for MVP.
-- ADRs:
-  - `docs/adr/0001-use-pgvector-over-pinecone.md` — pgvector chosen because same DB + simpler ops.
-  - `docs/adr/0002-openai-embeddings-small-model.md` — text-embedding-3-small for cost.
-  - `docs/adr/0003-stripe-over-paddle.md` — Stripe chosen for pricing simplicity in EU.
-
-Agent runs `flow-analyzer` on the two critical flows:
-
-- `docs/flows/signup.md` — magic-link signup, error paths (email bounce, token replay, rate limit).
-- `docs/flows/relevant-notes-surface.md` — the differentiator. 7 error categories covered.
-
-Agent runs `test-strategist`:
-
-- Ratio for MVP: **30/20/50** (heavy E2E on the critical flow).
-- Mock strategy: Stripe sandbox, OpenAI via MSW fixtures + one live canary weekly, Supabase via local Docker.
-- `docs/testing/strategy.md` saved.
-
-Agent runs `feature-breakdown` per epic. Each epic has a `docs/features/<epic-slug>/breakdown.md` with slices.
-
-Sample breakdown for `auth-mvp`:
-
-```
-Slice 1 — DB migration: users, sessions, password_reset_tokens.  (S, 1 day)
-Slice 2 — Signup endpoint + form.                                (M, 2 days)
-Slice 3 — Login endpoint + session cookie.                       (S, 1 day)
-Slice 4 — Password reset flow.                                   (M, 1.5 days)
-Slice 5 — Auth middleware for protected routes.                  (S, 0.5 day)
-```
-
-End of week 2:
-
-```
-You → /mm-gate MVP
-```
-
-Agent verifies: PRD, breakdowns per epic, test strategy, architecture, ADRs — all in place. PROCEED. Phase → MVP.
-
-### 9.5 Day 13–55 — MVP execution
-
-#### Day 13 — Activate task-master-ai
-
-The MVP plan has 6 epics × ~4 slices × ~5 tasks per slice = ~120 tasks. Threshold reached (≥ 10 tasks).
-
-```
-You → pwsh -File scripts/install-taskmaster.ps1 -ClaudeCodeAuth
-     → Restart Cursor.
-     → "Parse the PRD at .taskmaster/docs/prd.md"
-```
-
-Agent runs `parse-prd`. `.taskmaster/tasks.json` gains 120+ tasks with dependencies.
-
-#### Day 13 — First slice: the semantic-search-spike
-
-Hard Truth dictated this order. Do it first, before auth.
-
-```
-You → /mm-ship semantic-search-spike
-```
-
-Workflow 02 runs. Phase 1 (breakdown already done). Phase 2 (`implementation-planner`):
-
-```
-Task 1 — Set up pgvector extension + embeddings table.
-Task 2 — Write OpenAI embedding fetcher with retry/backoff.
-Task 3 — Ingest 50 seed notes (imported from founder's old Notion).
-Task 4 — Write the semantic-search query.
-Task 5 — Build a manual eval harness: given 10 "focus blocks", rank 3 notes; founder rates each set 1-5.
-Task 6 — Run eval, record results in memory/07-decisions-log.md.
-```
-
-Phase 3 (`approval-gatekeeper`): classify as Moderate (data mutations + external API). User confirms.
-
-Phase 4 (`subagent-dispatcher`): the plan has 6 tasks. Dispatcher walks them. For each: implementer subagent (standard model, tasks are multi-file integration) → spec reviewer → code quality reviewer.
-
-Task 5 surfaces an issue: `NEEDS_CONTEXT` — subagent asks what scale the eval should use. Controller provides: 1–5 Likert. Re-dispatched. DONE.
-
-Day 18 — eval result: **average 3.6 / 5**. Bordering on the 70% threshold. You decide (with Claude Opus help via `/mm-doubt`) this is viable, but add a tighter pre-retrieval filter (calendar keyword match). New mini-slice added.
-
-**Reverse flow moment.** Plan updated with new mini-slice `semantic-search-pre-filter`. `memory/07-decisions-log.md` gains an entry. PRD is unchanged (this is architectural; not a scope change).
-
-#### Day 19–22 — auth-mvp slices
-
-```
-You → /mm-ship auth-mvp
-```
-
-Workflow 02. Dispatcher runs 5 slices. All go smoothly; the two-stage review catches:
-
-- **Spec gap on slice 2:** implementer added a "Remember me" checkbox not in the spec. Scope creep. Spec reviewer says SPEC_GAPS. Fixed: removed.
-- **Code quality on slice 5:** magic number `15 * 60 * 1000` for session TTL. Suggestion: extract `SESSION_TTL_MS`. Applied.
-
-All merged by day 22. `memory/06-feature-map.md` shows `auth-mvp` as `Shipped`.
-
-#### Day 23–28 — notes-crud + calendar-integration in parallel
-
-These two epics are genuinely independent (different routes, different data).
-
-```
-You → /mm-ship notes-crud
-(later in the day)
-You → "Can we also run calendar-integration in parallel? The slices don't share files."
-Agent → Running parallel-executor.
-```
-
-`parallel-executor` sequence:
-
-1. **Independence analysis matrix:** notes-crud vs calendar-integration = files disjoint, no shared runtime state. → PARALLEL.
-2. **Spawn two worktrees:**
-   ```
-   pwsh -File scripts/worktree-spawn.ps1 -Slug notes-crud -Type feat -InstallDeps
-   pwsh -File scripts/worktree-spawn.ps1 -Slug calendar-integration -Type feat -InstallDeps
-   ```
-3. **Per worktree:** its own `subagent-dispatcher`.
-4. **Runtime decision:** both spin up Next.js dev servers → port collision risk. Solution: `.worktree-env` per worktree assigns `MM_DEV_PORT` deterministically via hash. First gets 13421, second gets 15692. No Docker needed.
-5. **Merge order:** notes-crud first (schema lands first), then calendar-integration rebased on top.
-6. **Per PR:** `code-reviewer` + `security-review`. Both approved and merged.
-7. **Cleanup:** `scripts/worktree-cleanup.ps1` sweeps both merged worktrees.
-
-Day 28: two epics shipped in 6 wall-clock days instead of ~10.
-
-#### Day 29–35 — relevant-notes-surface
-
-The differentiator. Heavy testing. `test-strategist` invoked for targeted E2E coverage. Playwright MCP activated temporarily (via `claude-side/mcp-config.json` manual edit) for UI verification of the "3 surfaced notes" panel.
-
-#### Day 36–42 — freemium-billing
-
-Stripe integration. `approval-gatekeeper` is strict: every touch of billing requires explicit approval. Sandbox + webhook signing. `security-review` is mandatory (payments). Merged.
-
-#### Day 43 — MVP gate
-
-```
-You → /mm-gate Iteration
-```
-
-Dry-run: PASS. `phase-gate-reviewer`: PROCEED. `memory/13` row: `MVP → Iteration` on day 43.
-
-### 9.6 Day 44 onward — Iteration
-
-#### First bug (day 48)
-
-User reports: *"My notes aren't showing up in my calendar block."* You run:
-
-```
-You → /mm-bug "notes missing from calendar block for user X"
-```
-
-Workflow 03. `bug-investigator`:
-
-- **Phase 1 (Reproduce):** can't reproduce locally. The user agrees to share scrubbed logs. Found: timezone handling bug — calendar block starts are interpreted in server TZ, user is in EST.
-- **Phase 2 (Isolate):** `src/surface/calendar-block.ts:42`.
-- **Phase 3 (Diagnose):** Category = **Assumption** — code assumed UTC.
-- **Phase 4 (Surgical fix):** regression test first (asserts 3PM EST block matches notes tagged near that local time). Test red on broken commit, green after fix.
-
-Post-mortem at `docs/bugs/2026-05-18-tz-calendar-block.md`.
-
-Lesson candidate flagged: *"Any feature that anchors to wall-clock time needs explicit TZ handling in the spec and a regression test per timezone."*
-
-#### Weekly retro (every Friday)
-
-```
-You → /mm-retro
-```
-
-Workflow 05. Week in review. Risk posture check. Drift check (sync-skills + phase-gate + memory/code). Flaky test review. Lesson promotion via `/mm-learn`.
-
-At the retro ending day 52, 3 lesson candidates:
-
-1. *"TZ anchor features need per-TZ regression."* → PROMOTE to `~/.mastermind/global/pitfalls.md`.
-2. *"In-house parse-PRD workflow works; task-master autopilot felt too aggressive for this stack."* → PROMOTE to `~/.mastermind/global/lessons.md`.
-3. *"The pgvector pre-filter approach worked better than raw embedding search at scale."* → PROMOTE to `~/.mastermind/global/patterns.md`.
-
-Each with user approval per entry. Each is a dedicated commit in the `~/.mastermind/global/` repo.
-
-### 9.7 Day 120 — Launch gate
-
-Two months of iteration. Metrics: **42% focus-block note-click rate** (above the 40% target). Paying users: **18** (above the 10-user MVP exit bar). Observability deployed. Incident runbook for DB failure, OpenAI outage, Stripe webhook loss.
-
-```
-You → /mm-gate Launch
-```
-
-`phase-gate-reviewer`: **PROCEED WITH CAVEATS**. The caveat: SLA is declared 99% but the DB is single-region. A multi-region plan exists in `docs/adr/0004-multi-region-plan.md`, scheduled for Q3.
-
-Launch approved. `memory/13` gains `Iteration → Launch` entry.
-
-### 9.8 The journey in commits (simplified)
-
-```
-f00d...  chore: bootstrap from MASTERMIND 2.0 (day 0)
-a1b2...  docs(memory): discovery complete — PRD-ready hard truth (day 5)
-c3d4...  docs(product): PRD v1 + architecture + flows (day 12)
-e5f6...  feat(semantic-search): spike + eval — 3.6/5 accepted (day 18)
-aabb...  feat(auth): MVP auth complete (day 22)
-ccdd...  feat(notes-crud)(calendar): parallel shipped via worktrees (day 28)
-eeff...  feat(surface): relevant-notes-in-calendar-block (day 35)
-0011...  feat(billing): freemium with Stripe (day 42)
-2233...  docs(memory): MVP gate passed — phase→Iteration (day 43)
-4455...  fix(calendar): TZ handling regression + test (day 48)
-...
-9988...  docs(memory): launch gate passed — 42% click rate, 18 paying users (day 120)
-```
-
-### 9.9 What the memory looks like at Launch
-
-```
-memory/
-├── 00-project-brief.md                 — full, up to date
-├── 01-product-vision.md                — expanded with post-MVP learnings
-├── 02-current-state.md                 — Phase: Launch
-├── 03-architecture.md                  — v2 (added queue, caching layer)
-├── 04-data-model.md                    — 7 entities
-├── 05-user-flows.md                    — 8 critical flows indexed
-├── 06-feature-map.md                   — 6 MVP epics Shipped + 4 Iteration epics
-├── 07-decisions-log.md                 — 38 entries, incl. 3 supersessions
-├── 08-known-risks.md                   — 11 risks, 7 Mitigated, 2 Accepted, 2 Open
-├── 09-testing-status.md                — unit 45 / integration 22 / e2e 14 / smoke 8
-├── 10-open-questions.md                — 2 strategic questions deferred to Q3
-├── 11-session-summary.md               — 61 session entries (append mode)
-├── 12-open-doubts-and-questions.md     — 3 open, 34 resolved
-└── 13-phase-history.md                 — 5 transitions (all 5 phase jumps logged)
-
-~/.mastermind/global/
-├── lessons.md     — 7 entries promoted (3 from Notas-AI)
-├── patterns.md    — 4 entries (1 from Notas-AI: pgvector pre-filter)
-├── pitfalls.md    — 6 entries (1 from Notas-AI: TZ anchor)
-├── stacks.md      — Next.js+Supabase+Stripe verdict: Good
-└── vendors.md     — OpenAI, Stripe, Supabase, Vercel verdicts
-```
-
-The system's promise is visible here: every major decision, every major lesson, every transition — persisted. Open the folder in 6 months and you can reconstruct the entire project.
+**It lives in [`docs/EXAMPLE-WALKTHROUGH.md`](docs/EXAMPLE-WALKTHROUGH.md)** (moved out of this guide to keep the operational reference lean; the example is long-form and read once, not per-session).
 
 ---
 
@@ -1882,7 +1542,7 @@ Disable docs hook:       $env:MM_HOOK_DOCS_REFRESH = "off"
 
 ```
 Kernel:                CLAUDE.md
-Rules:                 .cursor/rules/00..07.mdc
+Rules:                 .cursor/rules/00..08.mdc
 Skills (canonical):    .cursor/skills/<name>/SKILL.md
 Skills (mirror):       .claude/skills/ (auto-synced)
 Workflows:             .claude/workflows/01..05
@@ -1896,52 +1556,9 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 
 ## 15. Appendix — full component index
 
-### 15.1 Skills (23)
+### 15.1 Skills (26)
 
-**System 1 — Foundation**
-- `.cursor/skills/doubt-surfacer/SKILL.md`
-- `.cursor/skills/memory-updater/SKILL.md`
-- `.cursor/skills/skill-creator/SKILL.md`
-
-**System 1 — Discovery**
-- `.cursor/skills/project-deep-audit/SKILL.md`
-- `.cursor/skills/product-requirements/SKILL.md`
-- `.cursor/skills/flow-analyzer/SKILL.md`
-- `.cursor/skills/research-first/SKILL.md`
-
-**System 1 — Design**
-- `.cursor/skills/architecture-mapper/SKILL.md`
-- `.cursor/skills/feature-breakdown/SKILL.md`
-
-**System 1 — Execution**
-- `.cursor/skills/implementation-planner/SKILL.md`
-- `.cursor/skills/test-strategist/SKILL.md`
-
-**System 1 — Quality**
-- `.cursor/skills/bug-investigator/SKILL.md`
-- `.cursor/skills/code-reviewer/SKILL.md`
-- `.cursor/skills/security-review/SKILL.md`
-
-**System 2 — Execution foundation**
-- `.cursor/skills/phase-gate-reviewer/SKILL.md`
-- `.cursor/skills/approval-gatekeeper/SKILL.md`
-
-**System 2 — Orchestration**
-- `.cursor/skills/subagent-dispatcher/SKILL.md`
-- `.cursor/skills/parallel-executor/SKILL.md`
-
-**System 2 — Learning**
-- `.cursor/skills/continuous-learner/SKILL.md`
-
-**System 2 — Onboarding**
-- `.cursor/skills/retroactive-documenter/SKILL.md`
-
-**System 2 — Quality gate**
-- `.cursor/skills/skill-quality-evaluator/SKILL.md`
-
-**System 1 — Design & prototyping**
-- `.cursor/skills/prototype-designer/SKILL.md` — single-feature prototyping (during MVP / Iteration)
-- `.cursor/skills/mockup-factory/SKILL.md` — full-app iterative prototyping (dedicated Prototype phase)
+Full inventory with roles is in **§3 (Skill inventory map)** — 17 System 1 + 9 System 2. Canonical files live in `.cursor/skills/<name>/SKILL.md` (mirrored to `.claude/skills/`). The authoritative, always-current list is generated by `/mm-template-audit` → `.mastermind/runtime/component-manifest.json`.
 
 ### 15.2 Rules (9)
 
@@ -1966,7 +1583,7 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.claude/workflows/07-full-app-prototyping.md`
 - `.claude/workflows/README.md` (index)
 
-### 15.4 Commands (14)
+### 15.4 Commands (17)
 
 - `.claude/commands/mm-bootstrap.md`
 - `.claude/commands/mm-audit.md`
@@ -1982,25 +1599,14 @@ Plans:                 .cursor/plans/YYYY-MM-DD-<slug>.md
 - `.claude/commands/mm-onboard.md`
 - `.claude/commands/mm-design.md`
 - `.claude/commands/mm-mockup.md`
+- `.claude/commands/mm-premortem.md`
+- `.claude/commands/mm-template-audit.md`
+- `.claude/commands/mm-qa.md`
 - `.claude/commands/README.md` (index)
 
-### 15.5 Memory files (14)
+### 15.5 Memory files (15)
 
-- `memory/00-project-brief.md`
-- `memory/01-product-vision.md`
-- `memory/02-current-state.md`
-- `memory/03-architecture.md`
-- `memory/04-data-model.md`
-- `memory/05-user-flows.md`
-- `memory/06-feature-map.md`
-- `memory/07-decisions-log.md`
-- `memory/08-known-risks.md`
-- `memory/09-testing-status.md`
-- `memory/10-open-questions.md`
-- `memory/11-session-summary.md`
-- `memory/12-open-doubts-and-questions.md`
-- `memory/13-phase-history.md`
-- `memory/14-design-system.md`
+`memory/00`–`14` (project-brief, product-vision, current-state, architecture, data-model, user-flows, feature-map, decisions-log, known-risks, testing-status, open-questions, session-summary, open-doubts-and-questions, phase-history, design-system). `11` is append-mode; `13` is phase history. Each ships as a `_TBD_` placeholder on a fresh clone.
 
 ### 15.6 Hooks
 

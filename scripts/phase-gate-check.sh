@@ -36,6 +36,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 STATE_FILE="$REPO_ROOT/memory/02-current-state.md"
 HISTORY_FILE="$REPO_ROOT/memory/13-phase-history.md"
+CRITERIA_FILE="$REPO_ROOT/phase-criteria.json"
 
 if [[ ! -f "$STATE_FILE" ]]; then
   echo "BLOCK: memory/02-current-state.md is missing." >&2
@@ -45,10 +46,18 @@ if [[ ! -f "$HISTORY_FILE" ]]; then
   echo "BLOCK: memory/13-phase-history.md is missing." >&2
   exit 2
 fi
+if [[ ! -f "$CRITERIA_FILE" ]]; then
+  echo "BLOCK: phase-criteria.json is missing." >&2
+  exit 2
+fi
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "BLOCK: python3 is required to read phase-criteria.json." >&2
+  exit 2
+fi
 
 CURRENT_PHASE="$(grep -Ei '^\*\*Phase:\*\*' "$STATE_FILE" | head -n1 | sed -E 's/.*\*\*Phase:\*\*[[:space:]]+([A-Za-z]+).*/\1/')"
 case "$CURRENT_PHASE" in
-  Idea|Discovery|Definition|MVP|Iteration|Launch) ;;
+  Idea|Discovery|Definition|Prototype|MVP|Iteration|Launch) ;;
   *)
     echo "BLOCK: Could not detect a concrete current phase in memory/02-current-state.md."
     echo "       Expected a line like '**Phase:** MVP' with one phase name."
@@ -63,41 +72,19 @@ echo "Current phase: $CURRENT_PHASE"
 [[ -n "$NEXT_PHASE" ]] && echo "Checking target: $NEXT_PHASE"
 echo ""
 
-# Expected artifacts per phase
+# Expected artifacts per phase — read from the single source of truth (phase-criteria.json).
 artifacts_for() {
-  case "$1" in
-    Idea)
-      printf '%s\n' 'memory/00-project-brief.md'
-      ;;
-    Discovery)
-      printf '%s\n' \
-        'memory/00-project-brief.md' \
-        'docs/product/executive-summary.md' \
-        'docs/product/personas.md' \
-        'docs/product/competitive-analysis.md' \
-        'memory/08-known-risks.md'
-      ;;
-    Definition)
-      printf '%s\n' \
-        'docs/product/prd.md' \
-        'docs/architecture/system-map.md' \
-        'memory/06-feature-map.md' \
-        'memory/03-architecture.md'
-      ;;
-    MVP)
-      printf '%s\n' \
-        'docs/testing/strategy.md' \
-        'docs/flows'
-      ;;
-    Iteration)
-      printf '%s\n' 'memory/11-session-summary.md'
-      ;;
-    Launch)
-      printf '%s\n' \
-        'docs/security/security-risk-map.md' \
-        'docs/adr'
-      ;;
-  esac
+  CRITERIA_FILE="$CRITERIA_FILE" PHASE="$1" python3 - <<'PY'
+import json, os
+with open(os.environ["CRITERIA_FILE"], encoding="utf-8") as f:
+    data = json.load(f)
+phase = os.environ["PHASE"]
+for p in data["phases"]:
+    if p["name"] == phase:
+        for path in p.get("expected_artifact_paths", []):
+            print(path)
+        break
+PY
 }
 
 check_artifact() {

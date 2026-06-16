@@ -1,6 +1,6 @@
 ---
 name: phase-gate-reviewer
-description: Validates whether a project is ready to transition from its current phase (Idea / Discovery / Definition / Prototype / MVP / Iteration / Launch) to the next. Use at the end of every phase, before starting work that belongs to the next phase, when the user asks "are we ready to advance", "phase gate", "can we move to Prototype / MVP / Launch / Iteration", or when memory/02-current-state.md shows all expected artifacts of a phase are produced. Reads the entry/exit criteria canonical table from memory/13-phase-history.md, verifies artifacts exist and are not stale, checks risks/open doubts/decisions, emits a BLOCK / PROCEED verdict with a gap list and recommended remediations, updates memory/13 and memory/02 only after user confirmation, and never advances the phase silently. Prototype is the only optional canonical phase — non-UI projects may skip Definition→MVP directly with `--skip-reason "no UI"`.
+description: Validates whether a project is ready to transition from its current phase (Idea / Discovery / Definition / Prototype / MVP / Iteration / Launch) to the next. Use at the end of every phase, before starting work that belongs to the next phase, when the user asks "are we ready to advance", "phase gate", "can we move to Prototype / MVP / Launch / Iteration", or when memory/02-current-state.md shows all expected artifacts of a phase are produced. Reads the entry/exit criteria from the canonical phase-criteria.json (the memory/13-phase-history.md table is generated from it), verifies artifacts exist and are not stale, checks risks/open doubts/decisions, emits a BLOCK / PROCEED verdict with a gap list and recommended remediations, updates memory/13 and memory/02 only after user confirmation, and never advances the phase silently. Prototype is the only optional canonical phase — non-UI projects may skip Definition→MVP directly with `--skip-reason "no UI"`.
 ---
 
 # Phase Gate Reviewer
@@ -67,7 +67,7 @@ If the proposed next phase is **not** the natural next step (e.g. skipping from 
 
 ### Step 2 — Load the canonical criteria
 
-From `memory/13-phase-history.md §Phase definitions`, read the expected artifacts of the current phase and the entry criteria of the next. The table there is canonical — do not invent new criteria.
+Read the criteria from **`phase-criteria.json`** at the repo root — this is the single source of truth for every phase's `purpose`, `entry_criteria`, `exit_criteria`, and `expected_artifact_paths`. The `memory/13-phase-history.md §Phase definitions` table is **generated** from this file (via `scripts/render-phase-criteria`), so use the JSON, not a hand-copied table. Do not invent new criteria; if the criteria need to change, edit `phase-criteria.json` and re-render, logging the change as a decision.
 
 If a criterion needs nuance for this project (e.g. the project is a mobile app and some web-specific criteria do not apply), state the adaptation and justify in writing.
 
@@ -91,7 +91,7 @@ Emit per artifact:
 
 ### Step 4 — Check entry criteria of the next phase
 
-For the next phase, verify the preconditions stated in `memory/13-phase-history.md §Phase definitions`. Examples:
+For the next phase, verify the preconditions in **`phase-criteria.json` → the target phase's `entry_criteria`** (authoritative). The examples below are illustrative summaries of that file — if they ever disagree with `phase-criteria.json`, the JSON wins:
 
 - **Definition → Prototype:** (UI projects) PRD approved, MVP boundary set, `memory/14 §Platform` set to web/mobile/cross, `memory/14` identity + tokens sections filled, `memory/05-user-flows.md` populated, `memory/06-feature-map.md` with MVP slices identified, design system installed (`components.json` present), Claude Design access available.
 - **Definition → MVP (direct skip):** For **non-UI projects only** (backend services, CLIs, libraries, SDKs). Invoke with `--skip-reason "no UI"` or equivalent justification. Record the skip in `memory/13-phase-history.md` and `memory/07-decisions-log.md`. Entry criteria otherwise same as Definition → MVP below.
@@ -226,5 +226,5 @@ Based on the new phase, emit a **HIGH** Command Recommendation with a per-phase 
 - **NEVER:** Rubber-stamp the gate because the user is in a hurry. If there is a blocker, name it.
 - **NEVER:** Skip Step 7 (presenting the draft entry) and write directly to `memory/13`. The user must confirm.
 - **NEVER:** Gate a phase whose current-state is ambiguous. Run `doubt-surfacer` first.
-- **NEVER:** Invent new criteria to gate a project. The canonical table in `memory/13-phase-history.md §Phase definitions` is the source of truth; if it needs updating, update it explicitly with a decision log entry.
+- **NEVER:** Invent new criteria to gate a project. `phase-criteria.json` is the single source of truth (the `memory/13 §Phase definitions` table is generated from it); if criteria need updating, edit the JSON, re-render, and log a decision.
 - **NEVER:** Force PROCEED on BLOCK by hand-waving the blockers. If blockers exist, the remediation path is to close them, not to reclassify them as "acceptable".

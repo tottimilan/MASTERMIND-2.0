@@ -20,15 +20,16 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('Idea','Discovery','Definition','MVP','Iteration','Launch')]
+    [ValidateSet('Idea','Discovery','Definition','Prototype','MVP','Iteration','Launch')]
     [string]$NextPhase
 )
 
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
-$stateFile   = Join-Path $repoRoot 'memory\02-current-state.md'
-$historyFile = Join-Path $repoRoot 'memory\13-phase-history.md'
+$stateFile    = Join-Path $repoRoot 'memory\02-current-state.md'
+$historyFile  = Join-Path $repoRoot 'memory\13-phase-history.md'
+$criteriaFile = Join-Path $repoRoot 'phase-criteria.json'
 
 if (-not (Test-Path $stateFile)) {
     Write-Host "BLOCK: memory/02-current-state.md is missing. Cannot determine current phase." -ForegroundColor Red
@@ -38,10 +39,14 @@ if (-not (Test-Path $historyFile)) {
     Write-Host "BLOCK: memory/13-phase-history.md is missing. Cannot read canonical phase definitions." -ForegroundColor Red
     exit 2
 }
+if (-not (Test-Path $criteriaFile)) {
+    Write-Host "BLOCK: phase-criteria.json is missing. Cannot read canonical phase criteria." -ForegroundColor Red
+    exit 2
+}
 
 # Infer current phase from memory/02 (line containing "Phase: X" with a concrete value)
 $stateContent = Get-Content $stateFile -Raw
-$match = [regex]::Match($stateContent, '(?im)^\*\*Phase:\*\*\s+(Idea|Discovery|Definition|MVP|Iteration|Launch)')
+$match = [regex]::Match($stateContent, '(?im)^\*\*Phase:\*\*\s+(Idea|Discovery|Definition|Prototype|MVP|Iteration|Launch)')
 if (-not $match.Success) {
     # Try alternate form: **Phase:** Idea | Discovery | ...  (unresolved placeholder)
     Write-Host "BLOCK: Could not detect a concrete current phase in memory/02-current-state.md." -ForegroundColor Red
@@ -57,33 +62,11 @@ Write-Host "Current phase: $currentPhase"
 if ($NextPhase) { Write-Host "Checking against target: $NextPhase" }
 Write-Host ""
 
-# Canonical expected artifacts per phase (aligned with memory/13 §Phase definitions)
-$expectedArtifacts = @{
-    'Idea'       = @('memory/00-project-brief.md')
-    'Discovery'  = @(
-        'memory/00-project-brief.md',
-        'docs/product/executive-summary.md',
-        'docs/product/personas.md',
-        'docs/product/competitive-analysis.md',
-        'memory/08-known-risks.md'
-    )
-    'Definition' = @(
-        'docs/product/prd.md',
-        'docs/architecture/system-map.md',
-        'memory/06-feature-map.md',
-        'memory/03-architecture.md'
-    )
-    'MVP'        = @(
-        'docs/testing/strategy.md',
-        'docs/flows'
-    )
-    'Iteration'  = @(
-        'memory/11-session-summary.md'
-    )
-    'Launch'     = @(
-        'docs/security/security-risk-map.md',
-        'docs/adr'
-    )
+# Canonical expected artifacts per phase — read from the single source of truth.
+$criteria = Get-Content $criteriaFile -Raw | ConvertFrom-Json
+$expectedArtifacts = @{}
+foreach ($p in $criteria.phases) {
+    $expectedArtifacts[$p.name] = @($p.expected_artifact_paths)
 }
 
 function Test-ArtifactFresh {
