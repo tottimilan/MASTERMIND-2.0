@@ -116,8 +116,9 @@ Write-Host ""
 # --- Whitelist (template side) --------------------------------------------------
 $whitelistGlobs = @(
     'CLAUDE.md','AGENTS.md','README.md','OPERATING-GUIDE.md','COMMANDS.md',
-    '.gitignore','.env.example',
+    '.gitignore','.env.example','phase-criteria.json',
     '.cursor/rules/*.mdc',
+    '.cursor/rules/references/*',
     '.cursor/skills/**/*',
     '.cursor/hooks/*.md',
     '.claude/CLAUDE.md',

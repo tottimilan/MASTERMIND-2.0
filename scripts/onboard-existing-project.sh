@@ -88,10 +88,11 @@ echo ""
 collect_whitelist() {
   (
     cd "$TEMPLATE_ROOT"
-    for f in CLAUDE.md AGENTS.md README.md OPERATING-GUIDE.md COMMANDS.md .gitignore .env.example; do
+    for f in CLAUDE.md AGENTS.md README.md OPERATING-GUIDE.md COMMANDS.md .gitignore .env.example phase-criteria.json; do
       [[ -f "$f" ]] && echo "$f"
     done
-    find .cursor/rules -type f -name '*.mdc' 2>/dev/null
+    find .cursor/rules -maxdepth 1 -type f -name '*.mdc' 2>/dev/null
+    find .cursor/rules/references -type f -name '*.md' 2>/dev/null
     find .cursor/skills -type f 2>/dev/null
     find .cursor/hooks -maxdepth 1 -type f -name '*.md' 2>/dev/null
     [[ -f ".claude/CLAUDE.md" ]] && echo ".claude/CLAUDE.md"
