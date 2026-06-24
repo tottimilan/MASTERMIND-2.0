@@ -8,8 +8,8 @@
     Defaults to DRY-RUN: nothing is written. Pass -Apply to actually write, with automatic backups grouped in .mastermind-backups/sync-YYYYMMDD-HHMMSS/ (relative paths preserved inside). The backup folder is auto-added to .gitignore so it never pollutes commits.
 
     What gets synced (whitelist):
-      Root docs         : CLAUDE.md, AGENTS.md, README.md, OPERATING-GUIDE.md, COMMANDS.md, .gitignore, .env.example
-      Rules             : .cursor/rules/*.mdc
+      Root docs         : CLAUDE.md, AGENTS.md, README.md, OPERATING-GUIDE.md, COMMANDS.md, .gitignore, .env.example, phase-criteria.json
+      Rules             : .cursor/rules/*.mdc, .cursor/rules/references/*
       Skills (canon)    : .cursor/skills/**
       Hooks (cursor)    : .cursor/hooks/*.md
       Claude kernel     : .claude/CLAUDE.md
@@ -121,7 +121,9 @@ $whitelistGlobs = @(
     'COMMANDS.md',
     '.gitignore',
     '.env.example',
+    'phase-criteria.json',
     '.cursor/rules/*.mdc',
+    '.cursor/rules/references/*',
     '.cursor/skills/**/*',
     '.cursor/hooks/*.md',
     '.claude/CLAUDE.md',
@@ -381,6 +383,11 @@ Write-Host "  3. Commit: git add . && git commit -m 'chore: sync from MASTERMIND
 Write-Host "  4. Reload Cursor window (Ctrl+Shift+P -> Developer: Reload Window)."
 Write-Host "  5. Restart Claude Desktop / Claude Code fully."
 Write-Host "  6. Sanity check: 'List the active hooks in this repo' -> expect the latest set."
+Write-Host "  7. If phase-criteria.json is new here, your memory/13-phase-history.md (protected) may"
+Write-Host "     predate the generated markers. Wrap its '## Phase definitions' table with"
+Write-Host "     '<!-- BEGIN generated:phase-definitions ... -->' / '<!-- END ... -->' (keep your"
+Write-Host "     transitions history), then run: pwsh -File scripts/render-phase-criteria.ps1"
+Write-Host "  8. Run: pwsh -File scripts/template-audit.ps1   (expect PASS)."
 Write-Host ""
 Write-Host "When confident, clean up this session's backups:" -ForegroundColor DarkGray
 Write-Host "  Remove-Item -Recurse -Force .mastermind-backups\sync-$ts" -ForegroundColor DarkGray

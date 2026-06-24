@@ -100,11 +100,12 @@ collect_whitelist() {
   (
     cd "$TEMPLATE_ROOT"
     # Root docs
-    for f in CLAUDE.md AGENTS.md README.md OPERATING-GUIDE.md COMMANDS.md .gitignore .env.example; do
+    for f in CLAUDE.md AGENTS.md README.md OPERATING-GUIDE.md COMMANDS.md .gitignore .env.example phase-criteria.json; do
       [[ -f "$f" ]] && echo "$f"
     done
-    # Rules
-    find .cursor/rules -type f -name '*.mdc' 2>/dev/null
+    # Rules (.mdc) + on-demand references they point to
+    find .cursor/rules -maxdepth 1 -type f -name '*.mdc' 2>/dev/null
+    find .cursor/rules/references -type f -name '*.md' 2>/dev/null
     # Skills canonical
     find .cursor/skills -type f 2>/dev/null
     # Hooks cursor (only md)
@@ -299,6 +300,11 @@ echo "  3. Commit: git add . && git commit -m 'chore: sync from MASTERMIND templ
 echo "  4. Reload Cursor window or reopen."
 echo "  5. Restart Claude Desktop / Claude Code fully."
 echo "  6. Sanity check: ask 'List the active hooks in this repo' -> expect the latest set."
+echo "  7. If phase-criteria.json is new here, your memory/13-phase-history.md (protected) may"
+echo "     predate the generated markers. Wrap its '## Phase definitions' table with"
+echo "     '<!-- BEGIN generated:phase-definitions ... -->' / '<!-- END ... -->' (keep your"
+echo "     transitions history), then run: bash scripts/render-phase-criteria.sh"
+echo "  8. Run: bash scripts/template-audit.sh   (expect PASS)."
 echo ""
 echo "When confident, clean up this session's backups:"
 echo "  rm -rf .mastermind-backups/sync-$TS"
