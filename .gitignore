@@ -93,7 +93,9 @@ temp/
 .mastermind-backups/
 
 # --- Local research notes (out of git, used to evaluate ecosystem tools). ---
-research/
+# Anchored to repo root on purpose: project research under docs/ (e.g.
+# docs/architecture/research/, written by the research-first skill) IS versioned.
+/research/
 
 # --- Template-author meta-work (kept local, never committed). See .template-meta/README.md. ---
 .template-meta/
