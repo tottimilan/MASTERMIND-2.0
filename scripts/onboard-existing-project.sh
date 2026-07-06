@@ -88,7 +88,7 @@ echo ""
 collect_whitelist() {
   (
     cd "$TEMPLATE_ROOT"
-    for f in CLAUDE.md AGENTS.md README.md OPERATING-GUIDE.md COMMANDS.md .gitignore .env.example; do
+    for f in CLAUDE.md AGENTS.md README.md OPERATING-GUIDE.md COMMANDS.md phase-criteria.json .gitignore .env.example; do
       [[ -f "$f" ]] && echo "$f"
     done
     find .cursor/rules -type f -name '*.mdc' 2>/dev/null
