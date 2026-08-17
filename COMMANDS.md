@@ -1,6 +1,8 @@
 # COMMANDS.md — Quick reference for `/mm-*`
 
 > **What this is.** A fast, operational reference for the **17 slash commands** in this project. Designed to stay open and answer the question *"which command do I run now?"* in 5 seconds.
+
+**Efficiency tip:** For code-heavy work, use optional Code Intelligence MCP (see CLAUDE.md) — agents query graphs instead of full files for token savings. Pre-seeded in many skills/workflows.
 >
 > **What this is NOT.** This is not the deep system documentation — for that, open [`OPERATING-GUIDE.md`](OPERATING-GUIDE.md). This is not the skill catalog — those live in `.cursor/skills/` and `.claude/skills/`.
 

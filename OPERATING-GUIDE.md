@@ -289,6 +289,7 @@ The 26 skills, grouped by role along the project lifecycle.
 | Skill | Role |
 |---|---|
 | `context-budget` | Active management of the agent's own context window: persist to `memory/` first, compact at ~70% of the usable window, clear stale tool results, keep guardrails resident. Markdown on disk stays canonical; live context is a disposable working set. |
+| Code Intelligence (opt.) | Tree-sitter/graph MCPs (e.g. jCodeMunch) for symbol-level code retrieval (callers, impact) instead of full files. Reduces tokens in code-heavy work (audits, plans). See CLAUDE.md §Code Context Layer. Integrated in relevant skills. |
 
 ### Shape of a skill
 

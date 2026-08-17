@@ -20,6 +20,12 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
       }
+    },
+    "code-intelligence": {
+      "_note": "Optional Code Intelligence MCP (tree-sitter). Add when you want to reduce tokens on codebase reads during audits and multi-agent work. Examples: jcodemunch-mcp or code-review-graph.",
+      "command": "npx",
+      "args": ["-y", "jcodemunch-mcp"],
+      "env": {}
     }
   }
 }

@@ -162,6 +162,7 @@ Entry points:
 
 - **Rule:** [`.cursor/rules/08-design-system.mdc`](.cursor/rules/08-design-system.mdc) — platform-aware conventions (web track + mobile track + cross).
 - **Memory:** [`memory/14-design-system.md`](memory/14-design-system.md) — per-project source of truth with a Platform field, shared identity + tokens, mobile-specific section, patterns, likes, anti-patterns.
+- **Context efficiency:** Optional Code Intelligence MCP (tree-sitter/graph) for precise code retrieval (symbols, callers, impact) instead of full files — see CLAUDE.md §Code Context Layer. Reduces tokens in audits/plans/multi-agent work.
 - **Skill:** [`.cursor/skills/prototype-designer/SKILL.md`](.cursor/skills/prototype-designer/SKILL.md) — composes Claude Design prompts tuned by Platform.
 - **Command:** [`/mm-design`](.claude/commands/mm-design.md).
 - **Script (install):** [`scripts/install-shadcn-mcp.ps1`](scripts/install-shadcn-mcp.ps1) (`.sh`) — platform-aware installer, auto-detects Expo vs Next.js.

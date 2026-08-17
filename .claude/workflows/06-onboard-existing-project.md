@@ -90,6 +90,8 @@ This workflow is the canonical path for that scenario. It is deliberately parano
 
 ### Phase 5 — Retroactive memory seed (Coach → Executor)
 
+**Code Intelligence note (Claude efficiency):** The retroactive-documenter does heavy codebase reading. If a Code Intelligence MCP is configured, it will use graph queries for symbols and structure (per its skill note) — this is the ideal moment to have it installed for onboarding existing projects.
+
 - **Skill:** [`retroactive-documenter`](../../.cursor/skills/retroactive-documenter/SKILL.md)
 - **Mode:** Coach (reviews), Executor (writes)
 - **Input:** the codebase + the now-installed memory skeleton.

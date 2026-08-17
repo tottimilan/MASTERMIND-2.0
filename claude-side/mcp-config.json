@@ -42,6 +42,12 @@
       "_note": "Install only when UI flow verification is needed.",
       "command": "npx",
       "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "code-intelligence": {
+      "_note": "Optional Code Intelligence MCP (tree-sitter/graph) for precise symbol, caller and impact queries instead of full file reads. Huge win for audits, plans and multi-agent in Claude. Examples: jcodemunch-mcp or code-review-graph. Install per-project (see docs or CLAUDE.md §Code Context Layer). Add to your Claude Desktop config for adoption. Degrades to normal reads if not present.",
+      "command": "npx",
+      "args": ["-y", "jcodemunch-mcp"],
+      "env": {}
     }
   }
 }
