@@ -128,7 +128,7 @@ The agent reads the file and follows the script. Same end result.
 - **When:** you believe you have completed the exit criteria of the current phase (Idea / Discovery / Definition / Prototype / MVP / Iteration) and want to advance to the next.
 - **Does:** dry-run with `scripts/phase-gate-check.ps1` → reports PASS/GAPS/BLOCK → remediation if gaps exist → invokes `phase-gate-reviewer` → presents the transition entry to the user → waits for `approve`/`adjust`/`block` → writes to `memory/13-phase-history.md`, `memory/02-current-state.md`, and `memory/07-decisions-log.md` → hands off to the next natural workflow.
 - **Hard rule:** **never advance a phase by editing `memory/02-current-state.md` by hand**. The workflow runs end-to-end, always.
-- **Argument (required):** one of `Discovery`, `Definition`, `MVP`, `Iteration`, `Launch`.
+- **Argument (required):** one of `Discovery`, `Definition`, `Prototype`, `MVP`, `Iteration`, `Launch`. (`Prototype` is optional — non-UI projects skip Definition→MVP with `--skip-reason "no UI"`.)
 
 ### 10. `/mm-retro` — Weekly retrospective
 
