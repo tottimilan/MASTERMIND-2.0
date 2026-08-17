@@ -1,7 +1,7 @@
 # Open Doubts and Questions — [PROJECT NAME]
 
 **Last updated:** YYYY-MM-DD
-**Current phase:** [e.g. Idea / Discovery / Definition / MVP / Iteration / Launch]
+**Current phase:** [e.g. Idea / Discovery / Definition / Prototype / MVP / Iteration / Launch]
 
 > This file is the living record of the project's open doubts, the questions the AI has asked the user, and the user's own observations.
 > It is updated at every checkpoint, before and after any important document or implementation.
